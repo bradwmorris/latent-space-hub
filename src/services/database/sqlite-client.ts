@@ -29,6 +29,8 @@ class SQLiteClient {
   private readonly embeddingsDisabled: boolean;
   private initialized: boolean = false;
 
+  private isPlaceholder: boolean = false;
+
   private constructor() {
     this.embeddingsDisabled = process.env.DISABLE_EMBEDDINGS === 'true';
 
@@ -37,11 +39,12 @@ class SQLiteClient {
 
     if (!url) {
       // During build time, env vars may not be available
-      // Use a dummy client that will fail at runtime if actually used
+      // Mark as placeholder so we can re-initialize at runtime
       console.warn('TURSO_DATABASE_URL not set - using placeholder (build time?)');
       this.client = createClient({
         url: 'file::memory:',
       });
+      this.isPlaceholder = true;
       return;
     }
 
@@ -54,6 +57,13 @@ class SQLiteClient {
   }
 
   public static getInstance(): SQLiteClient {
+    // If we have an instance but it's a placeholder AND env vars are now available,
+    // re-create with the real connection
+    if (SQLiteClient.instance?.isPlaceholder && process.env.TURSO_DATABASE_URL) {
+      console.log('Re-initializing Turso client with real credentials');
+      SQLiteClient.instance = new SQLiteClient();
+    }
+
     if (!SQLiteClient.instance) {
       SQLiteClient.instance = new SQLiteClient();
     }
@@ -248,15 +258,11 @@ class SQLiteClient {
   }
 }
 
-// Lazy singleton - only created when first accessed
-let _instance: SQLiteClient | null = null;
-
-// Export function to get client instance (lazy initialization)
+// Export function to get client instance (creates new each time if needed)
 export function getSQLiteClient(): SQLiteClient {
-  if (!_instance) {
-    _instance = SQLiteClient.getInstance();
-  }
-  return _instance;
+  // Always get a fresh instance - the class handles singleton internally
+  // but will re-create if it was a placeholder and env vars are now available
+  return SQLiteClient.getInstance();
 }
 
 // For backwards compatibility
