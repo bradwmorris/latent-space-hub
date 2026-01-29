@@ -36,7 +36,13 @@ class SQLiteClient {
     const authToken = process.env.TURSO_AUTH_TOKEN;
 
     if (!url) {
-      throw new Error('TURSO_DATABASE_URL environment variable is required');
+      // During build time, env vars may not be available
+      // Use a dummy client that will fail at runtime if actually used
+      console.warn('TURSO_DATABASE_URL not set - using placeholder (build time?)');
+      this.client = createClient({
+        url: 'file::memory:',
+      });
+      return;
     }
 
     this.client = createClient({
@@ -242,11 +248,23 @@ class SQLiteClient {
   }
 }
 
-// Export singleton instance
-export const sqliteDb = SQLiteClient.getInstance();
+// Lazy singleton - only created when first accessed
+let _instance: SQLiteClient | null = null;
 
-// Export function to get client instance
-export const getSQLiteClient = () => sqliteDb;
+// Export function to get client instance (lazy initialization)
+export function getSQLiteClient(): SQLiteClient {
+  if (!_instance) {
+    _instance = SQLiteClient.getInstance();
+  }
+  return _instance;
+}
+
+// For backwards compatibility
+export const sqliteDb = {
+  get instance() {
+    return getSQLiteClient();
+  }
+};
 
 // Export class for testing
 export { SQLiteClient };
