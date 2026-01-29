@@ -146,10 +146,10 @@ export class ChatLoggingMiddleware {
       };
 
       const sqlite = getSQLiteClient();
-      const result = sqlite.prepare(`
-        INSERT INTO chats (chat_type, user_message, assistant_message, thread_id, focused_node_id, helper_name, agent_type, delegation_id, created_at, metadata) 
+      const result = await sqlite.query(`
+        INSERT INTO chats (chat_type, user_message, assistant_message, thread_id, focused_node_id, helper_name, agent_type, delegation_id, created_at, metadata)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `, [
         chatEntry.chat_type,
         chatEntry.user_message,
         chatEntry.assistant_message,
@@ -160,7 +160,7 @@ export class ChatLoggingMiddleware {
         chatEntry.delegation_id,
         createdAt,
         JSON.stringify(chatEntry.metadata)
-      );
+      ]);
       console.log(`✅ Chat logged for ${metadata.helperName}, ID: ${result.lastInsertRowid}`);
 
       const lastInsertedChatId = Number(result.lastInsertRowid);

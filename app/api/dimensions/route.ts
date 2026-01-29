@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
 import { eventBroadcaster } from '@/services/events';
-import { DimensionService } from '@/services/database/dimensionService';
 
 export const runtime = 'nodejs';
 
@@ -10,7 +9,7 @@ export async function GET() {
     const sqlite = getSQLiteClient();
 
     // Get all dimensions with their counts
-    const result = sqlite.query(`
+    const result = await sqlite.query(`
       WITH dimension_counts AS (
         SELECT nd.dimension, COUNT(*) AS count
         FROM node_dimensions nd
@@ -50,7 +49,7 @@ export async function POST(request: NextRequest) {
     const rawName = typeof body?.name === 'string' ? body.name.trim() : '';
     const description = typeof body?.description === 'string' ? body.description.trim() : null;
     const isPriority = typeof body?.isPriority === 'boolean' ? body.isPriority : false;
-    
+
     if (!rawName) {
       return NextResponse.json({
         success: false,
@@ -66,10 +65,10 @@ export async function POST(request: NextRequest) {
     }
 
     const sqlite = getSQLiteClient();
-    const result = sqlite.query(`
+    const result = await sqlite.query(`
       INSERT INTO dimensions(name, description, is_priority, updated_at)
       VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(name) DO UPDATE SET 
+      ON CONFLICT(name) DO UPDATE SET
         description = COALESCE(?, description),
         is_priority = COALESCE(?, is_priority),
         updated_at = CURRENT_TIMESTAMP
@@ -115,15 +114,16 @@ export async function PUT(request: NextRequest) {
     const name = typeof body?.name === 'string' ? body.name.trim() : '';
     const description = typeof body?.description === 'string' ? body.description.trim() : '';
     const isPriority = typeof body?.isPriority === 'boolean' ? body.isPriority : undefined;
-    
+
+    const sqlite = getSQLiteClient();
+
     // Handle isPriority update (lock/unlock) - simple case
     if (isPriority !== undefined && name && !currentName && !newName) {
-      const sqlite = getSQLiteClient();
-      const updateResult = sqlite.prepare(`
-        UPDATE dimensions 
-        SET is_priority = ?, updated_at = CURRENT_TIMESTAMP 
+      const updateResult = await sqlite.query(`
+        UPDATE dimensions
+        SET is_priority = ?, updated_at = CURRENT_TIMESTAMP
         WHERE name = ?
-      `).run(isPriority ? 1 : 0, name);
+      `, [isPriority ? 1 : 0, name]);
 
       if (updateResult.changes === 0) {
         return NextResponse.json({
@@ -142,7 +142,7 @@ export async function PUT(request: NextRequest) {
         data: { dimension: name, isPriority }
       });
     }
-    
+
     // Handle dimension name change
     if (currentName && newName && currentName !== newName) {
       if (!newName) {
@@ -152,10 +152,8 @@ export async function PUT(request: NextRequest) {
         }, { status: 400 });
       }
 
-      const sqlite = getSQLiteClient();
-      
       // Check if new name already exists
-      const existingCheck = sqlite.query(`
+      const existingCheck = await sqlite.query(`
         SELECT name FROM dimensions WHERE name = ?
       `, [newName]);
 
@@ -166,58 +164,50 @@ export async function PUT(request: NextRequest) {
         }, { status: 400 });
       }
 
-      // Update dimension name in transaction (also handle description and isPriority if provided)
-      const updateResult = sqlite.transaction(() => {
-        // Build update query with optional fields
-        const updates: string[] = ['name = ?', 'updated_at = CURRENT_TIMESTAMP'];
-        const values: any[] = [newName];
-        
-        if (description !== '') {
-          updates.push('description = ?');
-          values.push(description || null);
-        }
-        
-        if (isPriority !== undefined) {
-          updates.push('is_priority = ?');
-          values.push(isPriority ? 1 : 0);
-        }
-        
-        values.push(currentName);
-        
-        const dimUpdate = sqlite.prepare(`
-          UPDATE dimensions 
-          SET ${updates.join(', ')}
-          WHERE name = ?
-        `).run(...values);
+      // Build update query with optional fields
+      const updates: string[] = ['name = ?', 'updated_at = CURRENT_TIMESTAMP'];
+      const values: any[] = [newName];
 
-        // Update node_dimensions table
-        const nodeDimUpdate = sqlite.prepare(`
-          UPDATE node_dimensions 
-          SET dimension = ? 
-          WHERE dimension = ?
-        `).run(newName, currentName);
+      if (description !== '') {
+        updates.push('description = ?');
+        values.push(description || null);
+      }
 
-        return {
-          dimensionUpdated: dimUpdate.changes > 0,
-          nodeLinksUpdated: nodeDimUpdate.changes
-        };
-      });
+      if (isPriority !== undefined) {
+        updates.push('is_priority = ?');
+        values.push(isPriority ? 1 : 0);
+      }
 
-      if (!updateResult.dimensionUpdated) {
+      values.push(currentName);
+
+      const dimUpdate = await sqlite.query(`
+        UPDATE dimensions
+        SET ${updates.join(', ')}
+        WHERE name = ?
+      `, values);
+
+      if (dimUpdate.changes === 0) {
         return NextResponse.json({
           success: false,
           error: 'Dimension not found'
         }, { status: 404 });
       }
 
+      // Update node_dimensions table
+      const nodeDimUpdate = await sqlite.query(`
+        UPDATE node_dimensions
+        SET dimension = ?
+        WHERE dimension = ?
+      `, [newName, currentName]);
+
       eventBroadcaster.broadcast({
         type: 'DIMENSION_UPDATED',
-        data: { 
-          dimension: newName, 
+        data: {
+          dimension: newName,
           previousName: currentName,
           description: description || undefined,
           isPriority: isPriority !== undefined ? isPriority : undefined,
-          renamed: true 
+          renamed: true
         }
       });
 
@@ -228,7 +218,7 @@ export async function PUT(request: NextRequest) {
           previousName: currentName,
           description: description || undefined,
           isPriority: isPriority !== undefined ? isPriority : undefined,
-          nodeLinksUpdated: updateResult.nodeLinksUpdated
+          nodeLinksUpdated: nodeDimUpdate.changes || 0
         }
       });
     }
@@ -249,30 +239,28 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const sqlite = getSQLiteClient();
-    
     // Build update query
     if (description !== '' || isPriority !== undefined) {
       const updates: string[] = ['updated_at = CURRENT_TIMESTAMP'];
       const values: any[] = [];
-      
+
       if (description !== '') {
         updates.push('description = ?');
         values.push(description || null);
       }
-      
+
       if (isPriority !== undefined) {
         updates.push('is_priority = ?');
         values.push(isPriority ? 1 : 0);
       }
-      
+
       values.push(targetName);
-      
-      const updateResult = sqlite.prepare(`
-        UPDATE dimensions 
+
+      const updateResult = await sqlite.query(`
+        UPDATE dimensions
         SET ${updates.join(', ')}
         WHERE name = ?
-      `).run(...values);
+      `, values);
 
       if (updateResult.changes === 0) {
         return NextResponse.json({
@@ -290,8 +278,8 @@ export async function PUT(request: NextRequest) {
 
     eventBroadcaster.broadcast({
       type: 'DIMENSION_UPDATED',
-      data: { 
-        dimension: targetName, 
+      data: {
+        dimension: targetName,
         description: description !== '' ? description : undefined,
         isPriority: isPriority !== undefined ? isPriority : undefined
       }
@@ -325,18 +313,16 @@ export async function DELETE(request: NextRequest) {
     }
 
     const sqlite = getSQLiteClient();
-    const removal = sqlite.transaction(() => {
-      const nodeDimStmt = sqlite.prepare('DELETE FROM node_dimensions WHERE dimension = ?');
-      const dimStmt = sqlite.prepare('DELETE FROM dimensions WHERE name = ?');
-      const removedLinks = nodeDimStmt.run(dimension).changes ?? 0;
-      const removedRow = dimStmt.run(dimension).changes ?? 0;
-      return {
-        removedLinks,
-        removedRow
-      };
-    });
 
-    if (!removal.removedLinks && !removal.removedRow) {
+    // Delete node_dimensions first
+    const nodeDimResult = await sqlite.query('DELETE FROM node_dimensions WHERE dimension = ?', [dimension]);
+    const removedLinks = nodeDimResult.changes || 0;
+
+    // Delete dimension
+    const dimResult = await sqlite.query('DELETE FROM dimensions WHERE name = ?', [dimension]);
+    const removedRow = dimResult.changes || 0;
+
+    if (!removedLinks && !removedRow) {
       return NextResponse.json({
         success: false,
         error: 'Dimension not found'

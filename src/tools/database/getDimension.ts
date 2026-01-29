@@ -25,7 +25,7 @@ export const getDimensionTool = tool({
 
       // Get node count for this dimension
       const sqlite = getSQLiteClient();
-      const countResult = sqlite.query(`
+      const countResult = await sqlite.query(`
         SELECT COUNT(*) AS count
         FROM node_dimensions
         WHERE dimension = ?

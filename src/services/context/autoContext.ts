@@ -15,28 +15,26 @@ export interface AutoContextSummary {
   updatedAt: string;
 }
 
-function fetchAutoContextRows(limit: number): AutoContextSummary[] {
+async function fetchAutoContextRows(limit: number): Promise<AutoContextSummary[]> {
   const db = getSQLiteClient();
-  const rows = db
-    .query<AutoContextRow>(
-      `
-        SELECT n.id,
-               n.title,
-               n.updated_at,
-               COUNT(DISTINCT e.id) AS edge_count
-          FROM nodes n
-          LEFT JOIN edges e
-            ON (e.from_node_id = n.id OR e.to_node_id = n.id)
-         WHERE n.type IS NULL OR n.type != 'memory'
-         GROUP BY n.id
-         ORDER BY edge_count DESC, n.updated_at DESC
-         LIMIT ?
-      `,
-      [limit]
-    )
-    .rows;
+  const result = await db.query<AutoContextRow>(
+    `
+      SELECT n.id,
+             n.title,
+             n.updated_at,
+             COUNT(DISTINCT e.id) AS edge_count
+        FROM nodes n
+        LEFT JOIN edges e
+          ON (e.from_node_id = n.id OR e.to_node_id = n.id)
+       WHERE n.type IS NULL OR n.type != 'memory'
+       GROUP BY n.id
+       ORDER BY edge_count DESC, n.updated_at DESC
+       LIMIT ?
+    `,
+    [limit]
+  );
 
-  return rows.map((row) => ({
+  return result.rows.map((row) => ({
     id: row.id,
     title: row.title || 'Untitled node',
     updatedAt: row.updated_at,
@@ -44,16 +42,16 @@ function fetchAutoContextRows(limit: number): AutoContextSummary[] {
   }));
 }
 
-export function getAutoContextSummaries(limit = 10): AutoContextSummary[] {
-  const settings = getAutoContextSettings();
+export async function getAutoContextSummaries(limit = 10): Promise<AutoContextSummary[]> {
+  const settings = await getAutoContextSettings();
   if (!settings.autoContextEnabled) {
     return [];
   }
   return fetchAutoContextRows(limit);
 }
 
-export function buildAutoContextBlock(limit = 10): string | null {
-  const summaries = getAutoContextSummaries(limit);
+export async function buildAutoContextBlock(limit = 10): Promise<string | null> {
+  const summaries = await getAutoContextSummaries(limit);
   if (summaries.length === 0) {
     return null;
   }

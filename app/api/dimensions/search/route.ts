@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('q') || '';
-    
+
     if (!query.trim()) {
       return NextResponse.json({
         success: false,
@@ -15,37 +15,30 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    return searchDimensionsSQLite(query);
+    const sqlite = getSQLiteClient();
+
+    const result = await sqlite.query(`
+      SELECT nd.dimension, COUNT(*) AS count
+      FROM node_dimensions nd
+      WHERE LOWER(nd.dimension) LIKE LOWER(?)
+      GROUP BY nd.dimension
+      ORDER BY count DESC, nd.dimension ASC
+      LIMIT 20
+    `, [`%${query}%`]);
+
+    return NextResponse.json({
+      success: true,
+      data: result.rows.map((row: any) => ({
+        dimension: row.dimension,
+        count: Number(row.count)
+      }))
+    });
   } catch (error) {
     console.error('Error searching dimensions:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to search dimensions'
     }, { status: 500 });
   }
-}
-
-// PostgreSQL path removed in SQLite-only consolidation
-
-async function searchDimensionsSQLite(query: string) {
-  const sqlite = getSQLiteClient();
-  
-  const result = sqlite.query(`
-    SELECT nd.dimension, COUNT(*) AS count
-    FROM node_dimensions nd
-    WHERE LOWER(nd.dimension) LIKE LOWER(?)
-    GROUP BY nd.dimension
-    ORDER BY count DESC, nd.dimension ASC
-    LIMIT 20
-  `, [`%${query}%`]);
-
-  return NextResponse.json({
-    success: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: result.rows.map((row: any) => ({
-      dimension: row.dimension,
-      count: Number(row.count)
-    }))
-  });
 }

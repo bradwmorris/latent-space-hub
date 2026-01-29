@@ -19,14 +19,16 @@ export async function GET(
     const db = getSQLiteClient();
 
     // Get dimension metadata
-    const dimension = db.query<{
+    const dimensionResult = await db.query<{
       name: string;
       description: string | null;
       is_priority: number;
     }>(
       'SELECT name, description, is_priority FROM dimensions WHERE name = ?',
       [decodedName]
-    ).rows[0];
+    );
+
+    const dimension = dimensionResult.rows[0];
 
     if (!dimension) {
       return NextResponse.json(
@@ -36,16 +38,16 @@ export async function GET(
     }
 
     // Count nodes in this dimension (via node_dimensions join table)
-    const countResult = db.query<{ count: number }>(
+    const countResult = await db.query<{ count: number }>(
       `SELECT COUNT(DISTINCT node_id) as count FROM node_dimensions WHERE dimension = ?`,
       [decodedName]
-    ).rows[0];
+    );
 
     const context: DimensionContext = {
       name: dimension.name,
       description: dimension.description,
       isPriority: dimension.is_priority === 1,
-      nodeCount: countResult?.count || 0,
+      nodeCount: countResult.rows[0]?.count || 0,
     };
 
     return NextResponse.json({

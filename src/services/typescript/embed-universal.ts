@@ -1,32 +1,14 @@
 /**
- * Universal chunking and embedding service for RA-H knowledge management system
- * Takes a node_id, reads chunk content from nodes table, chunks it, and stores in chunks table
+ * Universal chunking and embedding service for Latent Space Hub (Turso fork)
+ *
+ * ⚠️ DISABLED: This service requires local SQLite with sqlite-vec extension.
+ * Turso does not support the sqlite-vec vector extension.
+ *
+ * For vector search in Turso deployments, use:
+ * - Full-text search (FTS) built into SQLite
+ * - External vector database (Pinecone, Weaviate, etc.)
+ * - Turso's upcoming native vector support (when available)
  */
-
-import OpenAI from 'openai';
-import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
-import { 
-  createDatabaseConnection, 
-  serializeFloat32Vector,
-  batchProcess 
-} from './sqlite-vec';
-
-interface Node {
-  id: number;
-  title: string;
-  chunk: string | null;
-  chunk_status?: string | null;
-}
-
-interface ChunkData {
-  content: string;
-  metadata: {
-    node_id: number;
-    chunk_index: number;
-    start_char: number;
-    end_char: number;
-  };
-}
 
 interface EmbedUniversalOptions {
   nodeId: number;
@@ -34,264 +16,34 @@ interface EmbedUniversalOptions {
 }
 
 export class UniversalEmbedder {
-  private openaiClient: OpenAI;
-  private db: ReturnType<typeof createDatabaseConnection>;
-  private textSplitter: RecursiveCharacterTextSplitter;
-  private vecChunksInsertSQL: string | null = null;
-  
   constructor() {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY environment variable is not set');
-    }
-    
-    this.openaiClient = new OpenAI({ apiKey });
-    this.db = createDatabaseConnection();
-    
-    // Configure text splitter (same as old KMS system)
-    this.textSplitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
-      separators: ["\n\n", "\n", ". ", " ", ""],
-    });
-  }
-
-  /**
-   * Determine correct insert SQL for vec_chunks based on actual schema
-   */
-  private resolveVecChunksInsertSQL(): string {
-    // Use declared PK column from your DB schema (confirmed: chunk_id)
-    if (!this.vecChunksInsertSQL) {
-      this.vecChunksInsertSQL = 'INSERT OR REPLACE INTO vec_chunks (chunk_id, embedding) VALUES (?, ?)';
-    }
-    return this.vecChunksInsertSQL;
-  }
-
-  /**
-   * Generate embedding for text using OpenAI
-   */
-  private async generateEmbedding(text: string): Promise<number[]> {
-    const response = await this.openaiClient.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: text,
-    });
-    
-    return response.data[0].embedding;
-  }
-
-  /**
-   * Delete existing chunks for a node
-   */
-  private deleteExistingChunks(nodeId: number): void {
-    // First, get all chunk IDs for this node
-    const chunkIds = this.db.prepare('SELECT id FROM chunks WHERE node_id = ?').all(nodeId) as Array<{ id: number }>;
-    
-    // Delete from vec_chunks first, one by one to ensure they're removed
-    for (const chunk of chunkIds) {
-      try {
-        const deleteVecStmt = this.db.prepare('DELETE FROM vec_chunks WHERE chunk_id = ?');
-        deleteVecStmt.run(BigInt(chunk.id));
-      } catch (error) {
-        console.warn(`Could not delete vec_chunk ${chunk.id}:`, error);
-      }
-    }
-    
-    // Then delete from chunks table
-    const deleteChunksStmt = this.db.prepare('DELETE FROM chunks WHERE node_id = ?');
-    deleteChunksStmt.run(nodeId);
-  }
-
-  /**
-   * Store a chunk with its embedding
-   */
-  private async storeChunk(
-    nodeId: number,
-    chunkContent: string,
-    chunkIndex: number,
-    metadata: any
-  ): Promise<void> {
-    // Generate embedding
-    const embedding = await this.generateEmbedding(chunkContent);
-    
-    // Insert into chunks table (align with existing schema)
-    const insertStmt = this.db.prepare(`
-      INSERT INTO chunks (node_id, chunk_idx, text, embedding_type, metadata, created_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
-    
-    const now = new Date().toISOString();
-    const result = insertStmt.run(
-      nodeId,
-      chunkIndex,
-      chunkContent,
-      'text-embedding-3-small',
-      JSON.stringify(metadata),
-      now
+    throw new Error(
+      'UniversalEmbedder is not supported in Turso fork. ' +
+      'Vector embeddings require sqlite-vec which is not available in Turso. ' +
+      'Use full-text search (FTS) instead.'
     );
-    
-    const chunkId = Number(result.lastInsertRowid);
-    
-    // Insert into vec_chunks virtual table (use bracketed string format)
-    try {
-      const vectorString = `[${embedding.join(',')}]`;
-      // First try to delete any existing vec_chunk with this ID
-      try {
-        const deleteStmt = this.db.prepare('DELETE FROM vec_chunks WHERE chunk_id = ?');
-        deleteStmt.run(BigInt(chunkId));
-      } catch {}
-      
-      // Now insert the new embedding
-      const sql = 'INSERT INTO vec_chunks (chunk_id, embedding) VALUES (?, ?)';
-      const vecInsertStmt = this.db.prepare(sql);
-      vecInsertStmt.run(BigInt(chunkId), vectorString);
-    } catch (error) {
-      console.warn(`Could not insert into vec_chunks for chunk ${chunkId}:`, error);
-    }
   }
 
-  /**
-   * Process a single node for chunking and embedding
-   */
-  async processNode(options: EmbedUniversalOptions): Promise<{ chunks: number }> {
-    const { nodeId, verbose = false } = options;
-    
-    // Get node data
-    const stmt = this.db.prepare(`
-      SELECT id, title, chunk, chunk_status
-      FROM nodes
-      WHERE id = ?
-    `);
-    
-    const node = stmt.get(nodeId) as Node | undefined;
-    
-    if (!node) {
-      throw new Error(`Node ${nodeId} not found`);
-    }
-    
-    if (!node.chunk || node.chunk.trim().length === 0) {
-      console.log(`Node ${nodeId} has no chunk content to process`);
-      return { chunks: 0 };
-    }
-    
-    console.log(`Processing node ${nodeId}: "${node.title}"`);
-    
-    // Delete existing chunks
-    this.deleteExistingChunks(nodeId);
-    
-    // Split text into chunks
-    const chunks = await this.textSplitter.splitText(node.chunk);
-    
-    if (verbose) {
-      console.log(`Split into ${chunks.length} chunks`);
-    }
-    
-    // Process each chunk
-    let startChar = 0;
-    await batchProcess(
-      chunks.map((chunkContent, index) => ({ chunkContent, index })),
-      async ({ chunkContent, index }) => {
-        const endChar = startChar + chunkContent.length;
-        
-        const metadata = {
-          node_id: nodeId,
-          chunk_index: index,
-          start_char: startChar,
-          end_char: endChar,
-          title: node.title,
-        };
-        
-        await this.storeChunk(nodeId, chunkContent, index, metadata);
-        
-        if (verbose) {
-          console.log(`  Chunk ${index + 1}/${chunks.length}: ${chunkContent.substring(0, 50)}...`);
-        }
-        
-        startChar = endChar;
-      },
-      5, // Batch size
-      verbose ? (processed, total) => {
-        console.log(`Embedding progress: ${processed}/${total} chunks`);
-      } : undefined
-    );
-    
-    // Update node chunk_status
-    const updateStmt = this.db.prepare(`
-      UPDATE nodes 
-      SET chunk_status = 'chunked'
-      WHERE id = ?
-    `);
-    updateStmt.run(nodeId);
-    
-    console.log(`✓ Created ${chunks.length} chunks for node ${nodeId}`);
-    
-    return { chunks: chunks.length };
+  async processNode(_options: EmbedUniversalOptions): Promise<{ chunks: number }> {
+    throw new Error('UniversalEmbedder is not supported in Turso fork');
   }
 
-  /**
-   * Get statistics about chunks in the database
-   */
   getStats(): { totalChunks: number; totalNodes: number; avgChunksPerNode: number } {
-    const statsStmt = this.db.prepare(`
-      SELECT 
-        COUNT(DISTINCT node_id) as total_nodes,
-        COUNT(*) as total_chunks
-      FROM chunks
-    `);
-    
-    const stats = statsStmt.get() as any;
-    
-    return {
-      totalChunks: stats.total_chunks || 0,
-      totalNodes: stats.total_nodes || 0,
-      avgChunksPerNode: stats.total_nodes > 0 
-        ? Math.round(stats.total_chunks / stats.total_nodes * 10) / 10 
-        : 0
-    };
+    return { totalChunks: 0, totalNodes: 0, avgChunksPerNode: 0 };
   }
 
-  /**
-   * Close database connection
-   */
   close(): void {
-    this.db.close();
+    // No-op
   }
 }
 
-/**
- * CLI interface for direct execution
- */
-export async function runCLI(args: string[]): Promise<void> {
-  if (!args.includes('--node-id')) {
-    console.error('Error: --node-id is required');
-    process.exit(1);
-  }
-  
-  const nodeId = parseInt(args[args.indexOf('--node-id') + 1]);
-  const verbose = args.includes('--verbose');
-  
-  if (isNaN(nodeId)) {
-    console.error('Error: Invalid node ID');
-    process.exit(1);
-  }
-  
-  const embedder = new UniversalEmbedder();
-  
-  try {
-    const result = await embedder.processNode({ nodeId, verbose });
-    
-    if (verbose) {
-      const stats = embedder.getStats();
-      console.log('\nDatabase statistics:');
-      console.log(`  Total chunks: ${stats.totalChunks}`);
-      console.log(`  Total nodes with chunks: ${stats.totalNodes}`);
-      console.log(`  Average chunks per node: ${stats.avgChunksPerNode}`);
-    }
-  } finally {
-    embedder.close();
-  }
+export async function runCLI(_args: string[]): Promise<void> {
+  console.error('ERROR: embed-universal CLI is not supported in Turso fork.');
+  console.error('Vector embeddings require sqlite-vec which is not available in Turso.');
+  console.error('Use full-text search (FTS) instead.');
+  process.exit(1);
 }
 
-// Run if called directly (for testing)
 if (require.main === module) {
   runCLI(process.argv.slice(2)).catch(error => {
     console.error('Error:', error);

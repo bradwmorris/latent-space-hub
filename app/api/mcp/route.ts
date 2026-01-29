@@ -214,7 +214,7 @@ function createRAHServer(): McpServer {
     async () => {
       const sqlite = getSQLiteClient();
 
-      const result = sqlite.query(`
+      const result = await sqlite.query(`
         WITH dimension_counts AS (
           SELECT nd.dimension, COUNT(*) AS count
           FROM node_dimensions nd

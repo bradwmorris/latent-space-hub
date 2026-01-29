@@ -1,15 +1,14 @@
 /**
- * SQLite vec0 utilities for TypeScript
- * Handles binary serialization for vec0 BLOB storage
+ * SQLite vec0 utilities for Latent Space Hub (Turso fork)
+ *
+ * Note: Vector search (sqlite-vec) is NOT supported in Turso.
+ * These utilities are kept for API compatibility but vector operations
+ * will not work. Use full-text search (FTS) instead.
  */
-
-import Database from 'better-sqlite3';
-import path from 'path';
-import os from 'os';
 
 /**
  * Serialize a float array to binary format for vec0 storage
- * Equivalent to Python's struct.pack(f'{len(vector)}f', *vector)
+ * Note: Not usable in Turso - included for API compatibility
  */
 export function serializeFloat32Vector(vector: number[]): Buffer {
   const buffer = Buffer.allocUnsafe(vector.length * 4);
@@ -21,6 +20,7 @@ export function serializeFloat32Vector(vector: number[]): Buffer {
 
 /**
  * Deserialize a vec0 BLOB back to float array
+ * Note: Not usable in Turso - included for API compatibility
  */
 export function deserializeFloat32Vector(blob: Buffer): number[] {
   const vector: number[] = [];
@@ -31,50 +31,31 @@ export function deserializeFloat32Vector(blob: Buffer): number[] {
 }
 
 /**
- * Get SQLite database path from environment or default location
+ * Get SQLite database path - NOT USED in Turso fork
+ * Turso uses TURSO_DATABASE_URL environment variable instead
  */
 export function getDatabasePath(): string {
-  const envPath = process.env.SQLITE_DB_PATH;
-  if (envPath) {
-    return envPath;
-  }
-  
-  // Default path: ~/Library/Application Support/RA-H/db/rah.sqlite
-  const homeDir = os.homedir();
-  return path.join(homeDir, 'Library', 'Application Support', 'RA-H', 'db', 'rah.sqlite');
+  // In Turso, we use TURSO_DATABASE_URL instead of file path
+  return process.env.TURSO_DATABASE_URL || '';
 }
 
 /**
- * Get vec extension path from environment or default location
+ * Get vec extension path - NOT SUPPORTED in Turso
  */
 export function getVecExtensionPath(): string {
-  const envPath = process.env.SQLITE_VEC_EXTENSION_PATH;
-  if (envPath) {
-    return envPath;
-  }
-  
-  // Default path relative to project root
-  return path.join(process.cwd(), 'vendor', 'sqlite-extensions', 'vec0.dylib');
+  console.warn('[SQLITE-VEC] Vector extension not supported in Turso');
+  return '';
 }
 
 /**
- * Create database connection with vec0 extension loaded
+ * Create database connection - NOT SUPPORTED in Turso fork
+ * Use getSQLiteClient() from sqlite-client.ts instead
  */
-export function createDatabaseConnection(): Database.Database {
-  const dbPath = getDatabasePath();
-  const vecPath = getVecExtensionPath();
-  
-  const db = new Database(dbPath);
-  
-  // Load vec0 extension
-  try {
-    db.loadExtension(vecPath);
-  } catch (error) {
-    console.error('Warning: Could not load vec0 extension:', error);
-    // Continue without vector support for non-vector operations
-  }
-  
-  return db;
+export function createDatabaseConnection(): never {
+  throw new Error(
+    'createDatabaseConnection() is not supported in Turso fork. ' +
+    'Use getSQLiteClient() from @/services/database/sqlite-client instead.'
+  );
 }
 
 /**
@@ -101,16 +82,16 @@ export async function batchProcess<T, R>(
   onProgress?: (processed: number, total: number) => void
 ): Promise<R[]> {
   const results: R[] = [];
-  
+
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, Math.min(i + batchSize, items.length));
     const batchResults = await Promise.all(batch.map(processor));
     results.push(...batchResults);
-    
+
     if (onProgress) {
       onProgress(Math.min(i + batchSize, items.length), items.length);
     }
   }
-  
+
   return results;
 }

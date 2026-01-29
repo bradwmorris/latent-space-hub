@@ -1,6 +1,10 @@
-import Database from 'better-sqlite3';
-import fs from 'fs';
-import path from 'path';
+/**
+ * Evals Store for Latent Space Hub (Turso fork)
+ *
+ * Note: Local evals storage is disabled in this fork.
+ * Turso/Vercel serverless deployments don't have persistent local filesystem.
+ * Use Turso database or external service for evals storage in production.
+ */
 
 export type EvalChatRow = {
   id: number;
@@ -55,87 +59,18 @@ export type EvalTrace = {
   comment: string | null;
 };
 
-const LOG_DB_PATH = path.join(process.cwd(), 'logs', 'evals.sqlite');
-
-function ensureCommentSchema(db: Database.Database) {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS eval_comments (
-      trace_id TEXT PRIMARY KEY,
-      scenario_id TEXT,
-      comment TEXT,
-      updated_at TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_eval_comments_scenario ON eval_comments(scenario_id);
-  `);
+/**
+ * Upsert eval comment - DISABLED in Turso fork
+ */
+export function upsertEvalComment(traceId: string, scenarioId: string | null, comment: string): void {
+  console.warn('[EVALS] Comment storage disabled in Turso fork');
 }
 
-export function upsertEvalComment(traceId: string, scenarioId: string | null, comment: string) {
-  if (!fs.existsSync(LOG_DB_PATH)) {
-    return;
-  }
-  const db = new Database(LOG_DB_PATH);
-  ensureCommentSchema(db);
-  const now = new Date().toISOString();
-  db.prepare(`
-    INSERT INTO eval_comments (trace_id, scenario_id, comment, updated_at)
-    VALUES (?, ?, ?, ?)
-    ON CONFLICT(trace_id) DO UPDATE SET
-      comment = excluded.comment,
-      updated_at = excluded.updated_at,
-      scenario_id = excluded.scenario_id
-  `).run(traceId, scenarioId, comment, now);
-}
-
+/**
+ * Load eval traces - DISABLED in Turso fork
+ * Returns empty array since local SQLite evals database isn't available
+ */
 export function loadEvalTraces(limit = 25): EvalTrace[] {
-  if (!fs.existsSync(LOG_DB_PATH)) {
-    return [];
-  }
-
-  const db = new Database(LOG_DB_PATH, { readonly: true, fileMustExist: true });
-  const chats = db.prepare(`
-    SELECT *
-    FROM llm_chats
-    ORDER BY ts DESC
-    LIMIT ?
-  `).all(limit) as EvalChatRow[];
-
-  if (chats.length === 0) return [];
-
-  const traceIds = Array.from(new Set(chats.map(chat => chat.trace_id)));
-  const placeholders = traceIds.map(() => '?').join(', ');
-  const toolCalls = db.prepare(`
-    SELECT *
-    FROM tool_calls
-    WHERE trace_id IN (${placeholders})
-    ORDER BY ts ASC
-  `).all(...traceIds) as EvalToolCallRow[];
-
-  const toolCallsByTrace = new Map<string, EvalToolCallRow[]>();
-  toolCalls.forEach(call => {
-    const list = toolCallsByTrace.get(call.trace_id) || [];
-    list.push(call);
-    toolCallsByTrace.set(call.trace_id, list);
-  });
-
-  const commentsByTrace = new Map<string, string | null>();
-  if (placeholders.length > 0) {
-    try {
-      const commentRows = db.prepare(`
-        SELECT trace_id, comment
-        FROM eval_comments
-        WHERE trace_id IN (${placeholders})
-      `).all(...traceIds) as Array<{ trace_id: string; comment: string | null }>;
-      commentRows.forEach(row => {
-        commentsByTrace.set(row.trace_id, row.comment ?? null);
-      });
-    } catch {
-      // Comments table doesn't exist yet in readonly mode.
-    }
-  }
-
-  return chats.map(chat => ({
-    chat,
-    toolCalls: toolCallsByTrace.get(chat.trace_id) || [],
-    comment: commentsByTrace.get(chat.trace_id) ?? null,
-  }));
+  console.warn('[EVALS] Trace loading disabled in Turso fork');
+  return [];
 }

@@ -21,14 +21,14 @@ export class DimensionService {
    */
   static async getLockedDimensions(): Promise<LockedDimension[]> {
     const sqlite = getSQLiteClient();
-    
-    const result = sqlite.query(`
+
+    const result = await sqlite.query(`
       WITH dimension_counts AS (
-        SELECT nd.dimension, COUNT(*) AS count 
-        FROM node_dimensions nd 
+        SELECT nd.dimension, COUNT(*) AS count
+        FROM node_dimensions nd
         GROUP BY nd.dimension
       )
-      SELECT 
+      SELECT
         d.name,
         d.description,
         COALESCE(dc.count, 0) AS count
@@ -70,7 +70,7 @@ export class DimensionService {
       const response = await generateText({
         model: openaiProvider('gpt-4o-mini'),
         prompt,
-        maxOutputTokens: 300, // Increased to accommodate more dimensions
+        maxOutputTokens: 300,
         temperature: 0.1,
       });
 
@@ -107,12 +107,12 @@ export class DimensionService {
    */
   static async updateDimensionDescription(name: string, description: string): Promise<void> {
     const sqlite = getSQLiteClient();
-    
-    sqlite.query(`
-      INSERT INTO dimensions(name, description, is_priority, updated_at) 
-      VALUES (?, ?, 0, CURRENT_TIMESTAMP) 
-      ON CONFLICT(name) DO UPDATE SET 
-        description = ?, 
+
+    await sqlite.query(`
+      INSERT INTO dimensions(name, description, is_priority, updated_at)
+      VALUES (?, ?, 0, CURRENT_TIMESTAMP)
+      ON CONFLICT(name) DO UPDATE SET
+        description = ?,
         updated_at = CURRENT_TIMESTAMP
     `, [name, description, description]);
   }
@@ -122,10 +122,10 @@ export class DimensionService {
    */
   static async getDimensionByName(name: string): Promise<Dimension | null> {
     const sqlite = getSQLiteClient();
-    
-    const result = sqlite.query(`
-      SELECT name, description, is_priority, updated_at 
-      FROM dimensions 
+
+    const result = await sqlite.query(`
+      SELECT name, description, is_priority, updated_at
+      FROM dimensions
       WHERE name = ?
     `, [name]);
 
@@ -234,7 +234,7 @@ LOCKED:
     const sqlite = getSQLiteClient();
 
     // INSERT OR IGNORE - if dimension exists, do nothing
-    sqlite.query(`
+    await sqlite.query(`
       INSERT OR IGNORE INTO dimensions(name, description, is_priority, updated_at)
       VALUES (?, ?, 0, CURRENT_TIMESTAMP)
     `, [keyword, null]);

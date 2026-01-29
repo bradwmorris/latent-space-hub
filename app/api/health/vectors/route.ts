@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
 import { chunkService } from '@/services/database/chunks';
 
+/**
+ * Vector health check endpoint for Latent Space Hub (Turso fork).
+ *
+ * Note: Turso doesn't support sqlite-vec extension.
+ * Vector search is disabled in this fork - use FTS instead.
+ */
 export async function GET() {
   try {
     const sqlite = getSQLiteClient();
-    
+
     // Test basic database connection
     const connectionTest = await sqlite.testConnection();
     if (!connectionTest) {
@@ -16,53 +22,23 @@ export async function GET() {
       });
     }
 
-    // Check if vector extension is loaded
-    const vectorExtensionTest = await sqlite.checkVectorExtension();
-    
-    let vectorStats = null;
     let chunkStats = null;
-    let vectorHealth = 'unknown';
 
     try {
       // Get chunk counts
       const totalChunks = await chunkService.getChunkCount();
-      const chunksWithoutEmbeddings = await chunkService.getChunksWithoutEmbeddings();
-      const vectorizedCount = totalChunks - chunksWithoutEmbeddings.length;
 
       chunkStats = {
         total_chunks: totalChunks,
-        vectorized_chunks: vectorizedCount,
-        missing_embeddings: chunksWithoutEmbeddings.length,
-        coverage_percentage: totalChunks > 0 ? Math.round((vectorizedCount / totalChunks) * 100) : 0
+        vectorized_chunks: 0,
+        missing_embeddings: totalChunks,
+        coverage_percentage: 0
       };
-
-      // Test vector table health by attempting a simple query
-      if (vectorExtensionTest) {
-        try {
-          const result = sqlite.query('SELECT COUNT(*) as count FROM vec_chunks');
-          const vecCount = Number(result.rows[0].count);
-          
-          vectorStats = {
-            vec_chunks_count: vecCount,
-            matches_chunk_embeddings: vecCount === vectorizedCount
-          };
-          
-          vectorHealth = vecCount === vectorizedCount ? 'healthy' : 'inconsistent';
-        } catch (vecError: any) {
-          vectorHealth = 'corrupted';
-          vectorStats = {
-            error: vecError.message,
-            suggestion: 'Vector table may be corrupted and need recreation'
-          };
-        }
-      } else {
-        vectorHealth = 'extension_unavailable';
-      }
 
     } catch (error: any) {
       return NextResponse.json({
         status: 'error',
-        message: 'Failed to collect vector statistics',
+        message: 'Failed to collect chunk statistics',
         details: error.message
       });
     }
@@ -71,11 +47,14 @@ export async function GET() {
       status: 'success',
       data: {
         database_connected: connectionTest,
-        vector_extension_loaded: vectorExtensionTest,
-        vector_health: vectorHealth,
+        vector_extension_loaded: false,
+        vector_health: 'disabled',
         chunk_stats: chunkStats,
-        vector_stats: vectorStats,
-        recommendations: generateRecommendations(vectorHealth, chunkStats, vectorStats)
+        vector_stats: null,
+        recommendations: [
+          'Vector search is disabled in Turso fork (no sqlite-vec support)',
+          'Use full-text search (FTS) for text-based search instead'
+        ]
       }
     });
 
@@ -87,34 +66,4 @@ export async function GET() {
       details: error.message
     });
   }
-}
-
-function generateRecommendations(
-  vectorHealth: string, 
-  chunkStats: any, 
-  vectorStats: any
-): string[] {
-  const recommendations: string[] = [];
-
-  if (vectorHealth === 'corrupted') {
-    recommendations.push('Vector tables are corrupted - restart the application to trigger automatic healing');
-  }
-
-  if (vectorHealth === 'extension_unavailable') {
-    recommendations.push('Vector extension not loaded - check sqlite-vec installation');
-  }
-
-  if (chunkStats && chunkStats.coverage_percentage < 95) {
-    recommendations.push(`${chunkStats.missing_embeddings} chunks missing embeddings - consider running embedding generation`);
-  }
-
-  if (vectorStats && !vectorStats.matches_chunk_embeddings) {
-    recommendations.push('Vector count does not match chunk embeddings - database inconsistency detected');
-  }
-
-  if (recommendations.length === 0) {
-    recommendations.push('Vector search system is healthy');
-  }
-
-  return recommendations;
 }

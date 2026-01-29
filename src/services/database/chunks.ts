@@ -1,33 +1,34 @@
 import { getSQLiteClient } from './sqlite-client';
 import { Chunk, ChunkData } from '@/types/database';
 
+/**
+ * Chunk service for the Latent Space Hub.
+ *
+ * Note: This fork uses Turso which doesn't support sqlite-vec.
+ * Vector search methods are disabled and return empty results.
+ * Use FTS (full-text search) instead.
+ */
 export class ChunkService {
   async getChunksByNodeId(nodeId: number): Promise<Chunk[]> {
     const sqlite = getSQLiteClient();
-    const result = sqlite.query<Chunk>('SELECT * FROM chunks WHERE node_id = ? ORDER BY chunk_idx ASC', [nodeId]);
+    const result = await sqlite.query<Chunk>('SELECT * FROM chunks WHERE node_id = ? ORDER BY chunk_idx ASC', [nodeId]);
     return result.rows;
   }
 
   async getChunkById(id: number): Promise<Chunk | null> {
     const sqlite = getSQLiteClient();
-    const result = sqlite.query<Chunk>('SELECT * FROM chunks WHERE id = ?', [id]);
+    const result = await sqlite.query<Chunk>('SELECT * FROM chunks WHERE id = ?', [id]);
     return result.rows[0] || null;
   }
 
   async createChunk(chunkData: ChunkData): Promise<Chunk> {
-    return this.createChunkSQLite(chunkData);
-  }
-
-  // PostgreSQL path removed in SQLite-only consolidation
-
-  private async createChunkSQLite(chunkData: ChunkData): Promise<Chunk> {
     const now = new Date().toISOString();
     const sqlite = getSQLiteClient();
-    
-    const result = sqlite.prepare(`
+
+    const result = await sqlite.query(`
       INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `, [
       chunkData.node_id,
       chunkData.chunk_idx || null,
       chunkData.text,
@@ -35,11 +36,11 @@ export class ChunkService {
       chunkData.embedding_type,
       chunkData.metadata ? JSON.stringify(chunkData.metadata) : null,
       now
-    );
+    ]);
 
-    const chunkId = Number(result.lastInsertRowid);
+    const chunkId = result.lastInsertRowid!;
     const createdChunk = await this.getChunkById(chunkId);
-    
+
     if (!createdChunk) {
       throw new Error('Failed to create chunk');
     }
@@ -52,35 +53,25 @@ export class ChunkService {
       return [];
     }
 
-    return this.createChunksSQLite(chunksData);
-  }
-
-  // PostgreSQL path removed in SQLite-only consolidation
-
-  private async createChunksSQLite(chunksData: ChunkData[]): Promise<Chunk[]> {
-    const sqlite = getSQLiteClient();
     const now = new Date().toISOString();
+    const sqlite = getSQLiteClient();
     const createdChunks: Chunk[] = [];
 
-    // Use transaction for bulk insert
-    sqlite.transaction(() => {
-      const stmt = sqlite.prepare(`
+    // Insert chunks one by one (Turso doesn't have transaction API like better-sqlite3)
+    for (const chunk of chunksData) {
+      await sqlite.query(`
         INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      for (const chunk of chunksData) {
-        stmt.run(
-          chunk.node_id,
-          chunk.chunk_idx || null,
-          chunk.text,
-          chunk.embedding || null,
-          chunk.embedding_type,
-          chunk.metadata ? JSON.stringify(chunk.metadata) : null,
-          now
-        );
-      }
-    });
+      `, [
+        chunk.node_id,
+        chunk.chunk_idx || null,
+        chunk.text,
+        chunk.embedding || null,
+        chunk.embedding_type,
+        chunk.metadata ? JSON.stringify(chunk.metadata) : null,
+        now
+      ]);
+    }
 
     // Get all created chunks by node_id (since we know they were just created)
     const nodeIds = [...new Set(chunksData.map(c => c.node_id))];
@@ -93,12 +84,6 @@ export class ChunkService {
   }
 
   async updateChunk(id: number, updates: Partial<Chunk>): Promise<Chunk> {
-    return this.updateChunkSQLite(id, updates);
-  }
-
-  // PostgreSQL path removed in SQLite-only consolidation
-
-  private async updateChunkSQLite(id: number, updates: Partial<Chunk>): Promise<Chunk> {
     const sqlite = getSQLiteClient();
     const updateFields: string[] = [];
     const params: any[] = [];
@@ -122,8 +107,8 @@ export class ChunkService {
     params.push(id); // Add ID for WHERE clause
 
     const query = `UPDATE chunks SET ${updateFields.join(', ')} WHERE id = ?`;
-    const result = sqlite.query(query, params);
-    
+    const result = await sqlite.query(query, params);
+
     if (result.changes === 0) {
       throw new Error(`Chunk with ID ${id} not found`);
     }
@@ -138,7 +123,7 @@ export class ChunkService {
 
   async deleteChunk(id: number): Promise<void> {
     const sqlite = getSQLiteClient();
-    const result = sqlite.query('DELETE FROM chunks WHERE id = ?', [id]);
+    const result = await sqlite.query('DELETE FROM chunks WHERE id = ?', [id]);
     if ((result.changes || 0) === 0) {
       throw new Error(`Chunk with ID ${id} not found`);
     }
@@ -146,106 +131,26 @@ export class ChunkService {
 
   async deleteChunksByNodeId(nodeId: number): Promise<void> {
     const sqlite = getSQLiteClient();
-    sqlite.query('DELETE FROM chunks WHERE node_id = ?', [nodeId]);
+    await sqlite.query('DELETE FROM chunks WHERE node_id = ?', [nodeId]);
   }
 
+  /**
+   * Vector search is NOT supported in Turso (no sqlite-vec).
+   * Use text search instead.
+   */
   async searchChunks(
-    queryEmbedding: number[], 
-    similarityThreshold = 0.5, 
+    queryEmbedding: number[],
+    similarityThreshold = 0.5,
     matchCount = 5,
     nodeIds?: number[],
     fallbackQuery?: string
   ): Promise<Array<Chunk & { similarity: number }>> {
-    try {
-      return await this.searchChunksSQLite(queryEmbedding, similarityThreshold, matchCount, nodeIds);
-    } catch (error) {
-      console.warn('Vector search failed, attempting text fallback:', error);
-      if (fallbackQuery) {
-        return await this.textSearchFallback(fallbackQuery, matchCount, nodeIds);
-      }
-      throw error;
+    // Vector search not available in Turso - use text fallback if provided
+    if (fallbackQuery) {
+      return await this.textSearchFallback(fallbackQuery, matchCount, nodeIds);
     }
-  }
-
-  // PostgreSQL path removed in SQLite-only consolidation
-
-  private async searchChunksSQLite(
-    queryEmbedding: number[],
-    similarityThreshold = 0.5,
-    matchCount = 5,
-    nodeIds?: number[]
-  ): Promise<Array<Chunk & { similarity: number }>> {
-    const sqlite = getSQLiteClient();
-    const startTime = Date.now();
-    const vectorString = `[${queryEmbedding.join(',')}]`;
-
-    // When searching specific nodes, first get their chunk_ids to scope the vector search
-    if (nodeIds && nodeIds.length > 0) {
-      // Get chunk IDs for the target nodes
-      const chunkIdsQuery = `SELECT id FROM chunks WHERE node_id IN (${nodeIds.map(() => '?').join(',')})`;
-      const chunkIdsResult = sqlite.query<{id: number}>(chunkIdsQuery, nodeIds);
-      const chunkIds = chunkIdsResult.rows.map(r => r.id);
-
-      if (chunkIds.length === 0) {
-        console.log(`🔍 Node-scoped search: no chunks found for nodes ${nodeIds.join(', ')}`);
-        return [];
-      }
-
-      console.log(`🔍 Node-scoped search: ${chunkIds.length} chunks in nodes ${nodeIds.join(', ')}`);
-
-      // Search ONLY within those chunks using rowid filter
-      const query = `
-        SELECT c.*, (1.0 / (1.0 + v.distance)) AS similarity
-        FROM vec_chunks v
-        JOIN chunks c ON c.id = v.chunk_id
-        WHERE v.embedding MATCH ?
-          AND v.chunk_id IN (${chunkIds.map(() => '?').join(',')})
-          AND (1.0 / (1.0 + v.distance)) >= ?
-        ORDER BY v.distance
-        LIMIT ?
-      `;
-
-      const params = [vectorString, ...chunkIds, similarityThreshold, matchCount];
-      const result = sqlite.query<Chunk & { similarity: number }>(query, params);
-      const searchTime = Date.now() - startTime;
-
-      console.log(`📊 Vector search (node-scoped): ${result.rows.length} chunks, threshold=${similarityThreshold}, time=${searchTime}ms`);
-      if (result.rows.length > 0) {
-        console.log(`🎯 Top result: chunk ${result.rows[0].id} (similarity: ${result.rows[0].similarity.toFixed(3)})`);
-      }
-
-      return result.rows;
-    }
-
-    // Global search (no node filter)
-    const vectorLimit = Math.max(matchCount * 10, 50);
-
-    const query = `
-      WITH vector_results AS (
-        SELECT chunk_id, distance
-        FROM vec_chunks
-        WHERE embedding MATCH ?
-        ORDER BY distance
-        LIMIT ?
-      )
-      SELECT c.*, (1.0 / (1.0 + vr.distance)) AS similarity
-      FROM vector_results vr
-      JOIN chunks c ON c.id = vr.chunk_id
-      WHERE (1.0 / (1.0 + vr.distance)) >= ?
-      ORDER BY similarity DESC
-      LIMIT ?
-    `;
-
-    const params = [vectorString, vectorLimit, similarityThreshold, matchCount];
-    const result = sqlite.query<Chunk & { similarity: number }>(query, params);
-    const searchTime = Date.now() - startTime;
-
-    console.log(`📊 Vector search (global): ${result.rows.length}/${vectorLimit} chunks, threshold=${similarityThreshold}, time=${searchTime}ms`);
-    if (result.rows.length > 0) {
-      console.log(`🎯 Top result: chunk ${result.rows[0].id} (similarity: ${result.rows[0].similarity.toFixed(3)})`);
-    }
-
-    return result.rows;
+    console.warn('Vector search not available in Turso fork. Use textSearchFallback instead.');
+    return [];
   }
 
   async textSearchFallback(
@@ -254,62 +159,58 @@ export class ChunkService {
     nodeIds?: number[]
   ): Promise<Array<Chunk & { similarity: number }>> {
     const sqlite = getSQLiteClient();
-    const startTime = Date.now();
-    
+
     // Clean query for LIKE search
     const cleanQuery = query.trim().toLowerCase();
     const searchTerms = cleanQuery.split(/\s+/).filter(term => term.length > 2);
-    
+
     if (searchTerms.length === 0) {
       return [];
     }
-    
+
     // Build LIKE conditions for each term
     const likeConditions = searchTerms.map(() => 'LOWER(text) LIKE ?').join(' AND ');
-    const likeParams = searchTerms.map(term => `%${term}%`);
-    
+    const likeParams: any[] = searchTerms.map(term => `%${term}%`);
+
     let textQuery = `
       SELECT *, 0.8 as similarity
-      FROM chunks 
+      FROM chunks
       WHERE ${likeConditions}
     `;
-    
-    const params = [...likeParams];
-    
+
     // Add node filter if provided
     if (nodeIds && nodeIds.length > 0) {
       textQuery += ` AND node_id IN (${nodeIds.map(() => '?').join(',')})`;
-      params.push(...nodeIds.map(String));
+      likeParams.push(...nodeIds);
     }
-    
+
     textQuery += ` ORDER BY LENGTH(text) ASC LIMIT ?`;
-    params.push(String(matchCount));
-    
-    const result = sqlite.query<Chunk & { similarity: number }>(textQuery, params);
-    const searchTime = Date.now() - startTime;
-    
-    console.log(`📝 Text fallback: ${result.rows.length} chunks found, time=${searchTime}ms`);
-    
+    likeParams.push(matchCount);
+
+    const result = await sqlite.query<Chunk & { similarity: number }>(textQuery, likeParams);
+
+    console.log(`Text fallback: ${result.rows.length} chunks found`);
+
     return result.rows;
   }
 
   async getChunkCount(): Promise<number> {
     const sqlite = getSQLiteClient();
-    const result = sqlite.query('SELECT COUNT(*) as count FROM chunks');
+    const result = await sqlite.query<{ count: number }>('SELECT COUNT(*) as count FROM chunks');
     return Number(result.rows[0].count);
   }
 
   async getChunkCountByNodeId(nodeId: number): Promise<number> {
     const sqlite = getSQLiteClient();
-    const result = sqlite.query('SELECT COUNT(*) as count FROM chunks WHERE node_id = ?', [nodeId]);
+    const result = await sqlite.query<{ count: number }>('SELECT COUNT(*) as count FROM chunks WHERE node_id = ?', [nodeId]);
     return Number(result.rows[0].count);
   }
 
   async getNodesWithChunks(): Promise<Array<{ node_id: number; chunk_count: number }>> {
     const sqlite = getSQLiteClient();
-    const result = sqlite.query(`
+    const result = await sqlite.query(`
       SELECT node_id, COUNT(*) as chunk_count
-      FROM chunks 
+      FROM chunks
       GROUP BY node_id
       ORDER BY chunk_count DESC
     `);
@@ -320,16 +221,9 @@ export class ChunkService {
   }
 
   async getChunksWithoutEmbeddings(): Promise<Chunk[]> {
-    // In SQLite, chunk vectors live in vec_chunks; report chunks without corresponding vector rows
-    const sqlite = getSQLiteClient();
-    const result = sqlite.query<Chunk>(`
-      SELECT c.*
-      FROM chunks c
-      LEFT JOIN vec_chunks v ON v.chunk_id = c.id
-      WHERE v.chunk_id IS NULL
-      ORDER BY c.created_at ASC
-    `);
-    return result.rows;
+    // In Turso, we don't use vec_chunks, so just return empty
+    // Embeddings are disabled for this fork
+    return [];
   }
 }
 
