@@ -31,6 +31,7 @@
     "cheerio": "^1.1.2",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.468.0",
+    "mcp-handler": "^1.0.7",
     "next": "^15.1.12",
     "openai": "^4.103.0",
     "pdf-parse": "^1.1.1",
