@@ -9,6 +9,8 @@ import { getNodeIcon } from '@/utils/nodeIcons';
 import LucideIconPicker, { DynamicIcon } from '../common/LucideIconPicker';
 import { usePersistentState } from '@/hooks/usePersistentState';
 
+const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
+
 type DimensionViewMode = 'grid' | 'list' | 'kanban';
 type OverlayMode = 'folders' | 'filtered';
 
@@ -3453,8 +3455,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {/* Add Dimension button - only in folders mode */}
-            {view === 'dimensions' && overlayMode === 'folders' && (
+            {/* Add Dimension button - only in folders mode, hidden in readonly */}
+            {!isReadOnly && view === 'dimensions' && overlayMode === 'folders' && (
               <button
                 onClick={() => setShowAddDimensionDialog(true)}
                 title="Add dimension"
@@ -3543,8 +3545,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
               </div>
             )}
 
-            {/* Save View button - only in filtered mode with filters */}
-            {view === 'dimensions' && overlayMode === 'filtered' && selectedFilters.length > 0 && (
+            {/* Save View button - only in filtered mode with filters, hidden in readonly */}
+            {!isReadOnly && view === 'dimensions' && overlayMode === 'filtered' && selectedFilters.length > 0 && (
               <button
                 onClick={() => setShowSaveViewDialog(true)}
                 title="Save view"

@@ -1,0 +1,8 @@
+[
+  {"id": "hviDWXchDx0", "title": "A Technical History of Generative Media", "guest": "Gorkem Sevim & Batuhan Taskaya", "company": "Fal.ai", "month": "Sep 2025"},
+  {"id": "ImBGzWS1qd0", "title": "DevDay 2025: Apps SDK, Agent Kit, MCP, Codex and why Prompting is More Important than Ever", "guest": "Sherwin Wu & Christina Cai", "company": "OpenAI", "month": "Oct 2025"},
+  {"id": "wH8YKCE82Qo", "title": "Open Model Pretraining Masterclass — SmolLM 3, FineWeb, FinePDF", "guest": "Elie Bakouch", "company": "HuggingFace", "month": "Oct 2025"},
+  {"id": "5wo0mLlG0fk", "title": "Terminal-Bench 2.0: the most impt coding agent benchmark of 2025", "guest": "Alex Shaw & Mike Merrill", "company": "Terminal Bench", "month": "Nov 2025"},
+  {"id": "FhQqBfNCQZo", "title": "Gemini in 2025 and Realtime Voice AI", "guest": "Sam Charrington", "company": "TWiML AI x Google I/O", "month": "Jun 2025"},
+  {"id": "KjH7Gl0_pq0", "title": "DeepSeek V3, SGLang, and the state of Open Model Inference in 2025", "guest": "DeepSeek Team", "company": "DeepSeek", "month": "Dec 2024"}
+]

@@ -6,6 +6,8 @@ import SearchModal from '../nodes/SearchModal';
 import { Node } from '@/types/database';
 import { DatabaseEvent } from '@/services/events';
 import { usePersistentState } from '@/hooks/usePersistentState';
+
+const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 // ChatMessage import removed - chat disabled in rah-light
 
 // Stub type for delegation (delegation system removed in rah-light)
@@ -989,19 +991,23 @@ export default function ThreePanelLayout() {
         existingFilters={[]}
       />
 
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={handleCloseSettings}
-        initialTab={settingsInitialTab}
-      />
+      {/* Settings Modal - hidden in readonly mode */}
+      {!isReadOnly && (
+        <SettingsModal
+          isOpen={showSettings}
+          onClose={handleCloseSettings}
+          initialTab={settingsInitialTab}
+        />
+      )}
 
-      {/* Add Stuff Modal */}
-      <QuickAddInput
-        isOpen={showAddStuff}
-        onClose={() => setShowAddStuff(false)}
-        onSubmit={handleQuickAddSubmit}
-      />
+      {/* Add Stuff Modal - hidden in readonly mode */}
+      {!isReadOnly && (
+        <QuickAddInput
+          isOpen={showAddStuff}
+          onClose={() => setShowAddStuff(false)}
+          onSubmit={handleQuickAddSubmit}
+        />
+      )}
     </div>
   );
 }

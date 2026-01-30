@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import type { PaneType } from '../panes/types';
 
+const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
+
 interface LeftToolbarProps {
   onSearchClick: () => void;
   onAddStuffClick: () => void;
@@ -178,11 +180,13 @@ export default function LeftToolbar({
           shortcut="⌘K"
           onClick={onSearchClick}
         />
-        <ToolbarButton
-          icon={Plus}
-          label="Add Stuff"
-          onClick={onAddStuffClick}
-        />
+        {!isReadOnly && (
+          <ToolbarButton
+            icon={Plus}
+            label="Add Stuff"
+            onClick={onAddStuffClick}
+          />
+        )}
       </div>
 
       {/* Middle section - Pane Types */}
@@ -216,13 +220,15 @@ export default function LeftToolbar({
       </div>
 
       {/* Bottom section - Settings */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <ToolbarButton
-          icon={Settings}
-          label="Settings"
-          onClick={onSettingsClick}
-        />
-      </div>
+      {!isReadOnly && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <ToolbarButton
+            icon={Settings}
+            label="Settings"
+            onClick={onSettingsClick}
+          />
+        </div>
+      )}
     </div>
   );
 }

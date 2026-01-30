@@ -21,6 +21,8 @@ import PaneHeader from './PaneHeader';
 import type { MapPaneProps } from './types';
 import { ChevronDown } from 'lucide-react';
 
+const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
+
 import { RahNode } from './map/RahNode';
 import EdgeExplanationModal from './map/EdgeExplanationModal';
 import { toRFNodes, toRFEdges, NODE_LIMIT, type RahNodeData } from './map/utils';
@@ -417,8 +419,9 @@ function MapPaneInner({
     if (!isNaN(nodeId)) onNodeClick?.(nodeId);
   }, [onNodeClick]);
 
-  // ----- Edge creation via drag -----
+  // ----- Edge creation via drag (disabled in readonly mode) -----
   const onConnect = useCallback((connection: Connection) => {
+    if (isReadOnly) return; // No edge creation in readonly mode
     if (connection.source === connection.target) return; // No self-connections
     setPendingConnection(connection);
   }, []);

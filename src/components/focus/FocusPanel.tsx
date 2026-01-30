@@ -12,6 +12,8 @@ import { getNodeIcon } from '@/utils/nodeIcons';
 import ConfirmDialog from '../common/ConfirmDialog';
 import { SourceReader } from './source';
 
+const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
+
 interface PopularDimension {
   dimension: string;
   count: number;
@@ -1987,41 +1989,43 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 )}
               </button>
 
-              {/* Delete Button */}
-              <button
-                onClick={() => confirmDeleteNode(activeTab)}
-                disabled={deletingNode === activeTab}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '4px',
-                  color: deletingNode === activeTab ? '#994444' : '#525252',
-                  background: 'transparent',
-                  border: '1px solid #262626',
-                  borderRadius: '4px',
-                  cursor: deletingNode === activeTab ? 'wait' : 'pointer',
-                  transition: 'all 0.2s',
-                  flexShrink: 0
-                }}
-                onMouseEnter={(e) => {
-                  if (deletingNode !== activeTab) {
-                    e.currentTarget.style.color = '#dc2626';
-                    e.currentTarget.style.borderColor = '#dc2626';
-                    e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (deletingNode !== activeTab) {
-                    e.currentTarget.style.color = '#525252';
-                    e.currentTarget.style.borderColor = '#262626';
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-                title="Delete node"
-              >
-                {deletingNode === activeTab ? '...' : <Trash2 size={12} />}
-              </button>
+              {/* Delete Button - hidden in readonly mode */}
+              {!isReadOnly && (
+                <button
+                  onClick={() => confirmDeleteNode(activeTab)}
+                  disabled={deletingNode === activeTab}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px',
+                    color: deletingNode === activeTab ? '#994444' : '#525252',
+                    background: 'transparent',
+                    border: '1px solid #262626',
+                    borderRadius: '4px',
+                    cursor: deletingNode === activeTab ? 'wait' : 'pointer',
+                    transition: 'all 0.2s',
+                    flexShrink: 0
+                  }}
+                  onMouseEnter={(e) => {
+                    if (deletingNode !== activeTab) {
+                      e.currentTarget.style.color = '#dc2626';
+                      e.currentTarget.style.borderColor = '#dc2626';
+                      e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (deletingNode !== activeTab) {
+                      e.currentTarget.style.color = '#525252';
+                      e.currentTarget.style.borderColor = '#262626';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                  title="Delete node"
+                >
+                  {deletingNode === activeTab ? '...' : <Trash2 size={12} />}
+                </button>
+              )}
             </div>
 
             {/* Dimensions Section */}
@@ -2034,6 +2038,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 <DimensionTags
                 dimensions={nodesData[activeTab].dimensions || []}
                 priorityDimensions={priorityDimensions}
+                disabled={isReadOnly}
                 onUpdate={async (newDimensions) => {
                   try {
                     const response = await fetch(`/api/nodes/${activeTab}`, {
@@ -2078,7 +2083,6 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     alert('Failed to toggle priority. Please try again.');
                   }
                 }}
-                disabled={false}
               />
               </div>
             </div>
