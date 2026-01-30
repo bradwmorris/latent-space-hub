@@ -1,6 +1,36 @@
 /* Import clean, modern fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&display=swap');
+
+/* Latent Space Design Tokens */
+:root {
+  /* Accent colors - Latent Space Purple */
+  --accent-primary: #9333ea;
+  --accent-light: #a855f7;
+  --accent-dark: #7c3aed;
+  --accent-subtle: rgba(147, 51, 234, 0.15);
+
+  /* Background colors */
+  --bg-base: #0a0a0a;
+  --bg-surface: #111111;
+  --bg-elevated: #1a1a1a;
+  --bg-hover: #151515;
+
+  /* Text colors */
+  --text-primary: #e5e5e5;
+  --text-secondary: #a3a3a3;
+  --text-muted: #6b6b6b;
+
+  /* Border colors */
+  --border-subtle: #1a1a1a;
+  --border-default: #262626;
+
+  /* Semantic colors */
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+}
 
 /* Geist Sans - Modern font optimized for reading/writing applications */
 @font-face {
@@ -62,6 +92,11 @@ html, body {
 .font-mono {
   font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
   font-feature-settings: 'liga' 1, 'calt' 1;
+}
+
+/* Heading font class - Latent Space editorial style */
+.font-heading {
+  font-family: 'Roboto Slab', Georgia, 'Times New Roman', serif;
 }
 
 /* Scrollbar styling for terminal theme */

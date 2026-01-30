@@ -174,10 +174,10 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           justifyContent: 'center',
           gap: '8px',
           padding: '10px 16px',
-          background: 'rgba(34, 197, 94, 0.1)',
-          border: '1px solid rgba(34, 197, 94, 0.3)',
+          background: 'rgba(147, 51, 234, 0.1)',
+          border: '1px solid rgba(147, 51, 234, 0.3)',
           borderRadius: '8px',
-          color: '#22c55e',
+          color: '#9333ea',
           fontSize: '11px',
           fontWeight: 600,
           letterSpacing: '0.08em',
@@ -185,24 +185,24 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           cursor: 'pointer',
           transition: 'all 0.2s ease',
           whiteSpace: 'nowrap',
-          boxShadow: '0 0 12px rgba(34, 197, 94, 0.15)'
+          boxShadow: '0 0 12px rgba(147, 51, 234, 0.15)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
-          e.currentTarget.style.borderColor = '#22c55e';
-          e.currentTarget.style.boxShadow = '0 0 20px rgba(34, 197, 94, 0.25)';
+          e.currentTarget.style.background = 'rgba(147, 51, 234, 0.2)';
+          e.currentTarget.style.borderColor = '#9333ea';
+          e.currentTarget.style.boxShadow = '0 0 20px rgba(147, 51, 234, 0.25)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)';
-          e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.3)';
-          e.currentTarget.style.boxShadow = '0 0 12px rgba(34, 197, 94, 0.15)';
+          e.currentTarget.style.background = 'rgba(147, 51, 234, 0.1)';
+          e.currentTarget.style.borderColor = 'rgba(147, 51, 234, 0.3)';
+          e.currentTarget.style.boxShadow = '0 0 12px rgba(147, 51, 234, 0.15)';
         }}
       >
         <span style={{
           width: '18px',
           height: '18px',
           borderRadius: '50%',
-          background: '#22c55e',
+          background: '#9333ea',
           color: '#0a0a0a',
           display: 'flex',
           alignItems: 'center',
@@ -303,7 +303,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: '8px',
-                color: '#22c55e'
+                color: '#9333ea'
               }}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
@@ -433,8 +433,8 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         }
 
         .qa-input-wrapper.dragging {
-          border: 2px dashed #22c55e;
-          background: rgba(34, 197, 94, 0.05);
+          border: 2px dashed #9333ea;
+          background: rgba(147, 51, 234, 0.05);
         }
 
         .qa-drag-overlay {
@@ -443,7 +443,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(34, 197, 94, 0.05);
+          background: rgba(147, 51, 234, 0.05);
           border-radius: 12px;
           z-index: 10;
           pointer-events: none;
@@ -513,15 +513,15 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         }
 
         .qa-submit.active {
-          background: #22c55e;
-          color: #052e16;
+          background: #9333ea;
+          color: #1e1b4b;
           cursor: pointer;
         }
 
         .qa-submit.active:hover {
-          background: #16a34a;
+          background: #7c3aed;
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+          box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
         }
 
         .qa-spinner {

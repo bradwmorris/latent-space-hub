@@ -126,7 +126,7 @@ export default function SplitHandle({
       style={{
         width: '8px',
         cursor: 'col-resize',
-        background: isDragging ? '#22c55e' : (isHovered ? '#1a1a1a' : 'transparent'),
+        background: isDragging ? '#9333ea' : (isHovered ? '#1a1a1a' : 'transparent'),
         transition: isDragging ? 'none' : 'background 0.15s ease',
         flexShrink: 0,
       }}

@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'RA-H Open Source',
-  description: 'Local-first research workspace with a BYO-key AI orchestrator',
+  title: 'Latent Space Hub',
+  description: 'Your personal AI knowledge companion',
 };
 
 export default function RootLayout({

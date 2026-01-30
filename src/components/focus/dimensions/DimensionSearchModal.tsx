@@ -401,7 +401,7 @@ export default function DimensionSearchModal({
         }
         
         .result-name.priority {
-          color: #22c55e;
+          color: #9333ea;
         }
         
         .result-count {
@@ -435,7 +435,7 @@ export default function DimensionSearchModal({
         }
 
         .create-title {
-          color: #22c55e;
+          color: #9333ea;
           font-size: 15px;
           font-weight: 500;
         }
@@ -499,7 +499,7 @@ export default function DimensionSearchModal({
           cursor: pointer;
           transition: background 100ms ease;
           font-family: inherit;
-          color: #22c55e;
+          color: #9333ea;
           font-size: 14px;
           font-weight: 500;
         }
@@ -512,7 +512,7 @@ export default function DimensionSearchModal({
         .create-icon {
           font-size: 18px;
           font-weight: 300;
-          color: #22c55e;
+          color: #9333ea;
         }
         
         .search-empty {

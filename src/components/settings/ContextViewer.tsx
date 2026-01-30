@@ -90,7 +90,7 @@ export default function ContextViewer() {
             disabled={loadingSettings || saving}
             style={{
               ...toggleStyle,
-              background: enabled ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+              background: enabled ? '#9333ea' : 'rgba(255, 255, 255, 0.1)',
             }}
           >
             <span style={{
@@ -173,12 +173,12 @@ const nodeCardStyle: CSSProperties = {
 };
 
 const nodeTitleStyle: CSSProperties = { fontSize: 13, fontWeight: 500, color: '#e5e7eb' };
-const edgeCountStyle: CSSProperties = { fontSize: 12, color: '#22c55e' };
+const edgeCountStyle: CSSProperties = { fontSize: 12, color: '#9333ea' };
 
 const dimTagStyle: CSSProperties = {
   padding: '2px 8px',
   borderRadius: 4,
   fontSize: 11,
-  background: 'rgba(34, 197, 94, 0.1)',
-  color: '#22c55e',
+  background: 'rgba(147, 51, 234, 0.1)',
+  color: '#9333ea',
 };

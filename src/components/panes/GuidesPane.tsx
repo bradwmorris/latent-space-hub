@@ -141,7 +141,7 @@ export default function GuidesPane({
                         padding: '2px 6px',
                         borderRadius: '4px',
                         fontSize: '12px',
-                        color: '#22c55e',
+                        color: '#9333ea',
                       }} {...props}>{children}</code>
                     );
                   }

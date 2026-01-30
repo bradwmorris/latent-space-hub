@@ -71,11 +71,11 @@ export default function ViewFilters({
             alignItems: 'center',
             gap: '4px',
             padding: '4px 8px',
-            background: filter.operator === 'includes' ? '#0f2417' : '#2a1515',
-            border: `1px solid ${filter.operator === 'includes' ? '#166534' : '#7f1d1d'}`,
+            background: filter.operator === 'includes' ? '#1e1b4b' : '#2a1515',
+            border: `1px solid ${filter.operator === 'includes' ? '#7c3aed' : '#7f1d1d'}`,
             borderRadius: '4px',
             fontSize: '11px',
-            color: filter.operator === 'includes' ? '#22c55e' : '#ef4444'
+            color: filter.operator === 'includes' ? '#9333ea' : '#ef4444'
           }}
         >
           <button
@@ -215,7 +215,7 @@ export default function ViewFilters({
             borderRadius: '4px',
             fontSize: '10px',
             fontWeight: 600,
-            color: filterLogic === 'and' ? '#22c55e' : '#3b82f6',
+            color: filterLogic === 'and' ? '#9333ea' : '#3b82f6',
             cursor: 'pointer',
             textTransform: 'uppercase',
             letterSpacing: '0.05em'

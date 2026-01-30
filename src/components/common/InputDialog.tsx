@@ -175,9 +175,9 @@ export default function InputDialog({
             style={{
               padding: '10px 16px',
               borderRadius: '8px',
-              border: '1px solid #22c55e',
-              background: inputValue.trim() ? '#1a3529' : '#0f1a15',
-              color: inputValue.trim() ? '#7de8a5' : '#4a5a4f',
+              border: '1px solid #9333ea',
+              background: inputValue.trim() ? '#1e1b4b' : '#0f0d1a',
+              color: inputValue.trim() ? '#a78bfa' : '#4a4a5f',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               fontSize: '11px',
@@ -187,16 +187,16 @@ export default function InputDialog({
             }}
             onMouseEnter={(e) => {
               if (inputValue.trim()) {
-                e.currentTarget.style.background = '#1f3d2f';
-                e.currentTarget.style.borderColor = '#2dd47e';
-                e.currentTarget.style.color = '#9ef5b8';
+                e.currentTarget.style.background = '#2e1065';
+                e.currentTarget.style.borderColor = '#a855f7';
+                e.currentTarget.style.color = '#c4b5fd';
               }
             }}
             onMouseLeave={(e) => {
               if (inputValue.trim()) {
-                e.currentTarget.style.background = '#1a3529';
-                e.currentTarget.style.borderColor = '#22c55e';
-                e.currentTarget.style.color = '#7de8a5';
+                e.currentTarget.style.background = '#1e1b4b';
+                e.currentTarget.style.borderColor = '#9333ea';
+                e.currentTarget.style.color = '#a78bfa';
               }
             }}
           >

@@ -484,11 +484,11 @@ function MapPaneInner({
               alignItems: 'center',
               gap: '6px',
               padding: '6px 10px',
-              background: selectedDimension ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+              background: selectedDimension ? 'rgba(147, 51, 234, 0.1)' : 'transparent',
               border: '1px solid',
-              borderColor: selectedDimension ? 'rgba(34, 197, 94, 0.3)' : '#2a2a2a',
+              borderColor: selectedDimension ? 'rgba(147, 51, 234, 0.3)' : '#2a2a2a',
               borderRadius: '6px',
-              color: selectedDimension ? '#22c55e' : '#888',
+              color: selectedDimension ? '#9333ea' : '#888',
               fontSize: '12px',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
@@ -528,7 +528,7 @@ function MapPaneInner({
                 }}
               >
                 All dimensions
-                {!selectedDimension && <span style={{ marginLeft: 'auto', color: '#22c55e' }}>&#10003;</span>}
+                {!selectedDimension && <span style={{ marginLeft: 'auto', color: '#9333ea' }}>&#10003;</span>}
               </button>
 
               {lockedDimensions.map(dim => (
@@ -556,7 +556,7 @@ function MapPaneInner({
                   }}
                 >
                   {dim.dimension}
-                  {selectedDimension === dim.dimension && <span style={{ marginLeft: 'auto', color: '#22c55e' }}>&#10003;</span>}
+                  {selectedDimension === dim.dimension && <span style={{ marginLeft: 'auto', color: '#9333ea' }}>&#10003;</span>}
                 </button>
               ))}
             </div>
@@ -618,7 +618,7 @@ function MapPaneInner({
                 <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
                   {connectedNodeIds.size} connected nodes
                 </div>
-                <div style={{ fontSize: 11, color: '#22c55e', marginBottom: 8 }}>
+                <div style={{ fontSize: 11, color: '#9333ea', marginBottom: 8 }}>
                   Click a connected node to traverse &middot; Double-click to open
                 </div>
                 {selectedDbNode.dimensions && selectedDbNode.dimensions.length > 0 && (
@@ -640,7 +640,7 @@ function MapPaneInner({
                 <button
                   onClick={() => onNodeClick?.(selectedDbNode.id)}
                   style={{
-                    marginTop: 4, padding: '8px 12px', background: '#22c55e', color: '#052e16',
+                    marginTop: 4, padding: '8px 12px', background: '#9333ea', color: '#1e1b4b',
                     border: 'none', borderRadius: '6px', fontSize: 12, fontWeight: 500,
                     cursor: 'pointer', width: '100%',
                   }}

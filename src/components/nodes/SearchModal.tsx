@@ -338,7 +338,7 @@ export default function SearchModal({ isOpen, onClose, onNodeSelect, existingFil
           font-weight: 600;
           font-family: 'SF Mono', 'Fira Code', monospace;
           color: #0a0a0a;
-          background: #22c55e;
+          background: #9333ea;
           padding: 4px 8px;
           border-radius: 6px;
           min-width: 28px;

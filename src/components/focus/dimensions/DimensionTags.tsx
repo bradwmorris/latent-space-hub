@@ -236,9 +236,9 @@ export default function DimensionTags({
                 alignItems: 'center',
                 gap: '3px',
                 fontSize: '10px',
-                color: isPriority ? '#22c55e' : '#d1d5db', /* Changed from gold to green */
-                background: isPriority ? '#0f2417' : '#1a1a1a', /* Green-tinted background */
-                border: isPriority ? '1px solid #166534' : '1px solid #333', /* Green border */
+                color: isPriority ? '#9333ea' : '#d1d5db', /* Changed from gold to green */
+                background: isPriority ? '#1e1b4b' : '#1a1a1a', /* Green-tinted background */
+                border: isPriority ? '1px solid #7c3aed' : '1px solid #333', /* Green border */
                 borderRadius: '8px',
                 padding: '2px 6px',
                 cursor: disabled ? 'default' : (onPriorityToggle ? 'pointer' : 'grab'),
@@ -247,11 +247,11 @@ export default function DimensionTags({
               }}
               onMouseEnter={(e) => {
                 if (!disabled) {
-                  e.currentTarget.style.borderColor = isPriority ? '#22c55e' : '#555'; /* Green hover */
+                  e.currentTarget.style.borderColor = isPriority ? '#9333ea' : '#555'; /* Green hover */
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = isPriority ? '#166534' : '#333'; /* Green default */
+                e.currentTarget.style.borderColor = isPriority ? '#7c3aed' : '#333'; /* Green default */
               }}
               title={isPriority ? 'Priority dimension (click to unpin)' : 'Click to pin as priority dimension'}
             >
@@ -362,7 +362,7 @@ export default function DimensionTags({
               gap: '8px',
               fontSize: '11px',
               fontWeight: 600,
-              color: '#22c55e',
+              color: '#9333ea',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               borderBottom: '1px solid #1a1a1a',
@@ -388,7 +388,7 @@ export default function DimensionTags({
               width: '16px',
               height: '16px',
               borderRadius: '50%',
-              background: '#22c55e',
+              background: '#9333ea',
               color: '#0a0a0a',
               fontSize: '12px',
               lineHeight: 1,

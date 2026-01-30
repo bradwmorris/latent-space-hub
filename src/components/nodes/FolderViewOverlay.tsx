@@ -884,8 +884,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
               onDragLeave={(event) => handleDimensionDragLeave(event, dimension.dimension)}
               onDrop={(event) => handleNodeDropOnDimension(event, dimension.dimension)}
               style={{
-                background: isDragTarget ? 'rgba(34, 197, 94, 0.05)' : 'transparent',
-                borderLeft: isLocked ? '2px solid #22c55e' : '2px solid transparent',
+                background: isDragTarget ? 'rgba(147, 51, 234, 0.05)' : 'transparent',
+                borderLeft: isLocked ? '2px solid #9333ea' : '2px solid transparent',
                 borderRadius: '6px',
                 padding: '12px 14px',
                 textAlign: 'left',
@@ -912,7 +912,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 width: '28px',
                 height: '28px',
                 borderRadius: '6px',
-                background: isLocked ? 'rgba(34, 197, 94, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                background: isLocked ? 'rgba(147, 51, 234, 0.08)' : 'rgba(255, 255, 255, 0.03)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -921,7 +921,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 <DynamicIcon
                   name={dimensionIcons[dimension.dimension] || 'Folder'}
                   size={14}
-                  style={{ color: isLocked ? '#22c55e' : '#555' }}
+                  style={{ color: isLocked ? '#9333ea' : '#555' }}
                 />
               </div>
 
@@ -956,7 +956,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
               <span style={{
                 fontSize: '11px',
                 fontWeight: 500,
-                color: isLocked ? '#22c55e' : '#444',
+                color: isLocked ? '#9333ea' : '#444',
                 fontFamily: 'monospace',
                 flexShrink: 0
               }}>
@@ -1008,10 +1008,10 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: isLocked ? '#22c55e' : '#666',
+                    color: isLocked ? '#9333ea' : '#666',
                     transition: 'color 0.1s ease'
                   }}
-                  onMouseEnter={(e) => { if (!isLocked) e.currentTarget.style.color = '#22c55e'; }}
+                  onMouseEnter={(e) => { if (!isLocked) e.currentTarget.style.color = '#9333ea'; }}
                   onMouseLeave={(e) => { if (!isLocked) e.currentTarget.style.color = '#666'; }}
                 >
                   {isLocked ? <Check size={12} /> : <Lock size={12} />}
@@ -1208,7 +1208,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: '#22c55e',
+              background: '#9333ea',
               color: '#0a0a0a',
               fontSize: '9px',
               fontWeight: 600,
@@ -1436,7 +1436,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: '#22c55e',
+                background: '#9333ea',
                 color: '#0a0a0a',
                 fontSize: '9px',
                 fontWeight: 600,
@@ -1604,7 +1604,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 minWidth: '280px',
                 display: 'flex',
                 flexDirection: 'column',
-                background: isDropTarget ? '#0f2417' : '#0a0a0a',
+                background: isDropTarget ? '#1e1b4b' : '#0a0a0a',
                 border: '1px solid #1a1a1a',
                 borderRadius: '12px',
                 transition: 'all 0.2s'
@@ -1889,7 +1889,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: '#22c55e',
+                      background: '#9333ea',
                       color: '#0a0a0a',
                       fontSize: '9px',
                       fontWeight: 600,
@@ -2063,7 +2063,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     minWidth: '280px',
                     display: 'flex',
                     flexDirection: 'column',
-                    background: isDropTarget ? '#0f2417' : '#0a0a0a',
+                    background: isDropTarget ? '#1e1b4b' : '#0a0a0a',
                     border: '1px solid #1a1a1a',
                     borderRadius: '12px',
                     transition: 'all 0.2s'
@@ -2336,7 +2336,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 justifyContent: 'space-between',
                 fontSize: '11px',
                 fontWeight: 600,
-                color: '#22c55e',
+                color: '#9333ea',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 padding: '8px 0',
@@ -2352,11 +2352,11 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                       setShowColumnFilterPicker(showColumnFilterPicker === group.column.id ? null : group.column.id);
                     }}
                     style={{
-                      background: group.hasFilter ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
-                      border: '1px solid rgba(34, 197, 94, 0.3)',
+                      background: group.hasFilter ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.1)',
+                      border: '1px solid rgba(147, 51, 234, 0.3)',
                       padding: '3px 8px',
                       cursor: 'pointer',
-                      color: '#22c55e',
+                      color: '#9333ea',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px',
@@ -2366,8 +2366,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                       transition: 'all 0.15s',
                       textTransform: 'uppercase'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.3)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = group.hasFilter ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(147, 51, 234, 0.3)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = group.hasFilter ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.1)'; }}
                     title={group.hasFilter ? 'Change filter' : 'Add AND filter'}
                   >
                     <Plus size={10} />
@@ -2514,7 +2514,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     marginBottom: '2px',
                     background: reorderDrag?.nodeId === node.id ? '#1a2a1f' : 'transparent',
                     border: reorderDropIndex === index && reorderDrag?.dimension === group.column.dimension && reorderDrag?.nodeId !== node.id
-                      ? '1px dashed #22c55e'
+                      ? '1px dashed #9333ea'
                       : '1px solid transparent',
                     borderRadius: '6px',
                     cursor: 'grab',
@@ -2539,7 +2539,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: '#22c55e',
+                    background: '#9333ea',
                     color: '#0a0a0a',
                     fontSize: '9px',
                     fontWeight: 600,
@@ -2584,10 +2584,10 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                             key={dim}
                             style={{
                               padding: '2px 5px',
-                              background: selectedFilters.includes(dim) ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+                              background: selectedFilters.includes(dim) ? 'rgba(147, 51, 234, 0.1)' : 'transparent',
                               borderRadius: '3px',
                               fontSize: '9px',
-                              color: selectedFilters.includes(dim) ? '#22c55e' : '#444',
+                              color: selectedFilters.includes(dim) ? '#9333ea' : '#444',
                               fontWeight: 500
                             }}
                           >
@@ -2617,7 +2617,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 justifyContent: 'space-between',
                 fontSize: '11px',
                 fontWeight: 600,
-                color: '#22c55e',
+                color: '#9333ea',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 padding: '8px 0',
@@ -2633,11 +2633,11 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                       setShowColumnFilterPicker(showColumnFilterPicker === group.column.id ? null : group.column.id);
                     }}
                     style={{
-                      background: group.hasFilter ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
-                      border: '1px solid rgba(34, 197, 94, 0.3)',
+                      background: group.hasFilter ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.1)',
+                      border: '1px solid rgba(147, 51, 234, 0.3)',
                       padding: '3px 8px',
                       cursor: 'pointer',
-                      color: '#22c55e',
+                      color: '#9333ea',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px',
@@ -2647,8 +2647,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                       transition: 'all 0.15s',
                       textTransform: 'uppercase'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.3)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = group.hasFilter ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(147, 51, 234, 0.3)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = group.hasFilter ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.1)'; }}
                     title={group.hasFilter ? 'Change filter' : 'Add AND filter'}
                   >
                     <Plus size={10} />
@@ -2796,7 +2796,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     style={{
                       background: reorderDrag?.nodeId === node.id ? '#1a2a1f' : '#0a0a0a',
                       border: reorderDropIndex === index && reorderDrag?.dimension === group.column.dimension && reorderDrag?.nodeId !== node.id
-                        ? '2px dashed #22c55e'
+                        ? '2px dashed #9333ea'
                         : '1px solid #161616',
                       borderRadius: '10px',
                       padding: '14px',
@@ -2835,7 +2835,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: '#22c55e',
+                        background: '#9333ea',
                         color: '#0a0a0a',
                         fontSize: '9px',
                         fontWeight: 600,
@@ -2883,8 +2883,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                               padding: '2px 5px',
                               fontSize: '9px',
                               fontWeight: 500,
-                              color: selectedFilters.includes(dim) ? '#22c55e' : '#555',
-                              background: selectedFilters.includes(dim) ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+                              color: selectedFilters.includes(dim) ? '#9333ea' : '#555',
+                              background: selectedFilters.includes(dim) ? 'rgba(147, 51, 234, 0.1)' : 'transparent',
                               borderRadius: '3px'
                             }}
                           >
@@ -2961,7 +2961,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                   display: 'flex',
                   flexDirection: 'column',
                   background: isColumnDropTarget ? '#0d1a12' : (isDropTarget ? '#0d1a12' : '#0a0a0a'),
-                  border: isColumnDropTarget ? '1px solid #22c55e' : (isDropTarget ? '1px solid #22c55e' : '1px solid #1a1a1a'),
+                  border: isColumnDropTarget ? '1px solid #9333ea' : (isDropTarget ? '1px solid #9333ea' : '1px solid #1a1a1a'),
                   borderRadius: '12px',
                   transition: 'all 0.15s ease',
                   opacity: isBeingDragged ? 0.5 : 1
@@ -3019,11 +3019,11 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                         setShowColumnFilterPicker(showColumnFilterPicker === column.id ? null : column.id);
                       }}
                       style={{
-                        background: hasSecondaryFilter ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
-                        border: '1px solid rgba(34, 197, 94, 0.3)',
+                        background: hasSecondaryFilter ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.1)',
+                        border: '1px solid rgba(147, 51, 234, 0.3)',
                         padding: '3px 8px',
                         cursor: 'pointer',
-                        color: '#22c55e',
+                        color: '#9333ea',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
@@ -3033,8 +3033,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                         transition: 'all 0.15s',
                         textTransform: 'uppercase'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.3)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = hasSecondaryFilter ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(147, 51, 234, 0.3)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = hasSecondaryFilter ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.1)'; }}
                       title={hasSecondaryFilter ? 'Change filter' : 'Add AND filter'}
                     >
                       <Plus size={10} />
@@ -3166,7 +3166,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                         padding: '10px',
                         marginBottom: '6px',
                         background: draggedNode?.id === node.id ? '#1a2a1f' : '#111',
-                        border: isReorderTarget ? '2px dashed #22c55e' : (draggedNode?.id === node.id ? '1px solid #22c55e' : '1px solid #222'),
+                        border: isReorderTarget ? '2px dashed #9333ea' : (draggedNode?.id === node.id ? '1px solid #9333ea' : '1px solid #222'),
                         borderRadius: '8px',
                         cursor: 'grab',
                         transition: 'all 0.15s',
@@ -3197,7 +3197,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: '#22c55e',
+                          background: '#9333ea',
                           color: '#0a0a0a',
                           fontSize: '9px',
                           fontWeight: 600,
@@ -3232,11 +3232,11 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                                 key={dim}
                                 style={{
                                   padding: '2px 5px',
-                                  background: selectedFilters.includes(dim) ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+                                  background: selectedFilters.includes(dim) ? 'rgba(147, 51, 234, 0.1)' : 'transparent',
                                   borderRadius: '3px',
                                   fontSize: '9px',
                                   fontWeight: 500,
-                                  color: selectedFilters.includes(dim) ? '#22c55e' : '#555'
+                                  color: selectedFilters.includes(dim) ? '#9333ea' : '#555'
                                 }}
                               >
                                 {dim}
@@ -3250,9 +3250,9 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     <div style={{
                       padding: '20px',
                       textAlign: 'center',
-                      color: isDropTarget ? '#22c55e' : '#444',
+                      color: isDropTarget ? '#9333ea' : '#444',
                       fontSize: '11px',
-                      border: isDropTarget ? '2px dashed #22c55e' : '2px dashed transparent',
+                      border: isDropTarget ? '2px dashed #9333ea' : '2px dashed transparent',
                       borderRadius: '8px',
                       transition: 'all 0.15s ease'
                     }}>
@@ -3331,7 +3331,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     transition: 'color 0.15s'
                   }}
                 >
-                  <DynamicIcon name="Folder" size={14} style={{ color: overlayMode === 'folders' ? '#22c55e' : '#555' }} />
+                  <DynamicIcon name="Folder" size={14} style={{ color: overlayMode === 'folders' ? '#9333ea' : '#555' }} />
                   Folders
                 </button>
                 <button
@@ -3350,7 +3350,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     transition: 'color 0.15s'
                   }}
                 >
-                  <Filter size={14} style={{ color: overlayMode === 'filtered' ? '#22c55e' : '#555' }} />
+                  <Filter size={14} style={{ color: overlayMode === 'filtered' ? '#9333ea' : '#555' }} />
                   {activeView ? activeView.name : 'Filter'}
                 </button>
               </div>
@@ -3360,7 +3360,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
             {view === 'nodes' && (
               <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>Nodes –</span>
-                <span style={{ color: '#22c55e' }}>{selectedDimension?.dimension ?? ''}</span>
+                <span style={{ color: '#9333ea' }}>{selectedDimension?.dimension ?? ''}</span>
               </div>
             )}
 
@@ -3471,7 +3471,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                   cursor: 'pointer',
                   transition: 'all 0.15s'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#22c55e'; e.currentTarget.style.borderColor = '#22c55e'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#9333ea'; e.currentTarget.style.borderColor = '#9333ea'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = '#1f1f1f'; }}
               >
                 <Plus size={14} />
@@ -3498,7 +3498,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     border: 'none',
                     background: viewMode === 'list' ? '#1f1f1f' : 'transparent',
                     cursor: 'pointer',
-                    color: viewMode === 'list' ? '#22c55e' : '#555',
+                    color: viewMode === 'list' ? '#9333ea' : '#555',
                     display: 'flex',
                     alignItems: 'center',
                     transition: 'all 0.15s'
@@ -3515,7 +3515,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     border: 'none',
                     background: viewMode === 'grid' ? '#1f1f1f' : 'transparent',
                     cursor: 'pointer',
-                    color: viewMode === 'grid' ? '#22c55e' : '#555',
+                    color: viewMode === 'grid' ? '#9333ea' : '#555',
                     display: 'flex',
                     alignItems: 'center',
                     transition: 'all 0.15s'
@@ -3532,7 +3532,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     border: 'none',
                     background: viewMode === 'kanban' ? '#1f1f1f' : 'transparent',
                     cursor: 'pointer',
-                    color: viewMode === 'kanban' ? '#22c55e' : '#555',
+                    color: viewMode === 'kanban' ? '#9333ea' : '#555',
                     display: 'flex',
                     alignItems: 'center',
                     transition: 'all 0.15s'
@@ -3561,7 +3561,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                   cursor: 'pointer',
                   transition: 'all 0.15s'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#22c55e'; e.currentTarget.style.borderColor = '#22c55e'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#9333ea'; e.currentTarget.style.borderColor = '#9333ea'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = '#1f1f1f'; }}
               >
                 <Save size={14} />
@@ -3611,10 +3611,10 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     alignItems: 'center',
                     gap: '4px',
                     padding: '3px 6px',
-                    background: 'rgba(34, 197, 94, 0.1)',
+                    background: 'rgba(147, 51, 234, 0.1)',
                     borderRadius: '4px',
                     fontSize: '10px',
-                    color: '#22c55e',
+                    color: '#9333ea',
                     fontWeight: 500,
                     letterSpacing: '0.02em'
                   }}
@@ -3632,7 +3632,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                       border: 'none',
                       padding: 0,
                       cursor: 'pointer',
-                      color: '#22c55e',
+                      color: '#9333ea',
                       display: 'flex',
                       alignItems: 'center',
                       opacity: 0.7,
@@ -3659,7 +3659,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     background: 'transparent',
                     border: 'none',
                     borderRadius: '6px',
-                    color: '#22c55e',
+                    color: '#9333ea',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     fontSize: '11px',
@@ -3675,7 +3675,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                     width: '20px',
                     height: '20px',
                     borderRadius: '50%',
-                    background: '#22c55e',
+                    background: '#9333ea',
                     color: '#0a0a0a',
                     fontSize: '14px',
                     lineHeight: 1,
@@ -3872,7 +3872,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 width: '32px',
                 height: '32px',
                 borderRadius: '8px',
-                background: editingDimensionModal.isPriority ? 'rgba(34, 197, 94, 0.1)' : '#111',
+                background: editingDimensionModal.isPriority ? 'rgba(147, 51, 234, 0.1)' : '#111',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -3880,7 +3880,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 <DynamicIcon
                   name={editModalIcon}
                   size={16}
-                  style={{ color: editingDimensionModal.isPriority ? '#22c55e' : '#888' }}
+                  style={{ color: editingDimensionModal.isPriority ? '#9333ea' : '#888' }}
                 />
               </div>
               <div>
@@ -3893,7 +3893,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: editingDimensionModal.isPriority ? '#22c55e' : '#888'
+                  color: editingDimensionModal.isPriority ? '#9333ea' : '#888'
                 }}>
                   {editingDimensionModal.dimension}
                 </div>
@@ -3957,7 +3957,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                   outline: 'none'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#22c55e';
+                  e.currentTarget.style.borderColor = '#9333ea';
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = '#333';
@@ -4021,7 +4021,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
               disabled={savingDimensionEdit}
               style={{
                 padding: '8px 16px',
-                background: '#22c55e',
+                background: '#9333ea',
                 border: 'none',
                 borderRadius: '6px',
                 color: '#000',

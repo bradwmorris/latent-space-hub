@@ -938,7 +938,7 @@ export default function ThreePanelLayout() {
               } : {}),
               background: '#111111',
               borderRadius: '10px',
-              outline: dragOverSlot === 'A' ? '2px dashed #22c55e' : 'none',
+              outline: dragOverSlot === 'A' ? '2px dashed #9333ea' : 'none',
               outlineOffset: '-4px',
               transition: 'outline 0.15s ease',
             }}
@@ -971,7 +971,7 @@ export default function ThreePanelLayout() {
               flexDirection: 'column',
               background: '#111111',
               borderRadius: '10px',
-              outline: dragOverSlot === 'B' ? '2px dashed #22c55e' : 'none',
+              outline: dragOverSlot === 'B' ? '2px dashed #9333ea' : 'none',
               outlineOffset: '-4px',
               transition: 'outline 0.15s ease',
             }}

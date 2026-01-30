@@ -58,7 +58,7 @@ export default function PaneHeader({
         alignItems: 'center',
         gap: '8px',
         padding: '8px 12px',
-        background: isDragOver ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+        background: isDragOver ? 'rgba(147, 51, 234, 0.1)' : 'transparent',
         minHeight: '44px',
         cursor: slot && onSwapPanes ? 'grab' : 'default',
         opacity: isDragging ? 0.5 : 1,
