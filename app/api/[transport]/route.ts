@@ -209,8 +209,10 @@ const handler = createMcpHandler(
     }
   },
   {
-    name: 'ra-h-mcp',
-    version: '1.0.0',
+    serverInfo: {
+      name: 'ra-h-mcp',
+      version: '1.0.0',
+    },
   },
   {
     basePath: '/api',
