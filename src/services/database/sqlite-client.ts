@@ -77,6 +77,11 @@ class SQLiteClient {
     return SQLiteClient.instance;
   }
 
+  // Factory method for creating fresh instances (used in serverless)
+  public static createFresh(): SQLiteClient {
+    return new SQLiteClient();
+  }
+
   /**
    * Initialize the database (ensure schema exists).
    * Call this once at app startup.
@@ -271,10 +276,15 @@ class SQLiteClient {
   }
 }
 
-// Export function to get client instance (creates new each time if needed)
+// Export function to get client instance
+// On serverless (Vercel), always create fresh to avoid stale singleton issues
 export function getSQLiteClient(): SQLiteClient {
-  // Always get a fresh instance - the class handles singleton internally
-  // but will re-create if it was a placeholder and env vars are now available
+  // Skip singleton for serverless - create fresh client with current env vars
+  if (process.env.VERCEL || process.env.VERCEL_ENV) {
+    console.log('Serverless mode: creating fresh client');
+    return SQLiteClient.createFresh();
+  }
+  // For local dev, use singleton
   return SQLiteClient.getInstance();
 }
 
