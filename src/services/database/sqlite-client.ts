@@ -48,23 +48,30 @@ class SQLiteClient {
       return;
     }
 
+    console.log(`Creating Turso client with URL: ${url?.substring(0, 30)}...`);
     this.client = createClient({
       url,
       authToken,
     });
 
-    console.log('Turso SQLite client created');
+    console.log('Turso SQLite client created successfully');
   }
 
   public static getInstance(): SQLiteClient {
+    const hasUrl = !!process.env.TURSO_DATABASE_URL;
+    const isPlaceholderInstance = SQLiteClient.instance?.isPlaceholder;
+
+    console.log(`getInstance: hasUrl=${hasUrl}, hasInstance=${!!SQLiteClient.instance}, isPlaceholder=${isPlaceholderInstance}`);
+
     // If we have an instance but it's a placeholder AND env vars are now available,
     // re-create with the real connection
-    if (SQLiteClient.instance?.isPlaceholder && process.env.TURSO_DATABASE_URL) {
+    if (isPlaceholderInstance && hasUrl) {
       console.log('Re-initializing Turso client with real credentials');
       SQLiteClient.instance = new SQLiteClient();
     }
 
     if (!SQLiteClient.instance) {
+      console.log('Creating new SQLite instance');
       SQLiteClient.instance = new SQLiteClient();
     }
     return SQLiteClient.instance;
@@ -215,6 +222,12 @@ class SQLiteClient {
 
   public async testConnection(): Promise<boolean> {
     try {
+      // Debug: check if we're using placeholder
+      if (this.isPlaceholder) {
+        console.error('testConnection called on placeholder client!');
+        console.error('TURSO_DATABASE_URL:', process.env.TURSO_DATABASE_URL?.substring(0, 30));
+        return false;
+      }
       const result = await this.query('SELECT datetime() as current_time');
       return result.rows.length > 0;
     } catch (error) {
