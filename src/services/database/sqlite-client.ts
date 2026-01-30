@@ -40,7 +40,6 @@ class SQLiteClient {
     if (!url) {
       // During build time, env vars may not be available
       // Mark as placeholder so we can re-initialize at runtime
-      console.warn('TURSO_DATABASE_URL not set - using placeholder (build time?)');
       this.client = createClient({
         url: 'file::memory:',
       });
@@ -48,30 +47,23 @@ class SQLiteClient {
       return;
     }
 
-    console.log(`Creating Turso client with URL: ${url?.substring(0, 30)}...`);
     this.client = createClient({
       url,
       authToken,
     });
-
-    console.log('Turso SQLite client created successfully');
   }
 
   public static getInstance(): SQLiteClient {
     const hasUrl = !!process.env.TURSO_DATABASE_URL;
     const isPlaceholderInstance = SQLiteClient.instance?.isPlaceholder;
 
-    console.log(`getInstance: hasUrl=${hasUrl}, hasInstance=${!!SQLiteClient.instance}, isPlaceholder=${isPlaceholderInstance}`);
-
     // If we have an instance but it's a placeholder AND env vars are now available,
     // re-create with the real connection
     if (isPlaceholderInstance && hasUrl) {
-      console.log('Re-initializing Turso client with real credentials');
       SQLiteClient.instance = new SQLiteClient();
     }
 
     if (!SQLiteClient.instance) {
-      console.log('Creating new SQLite instance');
       SQLiteClient.instance = new SQLiteClient();
     }
     return SQLiteClient.instance;
@@ -92,13 +84,11 @@ class SQLiteClient {
     try {
       // Test connection
       await this.client.execute('SELECT 1');
-      console.log('Turso connection verified');
 
       // Ensure core tables exist (minimal schema check)
       await this.ensureSchema();
 
       this.initialized = true;
-      console.log('SQLite client initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Turso client:', error);
       throw error;
@@ -117,8 +107,7 @@ class SQLiteClient {
     );
 
     if (tables.rows.length === 0) {
-      console.warn('Nodes table not found. Run schema initialization first.');
-      console.warn('See: scripts/database/turso-init-schema.sql');
+      throw new Error('Nodes table not found. Run schema initialization first.');
     }
 
     // Ensure dimensions table exists
@@ -127,7 +116,6 @@ class SQLiteClient {
     );
 
     if (dimTable.rows.length === 0) {
-      console.log('Creating dimensions table...');
       await this.client.execute(`
         CREATE TABLE dimensions (
           name TEXT PRIMARY KEY,
@@ -144,7 +132,6 @@ class SQLiteClient {
     );
 
     if (logsTable.rows.length === 0) {
-      console.log('Creating logs table...');
       await this.client.execute(`
         CREATE TABLE logs (
           id INTEGER PRIMARY KEY,
@@ -227,16 +214,12 @@ class SQLiteClient {
 
   public async testConnection(): Promise<boolean> {
     try {
-      // Debug: check if we're using placeholder
       if (this.isPlaceholder) {
-        console.error('testConnection called on placeholder client!');
-        console.error('TURSO_DATABASE_URL:', process.env.TURSO_DATABASE_URL?.substring(0, 30));
         return false;
       }
       const result = await this.query('SELECT datetime() as current_time');
       return result.rows.length > 0;
     } catch (error) {
-      console.error('SQLite connection test failed:', error);
       return false;
     }
   }
@@ -281,7 +264,6 @@ class SQLiteClient {
 export function getSQLiteClient(): SQLiteClient {
   // Skip singleton for serverless - create fresh client with current env vars
   if (process.env.VERCEL || process.env.VERCEL_ENV) {
-    console.log('Serverless mode: creating fresh client');
     return SQLiteClient.createFresh();
   }
   // For local dev, use singleton
