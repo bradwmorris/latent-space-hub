@@ -1,7 +1,7 @@
 /**
- * RA-H Remote MCP Endpoint (via mcp-handler)
+ * Latent Space Hub MCP Endpoint (via mcp-handler)
  *
- * Exposes rah_* tools for external agents to query the knowledge graph.
+ * Exposes ls_* tools for external agents to query the Latent Space knowledge graph.
  *
  * Usage:
  *   claude mcp add --transport http latent-space https://latent-space-hub.vercel.app/api/mcp
@@ -21,12 +21,12 @@ const handler = createMcpHandler(
     // READ TOOLS (always enabled)
     // ─────────────────────────────────────────────────────────────────────────────
 
-    // rah_search_nodes - Full-text search
+    // ls_search_nodes - Full-text search
     server.registerTool(
-      'rah_search_nodes',
+      'ls_search_nodes',
       {
-        title: 'Search RA-H nodes',
-        description: 'Search the knowledge graph by keyword. Returns matching nodes with title, description, dimensions.',
+        title: 'Search Latent Space nodes',
+        description: 'Search the Latent Space knowledge graph by keyword. Returns matching nodes with title, description, dimensions.',
         inputSchema: {
           query: z.string().min(1).max(400).describe('Search query (keywords)'),
           limit: z.number().min(1).max(50).optional().describe('Max results (default 20)'),
@@ -54,11 +54,11 @@ const handler = createMcpHandler(
       }
     );
 
-    // rah_get_nodes - Load full node content by ID
+    // ls_get_nodes - Load full node content by ID
     server.registerTool(
-      'rah_get_nodes',
+      'ls_get_nodes',
       {
-        title: 'Get RA-H nodes by ID',
+        title: 'Get Latent Space nodes by ID',
         description: 'Load full content of specific nodes by their IDs.',
         inputSchema: {
           nodeIds: z.array(z.number().int().positive()).min(1).max(10).describe('Node IDs to load (max 10)'),
@@ -98,11 +98,11 @@ const handler = createMcpHandler(
       }
     );
 
-    // rah_query_edges - Find connections
+    // ls_query_edges - Find connections
     server.registerTool(
-      'rah_query_edges',
+      'ls_query_edges',
       {
-        title: 'Query RA-H edges',
+        title: 'Query Latent Space edges',
         description: 'Find connections (edges) between nodes. Use nodeId to get all connections for a specific node.',
         inputSchema: {
           nodeId: z.number().int().positive().optional().describe('Find edges connected to this node'),
@@ -138,11 +138,11 @@ const handler = createMcpHandler(
       }
     );
 
-    // rah_list_dimensions - List all dimensions
+    // ls_list_dimensions - List all dimensions
     server.registerTool(
-      'rah_list_dimensions',
+      'ls_list_dimensions',
       {
-        title: 'List RA-H dimensions',
+        title: 'List Latent Space dimensions',
         description: 'List all dimensions (categories/tags) in the knowledge graph with node counts.',
         inputSchema: {},
       },
@@ -180,9 +180,9 @@ const handler = createMcpHandler(
 
     if (ALLOW_WRITES) {
       server.registerTool(
-        'rah_add_node',
+        'ls_add_node',
         {
-          title: 'Add RA-H node',
+          title: 'Add Latent Space node',
           description: 'Create a new node in the knowledge graph.',
           inputSchema: {
             title: z.string().min(1).max(160).describe('Node title'),
@@ -210,7 +210,7 @@ const handler = createMcpHandler(
   },
   {
     serverInfo: {
-      name: 'ra-h-mcp',
+      name: 'latent-space-hub',
       version: '1.0.0',
     },
   },
