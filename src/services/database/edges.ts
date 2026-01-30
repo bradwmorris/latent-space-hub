@@ -265,8 +265,30 @@ export class EdgeService {
       now
     ]);
 
-    const edgeId = result.lastInsertRowid!;
+    console.log('[Edge DEBUG] INSERT result:', JSON.stringify(result));
+
+    const edgeId = result.lastInsertRowid;
+    console.log('[Edge DEBUG] edgeId:', edgeId, 'type:', typeof edgeId);
+
+    if (!edgeId) {
+      // Fallback: query for the edge we just inserted
+      const fallbackResult = await sqlite.query<{ id: number }>(
+        `SELECT id FROM edges WHERE from_node_id = ? AND to_node_id = ? ORDER BY id DESC LIMIT 1`,
+        [finalFromId, finalToId]
+      );
+      console.log('[Edge DEBUG] fallback result:', JSON.stringify(fallbackResult));
+      if (fallbackResult.rows.length === 0) {
+        throw new Error('Failed to create edge - INSERT did not return ID and fallback query found nothing');
+      }
+      const newEdge = await this.getEdgeById(fallbackResult.rows[0].id);
+      if (!newEdge) {
+        throw new Error('Failed to create edge - could not retrieve after fallback');
+      }
+      return newEdge;
+    }
+
     const newEdge = await this.getEdgeById(edgeId);
+    console.log('[Edge DEBUG] getEdgeById result:', newEdge ? 'found' : 'null');
 
     if (!newEdge) {
       throw new Error('Failed to create edge');
