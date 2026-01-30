@@ -13,7 +13,7 @@ export async function GET() {
 
   try {
     const status = await checkDatabaseHealth();
-    return NextResponse.json({ success: true, ...status, debug });
+    return NextResponse.json({ success: true, ...status, debug, fullUrl: process.env.TURSO_DATABASE_URL });
   } catch (error) {
     return NextResponse.json({
       success: false,
@@ -21,7 +21,8 @@ export async function GET() {
       vectorExtension: false,
       tablesExist: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      debug
+      debug,
+      fullUrl: process.env.TURSO_DATABASE_URL
     }, { status: 500 });
   }
 }
