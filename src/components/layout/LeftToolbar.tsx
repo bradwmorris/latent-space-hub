@@ -219,16 +219,16 @@ export default function LeftToolbar({
         })}
       </div>
 
-      {/* Bottom section - Settings */}
-      {!isReadOnly && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {/* Bottom section - Settings (or empty spacer in readonly mode) */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '36px' }}>
+        {!isReadOnly && (
           <ToolbarButton
             icon={Settings}
             label="Settings"
             onClick={onSettingsClick}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

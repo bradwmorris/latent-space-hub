@@ -12,6 +12,9 @@ export interface Guide extends GuideMeta {
   content: string;
 }
 
+// In readonly/production mode, only use bundled guides (no filesystem persistence)
+const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
+
 const GUIDES_DIR = path.join(
   os.homedir(),
   'Library/Application Support/RA-H/guides'
@@ -23,12 +26,14 @@ const BUNDLED_GUIDES_DIR = path.join(
 );
 
 function ensureGuidesDir(): void {
+  if (isReadOnly) return; // Skip in readonly mode
   if (!fs.existsSync(GUIDES_DIR)) {
     fs.mkdirSync(GUIDES_DIR, { recursive: true });
   }
 }
 
 function seedDefaultGuides(): void {
+  if (isReadOnly) return; // Skip in readonly mode
   if (!fs.existsSync(BUNDLED_GUIDES_DIR)) return;
 
   const bundled = fs.readdirSync(BUNDLED_GUIDES_DIR).filter(f => f.endsWith('.md'));
@@ -41,6 +46,7 @@ function seedDefaultGuides(): void {
 }
 
 function init(): void {
+  if (isReadOnly) return; // Skip in readonly mode - use bundled directly
   ensureGuidesDir();
   const existing = fs.readdirSync(GUIDES_DIR).filter(f => f.endsWith('.md'));
   if (existing.length === 0) {
@@ -48,11 +54,22 @@ function init(): void {
   }
 }
 
+function getGuidesDirectory(): string {
+  // In readonly mode, always use bundled guides
+  if (isReadOnly) {
+    return BUNDLED_GUIDES_DIR;
+  }
+  return GUIDES_DIR;
+}
+
 export function listGuides(): GuideMeta[] {
   init();
-  const files = fs.readdirSync(GUIDES_DIR).filter(f => f.endsWith('.md'));
+  const guidesDir = getGuidesDirectory();
+  if (!fs.existsSync(guidesDir)) return [];
+
+  const files = fs.readdirSync(guidesDir).filter(f => f.endsWith('.md'));
   return files.map(file => {
-    const raw = fs.readFileSync(path.join(GUIDES_DIR, file), 'utf-8');
+    const raw = fs.readFileSync(path.join(guidesDir, file), 'utf-8');
     const { data } = matter(raw);
     return {
       name: data.name || file.replace('.md', ''),
@@ -63,6 +80,9 @@ export function listGuides(): GuideMeta[] {
 
 export function readGuide(name: string): Guide | null {
   init();
+  const guidesDir = getGuidesDirectory();
+  if (!fs.existsSync(guidesDir)) return null;
+
   // Try exact filename first, then lowercase
   const candidates = [
     `${name}.md`,
@@ -70,7 +90,7 @@ export function readGuide(name: string): Guide | null {
   ];
 
   for (const filename of candidates) {
-    const filepath = path.join(GUIDES_DIR, filename);
+    const filepath = path.join(guidesDir, filename);
     if (fs.existsSync(filepath)) {
       const raw = fs.readFileSync(filepath, 'utf-8');
       const { data, content } = matter(raw);
@@ -86,6 +106,7 @@ export function readGuide(name: string): Guide | null {
 }
 
 export function writeGuide(name: string, content: string): void {
+  if (isReadOnly) return; // No writes in readonly mode
   init();
   const filename = `${name.toLowerCase()}.md`;
   const filepath = path.join(GUIDES_DIR, filename);

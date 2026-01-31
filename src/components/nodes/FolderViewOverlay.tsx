@@ -965,7 +965,8 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                 {dimension.count}
               </span>
 
-              {/* Action buttons - subtle */}
+              {/* Action buttons - subtle - hidden in readonly mode */}
+              {!isReadOnly && (
               <div style={{ display: 'flex', gap: '2px', flexShrink: 0, opacity: 0.4 }}
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.4'; }}
@@ -1045,6 +1046,7 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                   <Trash2 size={12} />
                 </button>
               </div>
+              )}
             </div>
           );
         })}
@@ -3428,23 +3430,26 @@ export default function FolderViewOverlay({ onClose, onNodeOpen, refreshToken, o
                           >
                             {sv.name}
                           </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteSavedView(sv.id);
-                            }}
-                            style={{
-                              padding: '4px',
-                              background: 'none',
-                              border: 'none',
-                              color: '#666',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center'
-                            }}
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          {/* Delete saved view - hidden in readonly mode */}
+                          {!isReadOnly && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteSavedView(sv.id);
+                              }}
+                              style={{
+                                padding: '4px',
+                                background: 'none',
+                                border: 'none',
+                                color: '#666',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>

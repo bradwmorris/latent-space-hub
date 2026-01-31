@@ -1882,7 +1882,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 {activeTab}
               </span>
 
-              {editingField === 'title' ? (
+              {/* Title editing - disabled in readonly mode */}
+              {!isReadOnly && editingField === 'title' ? (
                 <input
                   ref={inputRef as React.RefObject<HTMLInputElement>}
                   type="text"
@@ -1907,7 +1908,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 />
               ) : (
                 <h1
-                  onClick={() => {
+                  onClick={isReadOnly ? undefined : () => {
                     if (titleExpanded[activeTab]) {
                       startEdit('title', nodesData[activeTab].title || '');
                     } else {
@@ -1922,7 +1923,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     fontWeight: 'bold',
                     color: '#fff',
                     fontFamily: 'inherit',
-                    cursor: 'pointer',
+                    cursor: isReadOnly ? 'default' : 'pointer',
                     padding: '4px 8px',
                     margin: '0',
                     borderRadius: '0',
@@ -1940,10 +1941,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                       textOverflow: 'ellipsis'
                     })
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={isReadOnly ? undefined : (e) => {
                     e.currentTarget.style.borderColor = '#1a1a1a';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={isReadOnly ? undefined : (e) => {
                     e.currentTarget.style.borderColor = 'transparent';
                   }}
                   title={titleExpanded[activeTab] ? undefined : (nodesData[activeTab].title || 'Untitled')}
@@ -2149,8 +2150,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   Source
                 </button>
                 <div style={{ flex: 1 }} />
-                {/* Action buttons for Desc tab */}
-                {activeContentTab === 'desc' && !descEditMode && (
+                {/* Action buttons for Desc tab - hidden in readonly mode */}
+                {!isReadOnly && activeContentTab === 'desc' && !descEditMode && (
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
                     <button
                       onClick={() => activeTab && regenerateDescription(activeTab)}
@@ -2193,8 +2194,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     </button>
                   </div>
                 )}
-                {/* Action buttons for Notes tab */}
-                {activeContentTab === 'notes' && !notesEditMode && (
+                {/* Action buttons for Notes tab - hidden in readonly mode */}
+                {!isReadOnly && activeContentTab === 'notes' && !notesEditMode && (
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
                     <button
                       onClick={createLinkedNote}
@@ -2856,33 +2857,35 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           </button>
                         </div>
 
-                        {/* Edit button */}
-                        <button
-                          onClick={startSourceEdit}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '4px 8px',
-                            fontSize: '10px',
-                            color: '#666',
-                            background: 'transparent',
-                            border: '1px solid #222',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#888';
-                            e.currentTarget.style.borderColor = '#333';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#666';
-                            e.currentTarget.style.borderColor = '#222';
-                          }}
-                        >
-                          <Pencil size={10} />
-                          Edit
-                        </button>
+                        {/* Edit button - hidden in readonly mode */}
+                        {!isReadOnly && (
+                          <button
+                            onClick={startSourceEdit}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '4px 8px',
+                              fontSize: '10px',
+                              color: '#666',
+                              background: 'transparent',
+                              border: '1px solid #222',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = '#888';
+                              e.currentTarget.style.borderColor = '#333';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = '#666';
+                              e.currentTarget.style.borderColor = '#222';
+                            }}
+                          >
+                            <Pencil size={10} />
+                            Edit
+                          </button>
+                        )}
                       </div>
 
                       {/* Content display */}
@@ -2914,12 +2917,12 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           )
                         ) : (
                           <div
-                            onClick={startSourceEdit}
+                            onClick={isReadOnly ? undefined : startSourceEdit}
                             style={{
                               color: '#555',
                               fontSize: '12px',
                               fontStyle: 'italic',
-                              cursor: 'pointer',
+                              cursor: isReadOnly ? 'default' : 'pointer',
                               padding: '12px',
                               border: '1px dashed #1a1a1a',
                               borderRadius: '4px',
@@ -2930,7 +2933,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               justifyContent: 'center'
                             }}
                           >
-                            No source content. Click to add.
+                            {isReadOnly ? 'No source content.' : 'No source content. Click to add.'}
                           </div>
                         )}
                       </div>
@@ -2989,64 +2992,98 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
             animation: 'containerIn 200ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
-          {/* Search Input */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            background: '#141414',
-            border: '1px solid #262626',
-            borderRadius: '16px',
-            padding: '20px 24px',
-            boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px -12px rgba(0, 0, 0, 0.6)'
-          }}>
-            <svg width="22" height="22" viewBox="0 0 20 20" fill="#525252" style={{ flexShrink: 0 }}>
-              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-            </svg>
-            <input
-              autoFocus
-              type="text"
-              value={nodeSearchQuery}
-              onChange={(e) => setNodeSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  setShowConnectionsModal(false);
-                  setNodeSearchQuery('');
-                  setNodeSearchSuggestions([]);
-                } else {
-                  handleNodeSearchKeyDown(e);
-                }
-              }}
-              placeholder="Search to add connection..."
-              style={{
-                flex: 1,
-                background: 'none',
-                border: 'none',
-                outline: 'none',
-                color: '#fafafa',
-                fontSize: '18px',
-                fontFamily: 'inherit',
-                fontWeight: 400
-              }}
-            />
-            <kbd style={{
-              display: 'inline-flex',
+          {/* Search Input - hidden in readonly mode */}
+          {!isReadOnly && (
+            <div style={{
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              padding: '4px 8px',
-              background: '#262626',
-              borderRadius: '6px',
-              fontSize: '11px',
-              fontFamily: 'inherit',
-              color: '#737373',
-              border: '1px solid #333'
+              gap: '16px',
+              background: '#141414',
+              border: '1px solid #262626',
+              borderRadius: '16px',
+              padding: '20px 24px',
+              boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px -12px rgba(0, 0, 0, 0.6)'
             }}>
-              esc
-            </kbd>
-          </div>
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="#525252" style={{ flexShrink: 0 }}>
+                <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+              </svg>
+              <input
+                autoFocus
+                type="text"
+                value={nodeSearchQuery}
+                onChange={(e) => setNodeSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setShowConnectionsModal(false);
+                    setNodeSearchQuery('');
+                    setNodeSearchSuggestions([]);
+                  } else {
+                    handleNodeSearchKeyDown(e);
+                  }
+                }}
+                placeholder="Search to add connection..."
+                style={{
+                  flex: 1,
+                  background: 'none',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#fafafa',
+                  fontSize: '18px',
+                  fontFamily: 'inherit',
+                  fontWeight: 400
+                }}
+              />
+              <kbd style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px 8px',
+                background: '#262626',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontFamily: 'inherit',
+                color: '#737373',
+                border: '1px solid #333'
+              }}>
+                esc
+              </kbd>
+            </div>
+          )}
+          {/* Readonly mode header */}
+          {isReadOnly && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#141414',
+              border: '1px solid #262626',
+              borderRadius: '16px',
+              padding: '20px 24px',
+              boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px -12px rgba(0, 0, 0, 0.6)'
+            }}>
+              <span style={{ color: '#fafafa', fontSize: '18px', fontWeight: 500 }}>Connections</span>
+              <kbd
+                onClick={() => setShowConnectionsModal(false)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4px 8px',
+                  background: '#262626',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontFamily: 'inherit',
+                  color: '#737373',
+                  border: '1px solid #333',
+                  cursor: 'pointer'
+                }}>
+                esc
+              </kbd>
+            </div>
+          )}
 
-          {/* Search Results */}
-          {nodeSearchSuggestions.length > 0 && (
+          {/* Search Results - hidden in readonly mode */}
+          {!isReadOnly && nodeSearchSuggestions.length > 0 && (
             <div style={{
               marginTop: '8px',
               background: '#141414',
@@ -3120,8 +3157,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
             </div>
           )}
 
-          {/* Empty search state */}
-          {nodeSearchQuery && nodeSearchSuggestions.length === 0 && (
+          {/* Empty search state - hidden in readonly mode */}
+          {!isReadOnly && nodeSearchQuery && nodeSearchSuggestions.length === 0 && (
             <div style={{
               marginTop: '8px',
               padding: '24px',
@@ -3168,7 +3205,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   </div>
                 ) : (edgesData[activeTab] || []).length === 0 ? (
                   <div style={{ padding: '32px 24px', color: '#525252', fontSize: '14px', textAlign: 'center' }}>
-                    No connections yet. Search above to add one.
+                    {isReadOnly ? 'No connections.' : 'No connections yet. Search above to add one.'}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -3229,30 +3266,33 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           >
                             {connection.connected_node.title}
                           </span>
-                          <button
-                            onClick={() => deleteEdge(connection.edge.id)}
-                            disabled={deletingEdge === connection.edge.id}
-                            style={{
-                              padding: '6px',
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#525252',
-                              cursor: deletingEdge === connection.edge.id ? 'not-allowed' : 'pointer',
-                              borderRadius: '6px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'all 0.15s ease',
-                              opacity: deletingEdge === connection.edge.id ? 0.5 : 1
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = '#1f1f1f'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = '#525252'; e.currentTarget.style.background = 'transparent'; }}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          {/* Delete edge button - hidden in readonly mode */}
+                          {!isReadOnly && (
+                            <button
+                              onClick={() => deleteEdge(connection.edge.id)}
+                              disabled={deletingEdge === connection.edge.id}
+                              style={{
+                                padding: '6px',
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#525252',
+                                cursor: deletingEdge === connection.edge.id ? 'not-allowed' : 'pointer',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.15s ease',
+                                opacity: deletingEdge === connection.edge.id ? 0.5 : 1
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = '#1f1f1f'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = '#525252'; e.currentTarget.style.background = 'transparent'; }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
                         </div>
-                        {/* Description row */}
-                        {edgeEditingId === connection.edge.id ? (
+                        {/* Description row - editing hidden in readonly mode */}
+                        {!isReadOnly && edgeEditingId === connection.edge.id ? (
                           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                             <input
                               value={edgeEditingValue}

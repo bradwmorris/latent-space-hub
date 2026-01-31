@@ -591,7 +591,7 @@ function MapPaneInner({
               onNodeClick={onNodeClickHandler}
               onNodeDoubleClick={onNodeDoubleClick}
               onNodeDragStop={onNodeDragStop}
-              onConnect={onConnect}
+              onConnect={isReadOnly ? undefined : onConnect}
               nodeTypes={nodeTypes}
               fitView
               fitViewOptions={{ padding: 0.2 }}

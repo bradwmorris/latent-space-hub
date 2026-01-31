@@ -6,6 +6,8 @@ import type { Node } from '@/types/database';
 import InputDialog from '../common/InputDialog';
 import { getNodeIcon } from '@/utils/nodeIcons';
 
+const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
+
 type ViewMode = 'grid' | 'list' | 'kanban';
 
 // Each column can have a primary dimension and optional secondary filter (AND logic)
@@ -255,8 +257,9 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
     setColumns(currentColumns);
   };
 
-  // Kanban drag handlers
+  // Kanban drag handlers - disabled in readonly mode
   const handleKanbanDrop = async (nodeId: number, fromDimension: string, toDimension: string) => {
+    if (isReadOnly) return; // No dimension changes in readonly mode
     if (fromDimension === toDimension) return;
 
     const node = filteredNodes.find(n => n.id === nodeId);
@@ -294,6 +297,10 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
   };
 
   const handleKanbanNodeDragStart = (e: DragEvent<HTMLDivElement>, nodeId: number, fromColumn: string) => {
+    if (isReadOnly) {
+      e.preventDefault();
+      return;
+    }
     setDraggedNodeId(nodeId);
     setDraggedFromColumn(fromColumn);
     e.dataTransfer.effectAllowed = 'copyMove';
