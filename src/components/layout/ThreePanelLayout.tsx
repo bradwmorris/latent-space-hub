@@ -38,8 +38,8 @@ export default function ThreePanelLayout() {
 
   // Slot states - the core of the flexible pane system
   // Default: Feed on left, closed on right (chat removed in rah-light)
-  const [slotA, setSlotA] = usePersistentState<SlotState | null>('ui.slotA.v4', {
-    type: 'views',
+  const [slotA, setSlotA] = usePersistentState<SlotState | null>('ui.slotA.v5', {
+    type: 'map',
   });
 
   // SlotB can be null (closed) or a SlotState
