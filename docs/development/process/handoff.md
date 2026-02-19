@@ -10,6 +10,12 @@
   - Dropped dead fields/tables (`nodes.type`, `nodes.is_pinned`, `edges.user_feedback`, `chat_memory_state`)
   - Extended edge relationship types and typed metadata model
   - Preserved API/MCP backward compatibility (`content` mapped to `notes`)
+- **PRD-03: Naming Audit** — completed
+  - Documented naming decisions for Turso URL, repo canonical remote, and internal-vs-user-facing naming boundaries
+  - Updated user-facing docs from legacy RA-H Light/`rah_*` naming to Latent Space Hub/`ls_*`
+  - Updated stale production defaults and lockfile package name (`latent-space-hub`)
+  - Updated security policy copy to reflect Turso-backed deployment
+  - Moved PRD to `docs/development/completed-prds/prd-03-naming-audit.md`
 - Added local dev compatibility guard to auto-bridge legacy DB schema where needed
 - Rewrote schema docs in `docs/2_schema.md` to match current Turso schema
 - Added process rule to move completed PRDs into `docs/development/completed-prds/`
