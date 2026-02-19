@@ -120,6 +120,13 @@
       "prd": "docs/development/completed-prds/prd-02-schema-and-port.md",
       "completed_date": "2026-02-19",
       "branch": "feature/schema-and-port"
+    },
+    {
+      "id": "naming-audit",
+      "title": "Naming audit — align branding and naming to Latent Space Hub",
+      "prd": "docs/development/prd-03-naming-audit.md",
+      "completed_date": "2026-02-19",
+      "branch": "codex/prd-03-naming-audit"
     }
   ]
 }

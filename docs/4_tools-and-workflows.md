@@ -2,58 +2,56 @@
 
 > MCP tools for external agents and the guides system for context sharing.
 
-**How it works:** RA-H Light exposes tools via MCP that external AI agents can call to read, create, and update your knowledge graph. Guides are markdown documents that help external agents understand your knowledge base.
+**How it works:** Latent Space Hub exposes tools via MCP that external AI agents can call to read, create, and update your knowledge graph. Guides are markdown documents that help external agents understand your knowledge base.
 
 ---
 
 ## MCP Tools
 
-RA-H Light provides MCP tools for external agents:
+Latent Space Hub provides MCP tools for external agents:
 
 ### Node Operations
 
 | Tool | Description |
 |------|-------------|
-| `rah_add_node` | Create a new knowledge node |
-| `rah_search_nodes` | Search nodes by title, content, or dimensions |
-| `rah_update_node` | Update an existing node |
-| `rah_get_nodes` | Get nodes by ID array |
+| `ls_add_node` | Create a new knowledge node |
+| `ls_search_nodes` | Search nodes by title, content, or dimensions |
+| `ls_update_node` | Update an existing node |
+| `ls_get_nodes` | Get nodes by ID array |
 
 ### Edge Operations
 
 | Tool | Description |
 |------|-------------|
-| `rah_create_edge` | Create relationship between nodes |
-| `rah_query_edges` | Query existing edges |
-| `rah_update_edge` | Update edge metadata |
+| `ls_create_edge` | Create relationship between nodes |
+| `ls_query_edges` | Query existing edges |
+| `ls_update_edge` | Update edge metadata |
 
 ### Dimension Operations
 
 | Tool | Description |
 |------|-------------|
-| `rah_create_dimension` | Create a new dimension tag |
-| `rah_update_dimension` | Update dimension description |
-| `rah_delete_dimension` | Delete a dimension |
+| `ls_create_dimension` | Create a new dimension tag |
+| `ls_update_dimension` | Update dimension description |
+| `ls_delete_dimension` | Delete a dimension |
 
 ### Search
 
 | Tool | Description |
 |------|-------------|
-| `rah_search_embeddings` | Semantic search across chunk embeddings |
+| `ls_search_embeddings` | Semantic search across chunk embeddings |
 
 ### Guides
 
 | Tool | Description |
 |------|-------------|
-| `rah_list_guides` | List all available guides |
-| `rah_read_guide` | Read a specific guide's content |
-| `rah_write_guide` | Create or update a guide |
+| _No MCP guide tools currently registered_ | Guides are managed in-app via API/UI |
 
 ---
 
 ## Tool Schemas
 
-### rah_add_node
+### ls_add_node
 
 ```typescript
 {
@@ -66,7 +64,7 @@ RA-H Light provides MCP tools for external agents:
 }
 ```
 
-### rah_search_nodes
+### ls_search_nodes
 
 ```typescript
 {
@@ -76,7 +74,7 @@ RA-H Light provides MCP tools for external agents:
 }
 ```
 
-### rah_update_node
+### ls_update_node
 
 ```typescript
 {
@@ -90,7 +88,7 @@ RA-H Light provides MCP tools for external agents:
 }
 ```
 
-### rah_create_edge
+### ls_create_edge
 
 ```typescript
 {
@@ -100,7 +98,7 @@ RA-H Light provides MCP tools for external agents:
 }
 ```
 
-### rah_search_embeddings
+### ls_search_embeddings
 
 ```typescript
 {
@@ -119,7 +117,7 @@ Guides are markdown documents stored in `src/config/guides/` that help external 
 
 ### Why Guides?
 
-When an external agent (like Claude Code) connects to RA-H via MCP, it has access to tools but lacks context about:
+When an external agent (like Claude Code) connects to Latent Space Hub via MCP, it has access to tools but lacks context about:
 - How your knowledge base is organized
 - What dimensions mean in your system
 - Best practices for creating/linking nodes
@@ -166,7 +164,7 @@ Your guide content here...
 
 ## API Routes
 
-RA-H Light exposes REST APIs that MCP tools call internally:
+Latent Space Hub exposes REST APIs that MCP tools call internally:
 
 | Route | Method | Purpose |
 |-------|--------|---------|
