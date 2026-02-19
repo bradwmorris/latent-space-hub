@@ -7,7 +7,8 @@ Simple. No over-engineering.
 1. **Pick from backlog** — `docs/development/backlog.json` has the queue in priority order
 2. **Do the work** — Branch if needed, implement, test
 3. **Update backlog** — Mark tasks done, update status
-4. **Commit and push**
+4. **Commit, merge, and push**
+5. **Close out docs** — Move completed PRD to `docs/development/completed-prds/`, update handoff/agent notes
 
 ## Backlog
 
@@ -41,3 +42,10 @@ This is a fork of RA-H Open Source. The main app (`ra-h`) will continue evolving
 ## Git
 
 Commit often. Push at end of session. Branch for big changes.
+
+## Finish Checklist
+
+- Mark project + tasks complete in `docs/development/backlog.json`
+- Move completed PRD from `docs/development/` to `docs/development/completed-prds/`
+- Update `docs/development/process/handoff.md` with current state + next work
+- Update `docs/development/process/agents.md` with durable learnings for the next agent

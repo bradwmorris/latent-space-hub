@@ -110,14 +110,14 @@
     {
       "id": "dev-setup-cleanup",
       "title": "Identity, dev process & repo cleanup — establish LSH as the product, set up workflow, fix stale code",
-      "prd": "docs/development/prd-01-dev-setup-cleanup.md",
+      "prd": "docs/development/completed-prds/prd-01-dev-setup-cleanup.md",
       "completed_date": "2026-02-19",
       "branch": "feature/dev-setup-cleanup"
     },
     {
       "id": "schema-and-port",
       "title": "Schema cleanup + typed entity model — finalize DB structure with node_type, port RA-H UX",
-      "prd": "docs/development/prd-02-schema-and-port.md",
+      "prd": "docs/development/completed-prds/prd-02-schema-and-port.md",
       "completed_date": "2026-02-19",
       "branch": "feature/schema-and-port"
     }

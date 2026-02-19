@@ -10,7 +10,7 @@ Knowledge base for the Latent Space community (podcasts, articles, AI news, conf
 
 - **Framework:** Next.js 15 App Router + TypeScript + Tailwind CSS
 - **Database:** Turso (cloud SQLite via `@libsql/client`)
-- **Vector search:** Turso native F32_BLOB + vector_top_k (being wired up)
+- **Vector search:** Turso native F32_BLOB + `libsql_vector_idx`/`vector_top_k`
 - **AI models:** Anthropic (Claude) + OpenAI (GPT) via Vercel AI SDK
 - **MCP server:** `apps/mcp-server/` — tools prefixed `ls_*`
 - **Deployment:** Vercel (readonly mode for public access)
@@ -21,7 +21,8 @@ Turso cloud SQLite. NOT a local file. NOT better-sqlite3.
 
 - URL: `latentspace-bradwmorris.aws-us-east-2.turso.io`
 - Client: `@libsql/client`
-- Core tables: `nodes`, `edges`, `chunks`, `dimensions`, `node_dimensions`
+- Canonical schema docs: `docs/2_schema.md`
+- Core tables: `nodes`, `edges`, `chunks`, `dimensions`, `node_dimensions`, `chats`, `logs`
 
 ## Key Patterns
 
@@ -39,9 +40,17 @@ npm run build         # Full build check
 npm run dev           # Local dev server
 ```
 
+## Finish/Handover Rules
+
+- Mark project + tasks done in `docs/development/backlog.json`
+- Move completed PRD to `docs/development/completed-prds/`
+- Update `docs/development/process/handoff.md` before ending a session
+- Add any durable lessons to this file (`agents.md`)
+
 ## Learnings
 
-- Turso supports native vector search — don't add false "not supported" comments
-- Model names must be real (gpt-4o-mini, not gpt-5-mini)
-- Always work on feature branches, never main
-- PRDs are the spec — follow them precisely
+- Turso supports native vector search; avoid stale comments that say otherwise
+- Model names must be real (`gpt-4o-mini`, etc.)
+- Schema now uses `nodes.notes` (not `nodes.content`) with legacy compatibility bridging in `sqlite-client.ts`
+- Always work on feature branches for implementation; merge after review
+- PRDs are the implementation spec and require a `COMPLETED` section when done

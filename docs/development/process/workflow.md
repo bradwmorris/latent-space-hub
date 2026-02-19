@@ -10,7 +10,8 @@
 6. **Verify** — `npm run type-check` + `npm run build`
 7. **Commit** — Clean commit, mark tasks done in backlog
 8. **Merge** — After review, merge to main (`/finish`)
-9. **Compound** — Update handoff.md, note learnings in agents.md
+9. **Closeout** — Move completed PRD to `docs/development/completed-prds/`, update `backlog.json`
+10. **Handover** — Update `process/handoff.md` and `process/agents.md`
 
 ## Slash Commands
 
@@ -47,7 +48,8 @@ completed: [finished project IDs]
 
 ## PRDs
 
-- Live in `docs/development/`
+- Active PRDs live in `docs/development/`
+- Completed PRDs move to `docs/development/completed-prds/`
 - Named `prd-XX-[slug].md`
 - Are the spec — implementation follows the PRD exactly
 - Get a "COMPLETED" section appended when done
