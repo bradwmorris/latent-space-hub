@@ -66,12 +66,13 @@ CREATE TABLE IF NOT EXISTS edges (
 );
 
 -- Chunks table (for text chunking/embedding search)
+-- embedding uses F32_BLOB(1536) for Turso native vector indexing
 CREATE TABLE IF NOT EXISTS chunks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   node_id INTEGER NOT NULL,
   chunk_idx INTEGER,
   text TEXT NOT NULL,
-  embedding BLOB,
+  embedding F32_BLOB(1536),
   embedding_type TEXT,
   metadata TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -185,19 +186,52 @@ async function migrate() {
     'Dropped old idx_nodes_type index'
   );
 
-  // 10. Vector index on chunks.embedding (Turso native)
+  // 10. Migrate chunks.embedding from BLOB to F32_BLOB(1536) if needed
+  // Turso's vector index requires F32_BLOB, not plain BLOB
+  try {
+    const colInfo = await client.execute("PRAGMA table_info('chunks')");
+    const embCol = colInfo.rows.find(r => r.name === 'embedding');
+    if (embCol && String(embCol.type).toUpperCase() === 'BLOB') {
+      const chunkCount = await client.execute('SELECT COUNT(*) as count FROM chunks');
+      const count = Number(chunkCount.rows[0].count);
+      if (count === 0) {
+        // Safe to recreate — no data to lose
+        console.log('⚠ chunks.embedding is BLOB, migrating to F32_BLOB(1536)...');
+        await client.execute('DROP TABLE IF EXISTS chunks');
+        await client.execute(`CREATE TABLE chunks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          node_id INTEGER NOT NULL,
+          chunk_idx INTEGER,
+          text TEXT NOT NULL,
+          embedding F32_BLOB(1536),
+          embedding_type TEXT,
+          metadata TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (node_id) REFERENCES nodes(id) ON DELETE CASCADE
+        )`);
+        await client.execute('CREATE INDEX IF NOT EXISTS idx_chunks_node ON chunks(node_id)');
+        console.log('✓ Recreated chunks table with F32_BLOB(1536)');
+      } else {
+        console.log(`⚠ chunks.embedding is BLOB but table has ${count} rows — manual migration needed`);
+      }
+    }
+  } catch (error) {
+    console.error('✗ Column type migration check failed:', error.message);
+  }
+
+  // 11. Vector index on chunks.embedding (Turso native)
   await safeExec(
     `CREATE INDEX IF NOT EXISTS chunks_embedding_idx ON chunks (libsql_vector_idx(embedding, 'metric=cosine', 'compress_neighbors=float8', 'max_neighbors=20'))`,
     'Created vector index on chunks.embedding'
   );
 
-  // 11. FTS5 virtual table on chunks.text
+  // 12. FTS5 virtual table on chunks.text
   await safeExec(
     `CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(text, content='chunks', content_rowid='id')`,
     'Created FTS5 virtual table on chunks'
   );
 
-  // 12. FTS5 sync triggers — keep chunks_fts in sync with chunks table
+  // 13. FTS5 sync triggers — keep chunks_fts in sync with chunks table
   await safeExec(
     `CREATE TRIGGER IF NOT EXISTS chunks_fts_insert AFTER INSERT ON chunks BEGIN
       INSERT INTO chunks_fts(rowid, text) VALUES (new.id, new.text);
@@ -220,7 +254,7 @@ async function migrate() {
     'Created FTS5 update trigger'
   );
 
-  // 13. Rebuild FTS5 index from existing chunks data
+  // 14. Rebuild FTS5 index from existing chunks data
   await safeExec(
     `INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')`,
     'Rebuilt FTS5 index from existing chunks'

@@ -25,18 +25,34 @@ export class ChunkService {
     const now = new Date().toISOString();
     const sqlite = getSQLiteClient();
 
-    const result = await sqlite.query(`
-      INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [
-      chunkData.node_id,
-      chunkData.chunk_idx || null,
-      chunkData.text,
-      chunkData.embedding || null,
-      chunkData.embedding_type,
-      chunkData.metadata ? JSON.stringify(chunkData.metadata) : null,
-      now
-    ]);
+    // Use vector() function for F32_BLOB column when embedding is provided
+    const hasEmbedding = chunkData.embedding && chunkData.embedding.length > 0;
+    const sql = hasEmbedding
+      ? `INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
+         VALUES (?, ?, ?, vector(?), ?, ?, ?)`
+      : `INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
+         VALUES (?, ?, ?, NULL, ?, ?, ?)`;
+
+    const params = hasEmbedding
+      ? [
+          chunkData.node_id,
+          chunkData.chunk_idx || null,
+          chunkData.text,
+          vectorToJsonString(chunkData.embedding!),
+          chunkData.embedding_type,
+          chunkData.metadata ? JSON.stringify(chunkData.metadata) : null,
+          now
+        ]
+      : [
+          chunkData.node_id,
+          chunkData.chunk_idx || null,
+          chunkData.text,
+          chunkData.embedding_type,
+          chunkData.metadata ? JSON.stringify(chunkData.metadata) : null,
+          now
+        ];
+
+    const result = await sqlite.query(sql, params);
 
     const chunkId = result.lastInsertRowid!;
     const createdChunk = await this.getChunkById(chunkId);
@@ -59,18 +75,18 @@ export class ChunkService {
 
     // Insert chunks one by one (Turso doesn't have transaction API like better-sqlite3)
     for (const chunk of chunksData) {
-      await sqlite.query(`
-        INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `, [
-        chunk.node_id,
-        chunk.chunk_idx || null,
-        chunk.text,
-        chunk.embedding || null,
-        chunk.embedding_type,
-        chunk.metadata ? JSON.stringify(chunk.metadata) : null,
-        now
-      ]);
+      const hasEmbedding = chunk.embedding && chunk.embedding.length > 0;
+      const sql = hasEmbedding
+        ? `INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
+           VALUES (?, ?, ?, vector(?), ?, ?, ?)`
+        : `INSERT INTO chunks (node_id, chunk_idx, text, embedding, embedding_type, metadata, created_at)
+           VALUES (?, ?, ?, NULL, ?, ?, ?)`;
+
+      const params = hasEmbedding
+        ? [chunk.node_id, chunk.chunk_idx || null, chunk.text, vectorToJsonString(chunk.embedding!), chunk.embedding_type, chunk.metadata ? JSON.stringify(chunk.metadata) : null, now]
+        : [chunk.node_id, chunk.chunk_idx || null, chunk.text, chunk.embedding_type, chunk.metadata ? JSON.stringify(chunk.metadata) : null, now];
+
+      await sqlite.query(sql, params);
     }
 
     // Get all created chunks by node_id (since we know they were just created)
@@ -91,10 +107,14 @@ export class ChunkService {
     // Build dynamic update query
     Object.entries(updates).forEach(([key, value]) => {
       if (key !== 'id' && key !== 'created_at' && value !== undefined) {
-        updateFields.push(`${key} = ?`);
-        if (key === 'metadata') {
+        if (key === 'embedding' && Array.isArray(value) && value.length > 0) {
+          updateFields.push(`${key} = vector(?)`);
+          params.push(vectorToJsonString(value));
+        } else if (key === 'metadata') {
+          updateFields.push(`${key} = ?`);
           params.push(typeof value === 'object' ? JSON.stringify(value) : value);
         } else {
+          updateFields.push(`${key} = ?`);
           params.push(value);
         }
       }
@@ -158,21 +178,21 @@ export class ChunkService {
       if (nodeIds && nodeIds.length > 0) {
         const placeholders = nodeIds.map(() => '?').join(',');
         sql = `
-          SELECT c.*, (1.0 - vt.distance) as similarity
+          SELECT c.*, (1.0 - vector_distance_cos(c.embedding, vector(?))) as similarity
           FROM vector_top_k('chunks_embedding_idx', vector(?), ?) AS vt
           JOIN chunks c ON c.rowid = vt.id
           WHERE c.node_id IN (${placeholders})
-          ORDER BY vt.distance ASC
+          ORDER BY similarity DESC
         `;
-        params = [vecJson, fetchCount, ...nodeIds];
+        params = [vecJson, vecJson, fetchCount, ...nodeIds];
       } else {
         sql = `
-          SELECT c.*, (1.0 - vt.distance) as similarity
+          SELECT c.*, (1.0 - vector_distance_cos(c.embedding, vector(?))) as similarity
           FROM vector_top_k('chunks_embedding_idx', vector(?), ?) AS vt
           JOIN chunks c ON c.rowid = vt.id
-          ORDER BY vt.distance ASC
+          ORDER BY similarity DESC
         `;
-        params = [vecJson, fetchCount];
+        params = [vecJson, vecJson, fetchCount];
       }
 
       const result = await sqlite.query<Chunk & { similarity: number }>(sql, params);

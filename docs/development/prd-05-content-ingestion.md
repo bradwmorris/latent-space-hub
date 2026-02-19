@@ -2,93 +2,181 @@
 
 ## Background
 
-Current state: 204 nodes but chunks table is empty (0 rows). Content exists as node-level text but hasn't been chunked or embedded. Need to backfill all LS content and set up auto-ingest for new material.
+Current state: ~204 nodes, 0 chunks, 0 embeddings. Existing bulk ingest scripts are based on legacy schema fields (`content`, `type`) and are not safe for current schema (`notes`, `node_type`, `event_date`, `source_type` metadata).
+
+Goal: backfill all Latent Space content from January 2025 to present, with deterministic ingestion and clean, queryable metadata for hybrid/vector search.
 
 ## Plan
 
-Phase 1: Backfill podcasts + blogs (the core LS content)
-Phase 2: Backfill ainews (570+ daily digests)
-Phase 3: Auto-ingest pipeline for new content
+1. Preparation and cleanup (required before ingest)
+2. Source enumeration and manifest generation
+3. Idempotent node ingestion
+4. Chunking + embeddings
+5. Entity extraction + edge creation
+6. Auto-ingest design (future)
+
+## Preparation Required Before Backfill
+
+No bulk ingest run should start until all items below are done.
+
+### A. Resolve hard dependency on PRD-04
+
+- `ChunkService.searchChunks()` must use real `vector_top_k()` queries.
+- FTS + hybrid search methods must exist and be callable.
+- Embedding pipeline must be enabled (current `NodeEmbedder`/`UniversalEmbedder` stubs must be replaced with working implementations).
+
+### B. Fix ingestion schema contract
+
+All ingestion writes must use current schema:
+
+- `nodes.notes` (not `nodes.content`)
+- `nodes.node_type` (not `nodes.type`)
+- `nodes.event_date`
+- `metadata.source_type` for `source` nodes (`blog | newsletter | article | paper | doc`)
+- `nodes.chunk` contains full source text (transcript/article body/markdown), not a short summary
+- `nodes.chunk_status` initialized to `not_chunked` until chunk pipeline runs
+
+### C. Remove/replace broken legacy scripts
+
+- Remove AIE artifacts:
+  - `scripts/bulk-ingest-aie.js`
+  - `scripts/data/aie-videos.json`
+- Do not patch old one-off scripts in place for production use:
+  - `scripts/bulk-ingest-podcasts.js`
+  - `scripts/bulk-ingest-ainews.js`
+- Replace with one unified ingestion entrypoint:
+  - `scripts/ingest.(js|ts)` with flags:
+  - `--source podcasts|articles|ainews|latentspacetv`
+  - `--dry-run`
+  - `--since YYYY-MM-DD`
+  - `--until YYYY-MM-DD`
+  - `--limit N` (optional for smoke tests)
+
+### D. Define idempotent dedupe keys before import
+
+Use deterministic upsert identity:
+
+- Primary key: canonical `link`
+- Secondary key: source-specific ID in metadata
+  - YouTube: `video_id`
+  - AINews: `slug`
+  - Substack: `slug` or canonical URL path
+
+Behavior on conflict:
+
+- Update mutable fields (`title`, `description`, `chunk`, `event_date`, metadata)
+- Preserve manual notes where applicable
+- Never create duplicate nodes for same canonical source item
+
+### E. Normalize existing nodes before large ingest
+
+One cleanup pass on existing rows:
+
+- Normalize `node_type` values to supported set
+- Normalize links to canonical URL shape
+- Fill missing `event_date` from metadata where possible
+- Normalize dimension naming to project taxonomy
+- Mark low-quality existing `chunk` values (summary-only content) as stale for overwrite
+
+### F. Add source type in TypeScript
+
+- Update `SourceMetadata.source_type` union in `src/types/database.ts` to include `'newsletter'`.
+
+## Source Scope
+
+4 source categories, Jan 2025 -> present:
+
+1. Podcasts (`@LatentSpacePod` YouTube) -> `node_type='episode'`, dimension `podcast`
+2. Articles (`latent.space` Substack) -> `node_type='source'`, `source_type='blog'`, dimension `article`
+3. AINews (`smol-ai/ainews`) -> `node_type='source'`, `source_type='newsletter'`, dimension `ainews`
+4. LatentSpaceTV (`@LatentSpaceTV`) -> `node_type='episode'`, series `{builders-club|paper-club|meetup}`
 
 ## Implementation Details
 
-### Phase 1a: Podcasts
+### Phase 0: Enumerate source manifests
 
-- **Source:** Latent Space YouTube channel
-- **Current state:** 35 podcast nodes exist, but no chunks/embeddings
-- **Work:**
-  1. Scope: how many total LS podcast episodes exist?
-  2. Update `scripts/bulk-ingest-podcasts.js` to also chunk + embed transcripts
-  3. Run backfill on all episodes (not just the 6 in current manifest)
-  4. Entity extraction per episode (companies, models, topics, people → nodes + edges)
+- Generate manifests under `scripts/data/` for each source.
+- Required manifest fields:
+  - `source`, `external_id`, `link`, `title`, `publish_date`, raw source metadata
+- Manifests are append-only artifacts for reproducibility and reruns.
 
-### Phase 1b: Blog posts
+### Phase 1: Node ingestion (idempotent)
 
-- **Source:** latent.space on Substack
-- **Current state:** 10 article nodes exist, but no chunks/embeddings
-- **Work:**
-  1. Scope: how many total Substack posts?
-  2. Scrape all posts (Substack API or web scrape)
-  3. Chunk + embed each post
-  4. Entity extraction → nodes + edges
+- Ingest from manifests, source-by-source.
+- Deduplicate on canonical identity rules above.
+- Persist:
+  - `title`, `description`, `notes`, `link`, `node_type`, `event_date`, `chunk`, `metadata`
+- Assign dimensions:
+  - category dimension + locked/priority dimensions.
+- Store extraction provenance:
+  - `metadata.extraction_method = 'ingestion-pipeline-v2'`
+  - source retrieval timestamp
 
-### Phase 2: AI News
+### Phase 2: Chunking + embedding
 
-- **Source:** github.com/smol-ai/ainews-web-2025 (570+ markdown files)
-- **Current state:** 31 ainews nodes exist, no chunks
-- **Frontmatter already has:** companies, models, topics, people arrays
-- **Work:**
-  1. Parse all 570+ issues
-  2. Chunk body text + embed
-  3. Create entity nodes from frontmatter tags
-  4. Create edges between entities and issues
+- Depends on PRD-04 completion.
+- For each node with full `chunk` source text:
+  - split into ~500-token chunks with ~100 overlap
+  - embed each chunk with `text-embedding-3-small` (1536d)
+  - write to `chunks` table with vector column
+  - write node-level embedding for `title + description`
+  - update `chunk_status='chunked'`
 
-### Phase 3: Auto-ingest
+### Phase 3: Entity extraction + graph edges
 
-- GitHub webhook for new ainews issues
-- YouTube RSS or periodic check for new podcast episodes
-- Substack RSS for new blog posts
-- Each triggers: create node → chunk → embed → extract entities → create edges
+- AINews:
+  - use frontmatter entities (`companies`, `models`, `topics`, `people`) as primary extraction path.
+- Podcasts/articles/LatentSpaceTV:
+  - LLM extraction from title + description + source text sample.
+- Create/reuse typed entity nodes:
+  - `person`, `organization`, `topic`
+- Create typed edges:
+  - `appeared_on`, `covers_topic`, `affiliated_with`, `cites`
 
-### Typed entity creation
+### Phase 4: Auto-ingest (future, not required for initial backfill)
 
-Per PRD-02, all nodes have a `node_type` column. Ingestion must set this correctly:
+- Poll or webhook triggers:
+  - YouTube RSS/API for `@LatentSpacePod` and `@LatentSpaceTV`
+  - Substack RSS for latent.space
+  - GitHub updates for AINews repo
+- Per new item pipeline:
+  - enumerate -> ingest node -> chunk -> embed -> entity extraction -> edge creation
 
-- Podcast episodes → `node_type = 'episode'`, metadata includes `publish_date`, `duration`, `series`
-- Blog posts → `node_type = 'source'`, metadata includes `source_type: 'blog'`, `publish_date`
-- AI News issues → `node_type = 'source'`, metadata includes `source_type: 'newsletter'`, `publish_date`
-- Extracted people → `node_type = 'person'`, metadata includes `role`, `affiliations`
-- Extracted companies → `node_type = 'organization'`, metadata includes `org_type`
-- Extracted topics → `node_type = 'topic'`
+## Data Quality Rules
 
-Edge types for entity relationships (from PRD-02):
-- Person → Episode: `appeared_on` (with role: host/guest)
-- Episode → Topic: `covers_topic` (with depth: mention/discussion/deep-dive)
-- Person → Organization: `affiliated_with`
-- Source → Source: `cites`
+- No summary-only `chunk` payloads for ingested content.
+- No duplicate node rows for same source item.
+- `event_date` required for all ingest targets.
+- `node_type` required and valid for all ingest targets.
+- `source_type` required for `node_type='source'`.
+- All ingestion runs must support `--dry-run` and emit counts:
+  - discovered, inserted, updated, skipped, failed.
 
-### Chunking strategy
+## Execution Order
 
-- ~500 token chunks with ~100 token overlap
-- Natural segment boundaries where possible (section headers, topic changes)
-- Each chunk gets embedded via text-embedding-3-small (1536d)
-- Cost estimate: ~35K chunks × 900 chars avg = ~$0.62 total
+1. Complete PRD-04 vector/embedding enablement
+2. Implement unified ingestion script + manifest generation
+3. Run normalization pass on existing nodes
+4. Dry-run each source ingest
+5. Run real source ingests
+6. Run chunk+embed pass
+7. Run entity+edge pass
+8. Verify hybrid search quality on backfilled corpus
 
-### Current state of node.chunk data
+## Depends on
 
-The existing 204 nodes have AI-generated **summaries** in the `chunk` column (not full transcripts). The YouTube transcript fetching in `bulk-ingest-podcasts.js` often fails. Re-ingestion with proper transcript sources (YouTube API, Substack full text) is needed.
-
-### Depends on
-
-- PRD 02 (schema with node_type, chunks table, vector index)
-- PRD 04 (vector search working so we can verify embeddings)
+- PRD-02 schema cleanup (done)
+- PRD-04 vector/embedding pipeline (must be complete before Phase 2)
 
 ## Done =
 
-- All LS podcast transcripts chunked and embedded
-- All LS blog posts chunked and embedded
-- All 570+ ainews issues chunked and embedded
-- Entity nodes created with correct node_type and metadata
-- Typed edges connecting entities to content (appeared_on, covers_topic, affiliated_with)
-- Auto-ingest pipeline running for new content
-- Hybrid search returns relevant results across entire corpus
+- [ ] Prep checklist complete (A-F in this PRD)
+- [ ] Complete manifests for all 4 sources (Jan 2025 -> present)
+- [ ] Unified ingestion script implemented and used (legacy scripts retired)
+- [ ] Existing nodes normalized/deduplicated for ingest targets
+- [ ] Podcast + LatentSpaceTV episodes ingested with full transcript text
+- [ ] Substack articles ingested with full article text
+- [ ] AINews issues ingested with full markdown text
+- [ ] All ingested content chunked + embedded (node + chunk vectors)
+- [ ] Entity nodes and typed edges created
+- [ ] Hybrid search returns relevant results across full corpus
