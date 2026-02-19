@@ -67,8 +67,8 @@ export default function ExternalAgentsPanel() {
     <div style={{ padding: '32px', color: '#e2e8f0', overflowY: 'auto' }}>
       <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px' }}>External Agents</h2>
       <p style={{ color: '#94a3b8', marginBottom: '24px', lineHeight: 1.5 }}>
-        Connect Claude, ChatGPT, Gemini, or any MCP-compatible assistant to your local RA-H database.
-        Everything stays on device—tools simply call this connector to add or search nodes.
+        Connect Claude, ChatGPT, Gemini, or any MCP-compatible assistant to the Latent Space Hub.
+        Tools call this connector to add or search nodes.
       </p>
 
       <div
@@ -129,8 +129,8 @@ export default function ExternalAgentsPanel() {
         <ol style={{ paddingLeft: '20px', lineHeight: 1.6, color: '#cbd5f5' }}>
           <li>Open the MCP / connectors settings in your assistant.</li>
           <li>Select “Add connector” → choose HTTP → paste the URL above.</li>
-          <li>Give the connector a friendly name (e.g., “RA-H”).</li>
-          <li>Ask naturally: “Add this summary to RA-H” or “Search RA-H for my Apollo notes”.</li>
+          <li>Give the connector a friendly name (e.g., “Latent Space Hub”).</li>
+          <li>Ask naturally: “Add this summary to Latent Space Hub” or “Search Latent Space for my notes on X”.</li>
         </ol>
       </div>
 
@@ -146,7 +146,7 @@ export default function ExternalAgentsPanel() {
         }}
       >
         External agents can edit your local graph. Only enable trusted connectors and monitor their output.
-        Disconnect the connector or close RA-H if anything unexpected happens.
+        Disconnect the connector if anything unexpected happens.
       </div>
 
       {error && (
@@ -155,12 +155,12 @@ export default function ExternalAgentsPanel() {
 
       <div style={{ display: 'grid', gap: '16px' }}>
         <HelperCard
-          title="Add to RA-H"
-          body={`"Summarize our meeting and add it to RA-H under dimensions Strategy, Q1 Execution."`}
+          title="Add to Latent Space"
+          body={`"Summarize our meeting and add it to Latent Space under dimensions Strategy, Q1 Execution."`}
         />
         <HelperCard
-          title="Search RA-H"
-          body={`"Search RA-H for what I previously wrote about the Apollo launch delays."`}
+          title="Search Latent Space"
+          body={`"Search Latent Space for what was said about the Apollo launch delays."`}
         />
         <HelperCard
           title="Check nodes before writing"

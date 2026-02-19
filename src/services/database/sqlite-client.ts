@@ -225,9 +225,9 @@ class SQLiteClient {
   }
 
   public async checkVectorExtension(): Promise<boolean> {
-    // Turso doesn't support sqlite-vec
-    // Always return false for this fork
-    return false;
+    // Turso supports native vector search via F32_BLOB + vector_top_k()
+    // No extension loading needed — it's built into Turso
+    return true;
   }
 
   public async checkTables(): Promise<string[]> {

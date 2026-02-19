@@ -1,75 +1,67 @@
-# RA-H Light Overview
+# Latent Space Hub — Overview
 
-## What is RA-H Light?
+## What is Latent Space Hub?
 
-RA-H Light is a minimal knowledge graph UI with MCP server integration. It provides a local-first knowledge management system designed to be extended by external AI agents via the Model Context Protocol.
+Knowledge base for the [Latent Space](https://www.latent.space/) community. Podcasts, articles, AI news, conference talks, papers — searchable via semantic vector search and connected in a knowledge graph.
 
-**Open Source:** [github.com/bradwmorris/ra-h_os](https://github.com/bradwmorris/ra-h_os)
+**Open Source Foundation:** Built on [RA-H](https://github.com/bradwmorris/ra-h_os). Want to self-host your own knowledge graph? Use the open-source version.
 
 ## Design Philosophy
 
-**Local-first** — Your knowledge network belongs to you. Everything runs locally in a SQLite database you control.
+**Cloud-native** — Turso (cloud SQLite) as the database. Deployed on Vercel for public access.
 
-**Agent-agnostic** — No built-in AI chat. Instead, RA-H Light exposes an MCP server that any AI agent (Claude Code, custom agents) can connect to.
+**Agent-accessible** — MCP server lets any AI assistant (Claude Code, custom agents) search and contribute to the knowledge base.
 
-**Simple & focused** — 2-panel UI for browsing and editing your knowledge graph. No bloat.
+**Simple & focused** — 2-panel UI for browsing and editing the knowledge graph.
 
 ## Tech Stack
 
 - **Frontend:** Next.js 15, TypeScript, Tailwind CSS
-- **Database:** SQLite + sqlite-vec (vector search)
+- **Database:** Turso (cloud SQLite via `@libsql/client`)
+- **Search:** Turso native vector search (F32_BLOB + vector_top_k) + FTS5
 - **Embeddings:** OpenAI (BYO API key)
-- **MCP Server:** Local connector for Claude Code and external agents
+- **MCP Server:** HTTP + stdio for Claude Code and external agents
 
 ## What's Included
 
 - 2-panel UI (nodes list + focus panel)
 - Node/Edge/Dimension CRUD
 - Full-text and semantic search
-- MCP server with 11 tools
-- Workflows system
-- PDF extraction
+- MCP server with `ls_*` tools
+- PDF, YouTube, and website extraction
 - Graph visualization (Map view)
-- BYO API keys
-
-## What's NOT Included
-
-- Chat interface (use external agents via MCP)
-- Voice features
-- Built-in AI agents
-- Auth/subscription system
-- Desktop packaging
+- Readonly mode for public deployment
 
 ## Two-Panel Layout
 
 ```
-┌─────────────┬─────────────────────────┐
-│   NODES     │        FOCUS            │
-│   Panel     │        Panel            │
-│             │                         │
-│ • Search    │ • Node content          │
-│ • Filters   │ • Connections           │
-│ • List      │ • Dimensions            │
-│             │                         │
-└─────────────┴─────────────────────────┘
++---------------+-------------------------+
+|   NODES       |        FOCUS            |
+|   Panel       |        Panel            |
+|               |                         |
+| - Search      | - Node content          |
+| - Filters     | - Connections           |
+| - List        | - Dimensions            |
+|               |                         |
++---------------+-------------------------+
 ```
 
 ## MCP Integration
 
-RA-H Light is designed to be the knowledge backend for your AI workflows:
+Connect any MCP-compatible assistant:
 
 ```json
 {
   "mcpServers": {
-    "ra-h": {
+    "latent-space": {
       "command": "node",
-      "args": ["/path/to/ra-h_os/apps/mcp-server/stdio-server.js"]
+      "args": ["/path/to/latent-space-hub/apps/mcp-server/stdio-server.js"]
     }
   }
 }
 ```
 
-Available tools: `rah_add_node`, `rah_search_nodes`, `rah_update_node`, `rah_get_nodes`, `rah_create_edge`, `rah_query_edges`, `rah_update_edge`, `rah_create_dimension`, `rah_update_dimension`, `rah_delete_dimension`, `rah_search_embeddings`
+Tools: `ls_add_node`, `ls_search_nodes`, `ls_update_node`, `ls_get_nodes`, `ls_create_edge`, `ls_query_edges`, `ls_update_edge`, `ls_create_dimension`, `ls_update_dimension`, `ls_delete_dimension`, `ls_search_embeddings`
 
 ## Documentation
 

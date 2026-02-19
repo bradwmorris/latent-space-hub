@@ -1,14 +1,12 @@
 /**
- * SQLite vec0 utilities for Latent Space Hub (Turso fork)
+ * Vector utilities for Latent Space Hub (Turso)
  *
- * Note: Vector search (sqlite-vec) is NOT supported in Turso.
- * These utilities are kept for API compatibility but vector operations
- * will not work. Use full-text search (FTS) instead.
+ * Turso supports native vector search via F32_BLOB + vector_top_k().
+ * These utilities handle embedding serialization and helper functions.
  */
 
 /**
- * Serialize a float array to binary format for vec0 storage
- * Note: Not usable in Turso - included for API compatibility
+ * Serialize a float array to binary format for F32_BLOB storage
  */
 export function serializeFloat32Vector(vector: number[]): Buffer {
   const buffer = Buffer.allocUnsafe(vector.length * 4);
@@ -19,8 +17,7 @@ export function serializeFloat32Vector(vector: number[]): Buffer {
 }
 
 /**
- * Deserialize a vec0 BLOB back to float array
- * Note: Not usable in Turso - included for API compatibility
+ * Deserialize an F32_BLOB back to float array
  */
 export function deserializeFloat32Vector(blob: Buffer): number[] {
   const vector: number[] = [];
@@ -31,31 +28,10 @@ export function deserializeFloat32Vector(blob: Buffer): number[] {
 }
 
 /**
- * Get SQLite database path - NOT USED in Turso fork
- * Turso uses TURSO_DATABASE_URL environment variable instead
+ * Get database URL from environment
  */
 export function getDatabasePath(): string {
-  // In Turso, we use TURSO_DATABASE_URL instead of file path
   return process.env.TURSO_DATABASE_URL || '';
-}
-
-/**
- * Get vec extension path - NOT SUPPORTED in Turso
- */
-export function getVecExtensionPath(): string {
-  console.warn('[SQLITE-VEC] Vector extension not supported in Turso');
-  return '';
-}
-
-/**
- * Create database connection - NOT SUPPORTED in Turso fork
- * Use getSQLiteClient() from sqlite-client.ts instead
- */
-export function createDatabaseConnection(): never {
-  throw new Error(
-    'createDatabaseConnection() is not supported in Turso fork. ' +
-    'Use getSQLiteClient() from @/services/database/sqlite-client instead.'
-  );
 }
 
 /**

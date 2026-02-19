@@ -105,9 +105,7 @@ LIMIT 100
 - Stored in `chats.metadata.cost` (USD)
 - Aggregated in Settings → Analytics
 
-**Model pricing (as of v1.0):**
-- GPT-5 Mini: $0.10/1M input, $0.40/1M output
-- GPT-5: $2.50/1M input, $10.00/1M output
+**Model pricing:**
 - GPT-4o Mini: $0.15/1M input, $0.60/1M output
 - Claude Sonnet 4.5: $3.00/1M input, $15.00/1M output
 

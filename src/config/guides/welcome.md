@@ -1,11 +1,11 @@
 ---
 name: Welcome to the Hub
-description: Your guide to exploring the Latent Space knowledge graph — 200+ curated nodes of AI engineering content.
+description: Your guide to exploring the Latent Space knowledge graph and its best entry points.
 ---
 
 # Welcome to the Latent Space Hub
 
-This knowledge graph contains 200+ nodes of curated content from the Latent Space podcast, AI Engineer conferences, and community insights. Here's how to get the most out of it.
+This knowledge graph contains curated content from the Latent Space podcast, AI Engineer conferences, and community insights. It is updated continuously. Here is how to get the most out of it.
 
 ## What's Inside
 
@@ -13,28 +13,28 @@ This knowledge graph contains 200+ nodes of curated content from the Latent Spac
 
 The hub organizes content into themed dimensions:
 
-**AIE Videos** (58 nodes)
+**AIE Videos**
 Talks, workshops, and presentations from AI Engineer conferences including the Code Summit 2025 and World's Fair 2025.
 
-**LS Pod** (35 nodes)
+**LS Pod**
 Episodes from the Latent Space podcast — deep dives with industry leaders and practitioners.
 
-**LS Guest** (35 nodes)
+**LS Guest**
 Profiles of notable guests who've appeared on Latent Space.
 
-**AI News** (31 nodes)
+**AI News**
 Curated news and developments in AI.
 
-**AIE Code Summit 2025** (29 nodes)
+**AIE Code Summit 2025**
 Focused content from the coding-centric AI Engineer summit.
 
-**Insights** (29 nodes)
+**Insights**
 Key takeaways and quotable insights extracted from episodes.
 
-**AIE World's Fair 2025** (26 nodes)
+**AIE World's Fair 2025**
 Content from the flagship AI Engineer conference.
 
-**LS Articles** (10 nodes)
+**LS Articles**
 Written essays and analysis from Latent Space.
 
 ## How to Explore
@@ -58,6 +58,10 @@ Click any node to see its full details:
 ### Search
 
 Use the search to find specific topics, speakers, or concepts.
+
+### Ask via MCP (Agents)
+
+You can connect an external agent (Claude Code, Cursor, OpenCode) and ask questions directly. The MCP tools are read-only, so you cannot modify the hub.
 
 ## Recommended Starting Points
 

@@ -10,13 +10,13 @@ const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio
 const packageJson = require('../../package.json');
 
 const instructions = [
-  'Use rah.add_node to summarize conversations or files into nodes with dimensions.',
-  'Use rah.search_nodes to recall prior notes before you suggest creating new ones.',
-  'All operations happen locally on this device; data never leaves 127.0.0.1.'
+  'Use ls_add_node to summarize conversations or files into nodes with dimensions.',
+  'Use ls_search_nodes to recall prior notes before you suggest creating new ones.',
+  'This is the Latent Space Hub knowledge base.'
 ].join(' ');
 
 const serverInfo = {
-  name: 'ra-h-local-stdio',
+  name: 'latent-space-hub-stdio',
   version: packageJson.version || '0.0.0'
 };
 
@@ -24,7 +24,7 @@ const STATUS_PATH = path.join(
   os.homedir(),
   'Library',
   'Application Support',
-  'RA-H',
+  'LatentSpaceHub',
   'config',
   'mcp-status.json'
 );
@@ -67,7 +67,7 @@ const searchNodesOutputSchema = {
   )
 };
 
-// rah_update_node schemas
+// ls_update_node schemas
 const updateNodeInputSchema = {
   id: z.number().int().positive().describe('The ID of the node to update'),
   updates: z.object({
@@ -85,7 +85,7 @@ const updateNodeOutputSchema = {
   message: z.string()
 };
 
-// rah_get_nodes schemas
+// ls_get_nodes schemas
 const getNodesInputSchema = {
   nodeIds: z.array(z.number().int().positive()).min(1).max(10).describe('List of node IDs to load')
 };
@@ -104,7 +104,7 @@ const getNodesOutputSchema = {
   )
 };
 
-// rah_create_edge schemas
+// ls_create_edge schemas
 const createEdgeInputSchema = {
   sourceId: z.number().int().positive().describe('Source node ID'),
   targetId: z.number().int().positive().describe('Target node ID'),
@@ -117,7 +117,7 @@ const createEdgeOutputSchema = {
   message: z.string()
 };
 
-// rah_query_edges schemas
+// ls_query_edges schemas
 const queryEdgesInputSchema = {
   nodeId: z.number().int().positive().optional().describe('Find edges connected to this node'),
   limit: z.number().min(1).max(50).optional().describe('Max edges to return')
@@ -136,7 +136,7 @@ const queryEdgesOutputSchema = {
   )
 };
 
-// rah_update_edge schemas
+// ls_update_edge schemas
 const updateEdgeInputSchema = {
   id: z.number().int().positive().describe('Edge ID to update'),
   explanation: z.string().min(1).optional().describe('New explanation text (will re-infer relationship type)')
@@ -147,7 +147,7 @@ const updateEdgeOutputSchema = {
   message: z.string()
 };
 
-// rah_create_dimension schemas
+// ls_create_dimension schemas
 const createDimensionInputSchema = {
   name: z.string().min(1).describe('Dimension name'),
   description: z.string().max(500).optional().describe('Dimension description'),
@@ -160,7 +160,7 @@ const createDimensionOutputSchema = {
   message: z.string()
 };
 
-// rah_update_dimension schemas
+// ls_update_dimension schemas
 const updateDimensionInputSchema = {
   name: z.string().min(1).describe('Current dimension name'),
   newName: z.string().optional().describe('New name (for renaming)'),
@@ -174,7 +174,7 @@ const updateDimensionOutputSchema = {
   message: z.string()
 };
 
-// rah_delete_dimension schemas
+// ls_delete_dimension schemas
 const deleteDimensionInputSchema = {
   name: z.string().min(1).describe('Dimension name to delete')
 };
@@ -184,7 +184,7 @@ const deleteDimensionOutputSchema = {
   message: z.string()
 };
 
-// rah_search_embeddings schemas
+// ls_search_embeddings schemas
 const searchEmbeddingsInputSchema = {
   query: z.string().min(1).describe('Semantic search query'),
   limit: z.number().min(1).max(20).optional().describe('Max results')
@@ -205,7 +205,7 @@ const searchEmbeddingsOutputSchema = {
 const server = new McpServer(serverInfo, { instructions });
 
 function logError(...args) {
-  console.error('[ra-h-stdio]', ...args);
+  console.error('[ls-stdio]', ...args);
 }
 
 const sanitizeDimensions = (raw) => {
@@ -252,7 +252,7 @@ async function resolveBaseUrl() {
   return 'http://127.0.0.1:3000';
 }
 
-async function callRaHApi(pathname, options = {}) {
+async function callApi(pathname, options = {}) {
   const baseUrl = (await resolveBaseUrl()).replace(/\/+$/, '');
   const targetUrl = `${baseUrl}${pathname}`;
 
@@ -266,17 +266,17 @@ async function callRaHApi(pathname, options = {}) {
 
   const body = await response.json().catch(() => null);
   if (!response.ok || !body || body.success === false) {
-    const errorMessage = body?.error || `RA-H API request failed at ${pathname}`;
+    const errorMessage = body?.error || `API request failed at ${pathname}`;
     throw new Error(errorMessage);
   }
   return body;
 }
 
 server.registerTool(
-  'rah_add_node',
+  'ls_add_node',
   {
-    title: 'Add RA-H node',
-    description: 'Create a new node in the local RA-H knowledge base.',
+    title: 'Add node',
+    description: 'Create a new node in the Latent Space Hub knowledge base.',
     inputSchema: addNodeInputSchema,
     outputSchema: addNodeOutputSchema
   },
@@ -296,7 +296,7 @@ server.registerTool(
       chunk: chunk?.trim() || undefined
     };
 
-    const result = await callRaHApi('/api/nodes', {
+    const result = await callApi('/api/nodes', {
       method: 'POST',
       body: JSON.stringify(payload)
     });
@@ -317,10 +317,10 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_search_nodes',
+  'ls_search_nodes',
   {
-    title: 'Search RA-H nodes',
-    description: 'Find existing RA-H entries that mention a topic before adding new ones.',
+    title: 'Search nodes',
+    description: 'Find existing entries that mention a topic before adding new ones.',
     inputSchema: searchNodesInputSchema,
     outputSchema: searchNodesOutputSchema
   },
@@ -334,14 +334,14 @@ server.registerTool(
       params.set('dimensions', dimensionList.join(','));
     }
 
-    const result = await callRaHApi(`/api/nodes?${params.toString()}`, {
+    const result = await callApi(`/api/nodes?${params.toString()}`, {
       method: 'GET'
     });
 
     const nodes = Array.isArray(result.data) ? result.data : [];
     const summary =
       nodes.length === 0
-        ? 'No existing RA-H nodes mention that topic yet.'
+        ? 'No existing nodes mention that topic yet.'
         : `Found ${nodes.length} node(s) mentioning that topic.`;
 
     return {
@@ -363,9 +363,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_update_node',
+  'ls_update_node',
   {
-    title: 'Update RA-H node',
+    title: 'Update node',
     description: 'Update an existing node. Content is APPENDED (not replaced). Dimensions are replaced.',
     inputSchema: updateNodeInputSchema,
     outputSchema: updateNodeOutputSchema
@@ -375,7 +375,7 @@ server.registerTool(
       throw new Error('At least one field must be provided in updates.');
     }
 
-    const result = await callRaHApi(`/api/nodes/${id}`, {
+    const result = await callApi(`/api/nodes/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates)
     });
@@ -393,9 +393,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_get_nodes',
+  'ls_get_nodes',
   {
-    title: 'Get RA-H nodes by ID',
+    title: 'Get nodes by ID',
     description: 'Load full node records by their IDs.',
     inputSchema: getNodesInputSchema,
     outputSchema: getNodesOutputSchema
@@ -409,7 +409,7 @@ server.registerTool(
     const nodes = [];
     for (const id of uniqueIds) {
       try {
-        const result = await callRaHApi(`/api/nodes/${id}`, { method: 'GET' });
+        const result = await callApi(`/api/nodes/${id}`, { method: 'GET' });
         if (result.node) {
           nodes.push({
             id: result.node.id,
@@ -436,9 +436,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_create_edge',
+  'ls_create_edge',
   {
-    title: 'Create RA-H edge',
+    title: 'Create edge',
     description: 'Create a connection between two nodes.',
     inputSchema: createEdgeInputSchema,
     outputSchema: createEdgeOutputSchema
@@ -452,7 +452,7 @@ server.registerTool(
       created_via: 'mcp'
     };
 
-    const result = await callRaHApi('/api/edges', {
+    const result = await callApi('/api/edges', {
       method: 'POST',
       body: JSON.stringify(payload)
     });
@@ -470,9 +470,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_query_edges',
+  'ls_query_edges',
   {
-    title: 'Query RA-H edges',
+    title: 'Query edges',
     description: 'Find connections between nodes.',
     inputSchema: queryEdgesInputSchema,
     outputSchema: queryEdgesOutputSchema
@@ -482,7 +482,7 @@ server.registerTool(
     if (nodeId) params.set('nodeId', String(nodeId));
     params.set('limit', String(Math.min(Math.max(limit, 1), 50)));
 
-    const result = await callRaHApi(`/api/edges?${params.toString()}`, {
+    const result = await callApi(`/api/edges?${params.toString()}`, {
       method: 'GET'
     });
 
@@ -504,9 +504,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_update_edge',
+  'ls_update_edge',
   {
-    title: 'Update RA-H edge',
+    title: 'Update edge',
     description: 'Update an existing edge connection.',
     inputSchema: updateEdgeInputSchema,
     outputSchema: updateEdgeOutputSchema
@@ -516,7 +516,7 @@ server.registerTool(
       throw new Error('explanation is required');
     }
 
-    const result = await callRaHApi(`/api/edges/${id}`, {
+    const result = await callApi(`/api/edges/${id}`, {
       method: 'PUT',
       body: JSON.stringify({
         context: { explanation: explanation.trim(), created_via: 'mcp' }
@@ -534,9 +534,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_create_dimension',
+  'ls_create_dimension',
   {
-    title: 'Create RA-H dimension',
+    title: 'Create dimension',
     description: 'Create a new dimension/tag for organizing nodes.',
     inputSchema: createDimensionInputSchema,
     outputSchema: createDimensionOutputSchema
@@ -546,7 +546,7 @@ server.registerTool(
     if (description) payload.description = description;
     if (isPriority !== undefined) payload.isPriority = isPriority;
 
-    const result = await callRaHApi('/api/dimensions', {
+    const result = await callApi('/api/dimensions', {
       method: 'POST',
       body: JSON.stringify(payload)
     });
@@ -564,9 +564,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_update_dimension',
+  'ls_update_dimension',
   {
-    title: 'Update RA-H dimension',
+    title: 'Update dimension',
     description: 'Update dimension properties (rename, description, lock/unlock).',
     inputSchema: updateDimensionInputSchema,
     outputSchema: updateDimensionOutputSchema
@@ -582,7 +582,7 @@ server.registerTool(
     if (description !== undefined) payload.description = description;
     if (isPriority !== undefined) payload.isPriority = isPriority;
 
-    const result = await callRaHApi('/api/dimensions', {
+    const result = await callApi('/api/dimensions', {
       method: 'PUT',
       body: JSON.stringify(payload)
     });
@@ -600,15 +600,15 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_delete_dimension',
+  'ls_delete_dimension',
   {
-    title: 'Delete RA-H dimension',
+    title: 'Delete dimension',
     description: 'Delete a dimension and remove it from all nodes.',
     inputSchema: deleteDimensionInputSchema,
     outputSchema: deleteDimensionOutputSchema
   },
   async ({ name }) => {
-    const result = await callRaHApi(`/api/dimensions?name=${encodeURIComponent(name)}`, {
+    const result = await callApi(`/api/dimensions?name=${encodeURIComponent(name)}`, {
       method: 'DELETE'
     });
 
@@ -623,9 +623,9 @@ server.registerTool(
 );
 
 server.registerTool(
-  'rah_search_embeddings',
+  'ls_search_embeddings',
   {
-    title: 'Semantic search RA-H',
+    title: 'Semantic search',
     description: 'Search node content using semantic similarity (vector search).',
     inputSchema: searchEmbeddingsInputSchema,
     outputSchema: searchEmbeddingsOutputSchema
@@ -635,7 +635,7 @@ server.registerTool(
     params.set('q', query);
     params.set('limit', String(Math.min(Math.max(limit, 1), 20)));
 
-    const result = await callRaHApi(`/api/nodes/search?${params.toString()}`, {
+    const result = await callApi(`/api/nodes/search?${params.toString()}`, {
       method: 'GET'
     });
 

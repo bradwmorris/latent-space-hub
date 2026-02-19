@@ -1,13 +1,19 @@
 ---
 name: Context Engineering
-description: Master the art of managing information flow to AI systems — the real skill behind effective agents and applications.
+description: Master the art of managing information flow to AI systems.
 ---
 
 # Context Engineering Learning Path
 
 "The real job is not RAG or prompt engineering — it's context engineering." — Jeff Huber, Chroma
 
-Context engineering has emerged as THE critical discipline for building effective AI systems in 2025. This guide walks you through the essential content.
+Context engineering has emerged as a critical discipline for building effective AI systems. This guide walks you through the essential content.
+
+## How to Use This Guide
+
+- Search for the exact title if available.
+- If the title does not match, search by speaker or topic.
+- Use MCP to ask for related nodes on context, RAG, or memory.
 
 ## The Big Picture
 
@@ -95,4 +101,4 @@ The experts shaping this field:
 
 ---
 
-*This guide covers the essential context engineering content. Estimated learning time: 4-6 hours.*
+*Estimated learning time: 4-6 hours.*

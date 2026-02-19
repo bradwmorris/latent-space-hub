@@ -1,11 +1,17 @@
 ---
 name: Agent Engineering
-description: A curated learning path through the fundamentals and frontiers of building AI agents in 2025.
+description: A curated learning path through the fundamentals and frontiers of building AI agents.
 ---
 
 # Agent Engineering Learning Path
 
-Welcome to the definitive collection of content on building AI agents. This guide curates the best talks, podcasts, and articles from Latent Space and AI Engineer conferences into a structured learning journey.
+Welcome to the definitive collection of content on building AI agents. This guide curates talks, podcasts, and articles from Latent Space and AI Engineer conferences into a structured learning journey.
+
+## How to Use This Guide
+
+- Search the hub for each title or speaker.
+- If a title is missing, search by guest name or key phrase.
+- Use MCP to ask for related nodes if you want a faster path.
 
 ## Start Here: The Foundation
 
@@ -105,4 +111,4 @@ From the insight dimension, essential takeaways:
 
 ---
 
-*This guide covers 15+ talks and articles. Estimated learning time: 8-12 hours for full coverage.*
+*Estimated learning time: 8-12 hours for full coverage.*

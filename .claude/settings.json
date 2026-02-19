@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(echo:*)",
+      "Bash(touch:*)",
+      "Bash(chmod:*)",
+      "Bash(which:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(gh:*)",
+      "Bash(curl:*)",
+      "Bash(jq:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Read(~/Desktop/dev/*)",
+      "Write(~/Desktop/dev/latent-space-hub/*)",
+      "Edit(~/Desktop/dev/latent-space-hub/*)"
+    ]
+  }
+}

@@ -4,9 +4,8 @@ import { Chunk, ChunkData } from '@/types/database';
 /**
  * Chunk service for the Latent Space Hub.
  *
- * Note: This fork uses Turso which doesn't support sqlite-vec.
- * Vector search methods are disabled and return empty results.
- * Use FTS (full-text search) instead.
+ * Turso supports native vector search via F32_BLOB + vector_top_k().
+ * Currently using text fallback — vector_top_k() to be wired up in PRD-04.
  */
 export class ChunkService {
   async getChunksByNodeId(nodeId: number): Promise<Chunk[]> {
@@ -135,8 +134,9 @@ export class ChunkService {
   }
 
   /**
-   * Vector search is NOT supported in Turso (no sqlite-vec).
-   * Use text search instead.
+   * Search chunks by embedding similarity.
+   * TODO (PRD-04): Wire up Turso native vector_top_k() for real vector search.
+   * Currently falls back to text search.
    */
   async searchChunks(
     queryEmbedding: number[],
@@ -145,11 +145,11 @@ export class ChunkService {
     nodeIds?: number[],
     fallbackQuery?: string
   ): Promise<Array<Chunk & { similarity: number }>> {
-    // Vector search not available in Turso - use text fallback if provided
+    // TODO: Replace with vector_top_k() once PRD-04 is implemented
     if (fallbackQuery) {
       return await this.textSearchFallback(fallbackQuery, matchCount, nodeIds);
     }
-    console.warn('Vector search not available in Turso fork. Use textSearchFallback instead.');
+    console.warn('Vector search not yet wired up. Use textSearchFallback or provide fallbackQuery.');
     return [];
   }
 
@@ -221,9 +221,11 @@ export class ChunkService {
   }
 
   async getChunksWithoutEmbeddings(): Promise<Chunk[]> {
-    // In Turso, we don't use vec_chunks, so just return empty
-    // Embeddings are disabled for this fork
-    return [];
+    const sqlite = getSQLiteClient();
+    const result = await sqlite.query<Chunk>(
+      'SELECT * FROM chunks WHERE embedding IS NULL'
+    );
+    return result.rows;
   }
 }
 

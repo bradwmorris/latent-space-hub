@@ -1,15 +1,14 @@
 # Database Schema
 
-## Why SQLite?
+## Database
 
-RA-H uses **SQLite** for local-first data ownership. Your knowledge stays on your machine - no cloud dependencies. SQLite provides:
-- **Zero configuration** - single file database
-- **sqlite-vec extension** - fast vector similarity search
-- **Full-text search (FTS5)** - Google-like text search
-- **Relational integrity** - foreign keys, triggers, transactions
-- **Portability** - database file migrates with Mac app
+Latent Space Hub uses **Turso** (cloud SQLite via `@libsql/client`). This gives us:
+- **Cloud-hosted** — accessible from Vercel deployment and local dev
+- **Native vector search** — F32_BLOB + vector_top_k() (no extensions needed)
+- **Full-text search (FTS5)** — text search across content
+- **Relational integrity** — foreign keys, triggers, transactions
 
-**Database Location:** `~/Library/Application Support/RA-H/db/rah.sqlite`
+**Database URL:** `TURSO_DATABASE_URL` environment variable (Turso cloud instance)
 
 ## Two-Layer Embedding Architecture
 

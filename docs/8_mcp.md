@@ -1,16 +1,16 @@
 # MCP Server
 
-> How to connect Claude Code and other AI assistants to your knowledge base.
+> How to connect Claude Code and other AI assistants to the Latent Space Hub.
 
-**How it works:** RA-H Light runs a local MCP (Model Context Protocol) server. This lets any MCP-compatible assistant — like Claude Code — search your notes, add new knowledge, and manage your knowledge graph. Everything stays local; nothing goes to the cloud.
+**How it works:** The Latent Space Hub runs an MCP (Model Context Protocol) server. This lets any MCP-compatible assistant — like Claude Code — search the knowledge base, add new content, and manage the knowledge graph.
 
 ---
 
 ## Quick Start
 
-1. Start RA-H Light: `npm run dev`
+1. Start the hub: `npm run dev`
 2. Configure your AI assistant (see below)
-3. Use naturally: "Search RA-H for my notes on X" or "Add this to RA-H"
+3. Use naturally: "Search Latent Space for notes on X" or "Add this to the knowledge base"
 
 ---
 
@@ -18,17 +18,17 @@
 
 | Tool | Description |
 |------|-------------|
-| `rah_add_node` | Create a new node (title/content/dimensions) |
-| `rah_search_nodes` | Search existing nodes |
-| `rah_update_node` | Update an existing node |
-| `rah_get_nodes` | Get nodes by ID |
-| `rah_create_edge` | Create relationship between nodes |
-| `rah_query_edges` | Query existing edges |
-| `rah_update_edge` | Update edge metadata |
-| `rah_create_dimension` | Create a new dimension |
-| `rah_update_dimension` | Update dimension description |
-| `rah_delete_dimension` | Delete a dimension |
-| `rah_search_embeddings` | Semantic search across embeddings |
+| `ls_add_node` | Create a new node (title/content/dimensions) |
+| `ls_search_nodes` | Search existing nodes |
+| `ls_update_node` | Update an existing node |
+| `ls_get_nodes` | Get nodes by ID |
+| `ls_create_edge` | Create relationship between nodes |
+| `ls_query_edges` | Query existing edges |
+| `ls_update_edge` | Update edge metadata |
+| `ls_create_dimension` | Create a new dimension |
+| `ls_update_dimension` | Update dimension description |
+| `ls_delete_dimension` | Delete a dimension |
+| `ls_search_embeddings` | Semantic search across embeddings |
 
 ---
 
@@ -39,17 +39,17 @@ Add to your `~/.claude.json` or Claude Code settings:
 ```json
 {
   "mcpServers": {
-    "ra-h": {
+    "latent-space": {
       "command": "node",
-      "args": ["/path/to/ra-h_os/apps/mcp-server/stdio-server.js"]
+      "args": ["/path/to/latent-space-hub/apps/mcp-server/stdio-server.js"]
     }
   }
 }
 ```
 
-Replace `/path/to/ra-h_os` with the actual path to your RA-H Light installation.
+Replace `/path/to/latent-space-hub` with the actual path to your installation.
 
-**Note:** RA-H Light must be running (`npm run dev`) for the MCP server to work.
+**Note:** The hub must be running (`npm run dev`) for the MCP server to work.
 
 ---
 
@@ -59,10 +59,20 @@ For assistants that support HTTP transport:
 
 **URL:** `http://127.0.0.1:44145/mcp`
 
+---
+
+## Hub MCP Security (Public Deployment)
+
+For public MCP endpoints, you can enable a bearer token and rate limit:
+
+- `MCP_SHARED_SECRET` — if set, requests must include `Authorization: Bearer <secret>`
+- `MCP_RATE_LIMIT_PER_MIN` — integer requests per minute per IP (best-effort)
+- `MCP_ALLOW_WRITES` — set `true` to expose write tools (default is read-only)
+
 ```json
 {
   "mcpServers": {
-    "ra-h": {
+    "latent-space": {
       "url": "http://127.0.0.1:44145/mcp"
     }
   }
@@ -81,27 +91,11 @@ node apps/mcp-server/server.js
 Once connected, you can ask your AI assistant:
 
 ```
-"Search RA-H for what I wrote about product strategy"
-"Add this conversation summary to RA-H as a new node"
-"Find all nodes with the 'research' dimension"
+"Search Latent Space for what was said about MCP architecture"
+"Add this conversation summary as a new node"
+"Find all nodes with the 'agents' dimension"
 "Create an edge between node 123 and node 456"
-"What are my most connected nodes?"
-```
-
----
-
-## Security
-
-- The MCP server only binds to `127.0.0.1` — localhost only
-- No authentication required (local access only)
-- All data persisted to `~/Library/Application Support/RA-H/db/rah.sqlite`
-
----
-
-## Health Check
-
-```bash
-curl http://127.0.0.1:44145/status
+"What are the most connected nodes?"
 ```
 
 ---
@@ -119,7 +113,7 @@ curl http://127.0.0.1:44145/status
 
 ### "Connection refused"
 
-1. Make sure RA-H Light is running: `npm run dev`
+1. Make sure the hub is running: `npm run dev`
 2. Check the port isn't blocked: `lsof -i :44145`
 3. Verify the server started: check terminal output
 
@@ -128,8 +122,3 @@ curl http://127.0.0.1:44145/status
 1. Restart your AI assistant after configuring
 2. Verify the path in your config is correct
 3. Check `node apps/mcp-server/stdio-server.js` runs without errors
-
-### "Permission denied"
-
-1. Make sure the stdio-server.js file is readable
-2. Check Node.js is in your PATH

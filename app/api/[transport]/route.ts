@@ -12,8 +12,45 @@ import { z } from 'zod';
 
 import { nodeService, edgeService } from '@/services/database';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
+import { listGuides, readGuide } from '@/services/guides/guideService';
 
 const ALLOW_WRITES = process.env.MCP_ALLOW_WRITES === 'true';
+const MCP_SHARED_SECRET = process.env.MCP_SHARED_SECRET?.trim();
+const MCP_RATE_LIMIT_PER_MIN = Number.parseInt(process.env.MCP_RATE_LIMIT_PER_MIN || '0', 10);
+
+const rateLimitState = new Map<string, { count: number; resetAt: number }>();
+
+function getClientId(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  return (forwarded?.split(',')[0]?.trim() || realIp || 'unknown').toLowerCase();
+}
+
+function isAuthorized(request: Request): boolean {
+  if (!MCP_SHARED_SECRET) return true;
+  const auth = request.headers.get('authorization') || '';
+  return auth === `Bearer ${MCP_SHARED_SECRET}`;
+}
+
+function isRateLimited(request: Request): boolean {
+  if (!MCP_RATE_LIMIT_PER_MIN || MCP_RATE_LIMIT_PER_MIN <= 0) return false;
+  const clientId = getClientId(request);
+  const now = Date.now();
+  const windowMs = 60_000;
+  const entry = rateLimitState.get(clientId);
+
+  if (!entry || now >= entry.resetAt) {
+    rateLimitState.set(clientId, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+
+  if (entry.count >= MCP_RATE_LIMIT_PER_MIN) {
+    return true;
+  }
+
+  entry.count += 1;
+  return false;
+}
 
 const handler = createMcpHandler(
   (server) => {
@@ -174,6 +211,53 @@ const handler = createMcpHandler(
       }
     );
 
+    // ls_list_guides - List available guides
+    server.registerTool(
+      'ls_list_guides',
+      {
+        title: 'List Latent Space guides',
+        description: 'List available reading guides for exploring the Latent Space hub.',
+        inputSchema: {},
+      },
+      async () => {
+        const guides = listGuides();
+        if (guides.length === 0) {
+          return { content: [{ type: 'text', text: 'No guides available.' }] };
+        }
+
+        const lines = guides.map(guide =>
+          `- ${guide.name}${guide.description ? ` — ${guide.description}` : ''}`
+        ).join('\n');
+
+        return {
+          content: [{ type: 'text', text: `Available guides (${guides.length}):\n\n${lines}` }],
+        };
+      }
+    );
+
+    // ls_read_guide - Read a guide by name
+    server.registerTool(
+      'ls_read_guide',
+      {
+        title: 'Read a Latent Space guide',
+        description: 'Load the full text of a guide by name.',
+        inputSchema: {
+          name: z.string().min(1).max(120).describe('Guide name (case-insensitive)'),
+        },
+      },
+      async ({ name }) => {
+        const guide = readGuide(name.trim());
+        if (!guide) {
+          return { content: [{ type: 'text', text: `Guide not found: ${name}` }] };
+        }
+
+        const header = `# ${guide.name}\n\n${guide.description ? `${guide.description}\n\n` : ''}`;
+        return {
+          content: [{ type: 'text', text: `${header}${guide.content}` }],
+        };
+      }
+    );
+
     // ─────────────────────────────────────────────────────────────────────────────
     // WRITE TOOLS (only when MCP_ALLOW_WRITES=true)
     // ─────────────────────────────────────────────────────────────────────────────
@@ -221,4 +305,22 @@ const handler = createMcpHandler(
   }
 );
 
-export { handler as GET, handler as POST, handler as DELETE };
+async function guard(request: Request): Promise<Response> {
+  if (!isAuthorized(request)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
+  if (isRateLimited(request)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+      status: 429,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
+  return handler(request);
+}
+
+export { guard as GET, guard as POST, guard as DELETE };

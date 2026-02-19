@@ -1,33 +1,24 @@
-# RA-H Light
+# About Latent Space Hub
 
-This is **RA-H Light** — a minimal, local-first knowledge graph UI with MCP server integration.
+## What is Latent Space Hub?
 
-## What is RA-H Light?
+Knowledge base for the [Latent Space](https://www.latent.space/) community — podcasts, articles, AI news, conference talks, and papers, all connected in a searchable knowledge graph.
 
-RA-H Light is a stripped-down version of [RA-H](https://ra-h.app) focused on:
+## Origin
 
-- **2-panel UI** for browsing and editing your knowledge graph
-- **MCP server** so external AI agents (like Claude Code) can access your notes
-- **Local SQLite** database with vector search
-- **BYO API keys** — no cloud dependencies
+Built on the [RA-H Open Source](https://github.com/bradwmorris/ra-h_os) foundation. The RA-H project provides a local-first knowledge graph; Latent Space Hub adapts it for cloud deployment (Turso + Vercel) as a community resource.
 
-## What's NOT Included
+## Want Your Own?
 
-RA-H Light intentionally excludes:
+If you want to run your own local-first knowledge graph with a private SQLite database:
+- Use [RA-H Open Source](https://github.com/bradwmorris/ra-h_os)
 
-- Chat interface (use external agents via MCP)
-- Voice features
-- Built-in AI agents
-- Auth/subscription system
-- Desktop packaging (Tauri)
+## Tech Stack
 
-## Relationship to RA-H
-
-This repo (`ra-h_os`) is derived from the private `ra-h` repository. Shared features (database, UI components, MCP server) are synced from private to public.
-
-## Getting Started
-
-See [README.md](../README.md) for installation.
+- **Next.js 15** + TypeScript + Tailwind CSS
+- **Turso** (cloud SQLite) with native vector search
+- **MCP server** for AI agent integration
+- **Vercel** deployment with readonly public mode
 
 ## Contributing
 

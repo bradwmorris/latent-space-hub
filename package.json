@@ -1,8 +1,8 @@
 {
-  "name": "ra-h-open-source",
+  "name": "latent-space-hub",
   "version": "0.1.0",
   "private": false,
-  "description": "RA-H Open Source – local-first research workspace with BYO API keys",
+  "description": "Latent Space Hub – knowledge base for the Latent Space community",
   "license": "MIT",
   "author": "Bradley Morris",
   "scripts": {

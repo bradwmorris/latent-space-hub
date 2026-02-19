@@ -1,97 +1,56 @@
-# RA-H Light
+# Latent Space Hub
 
-A lightweight local knowledge graph UI with MCP server. Connect your AI coding agents to a personal knowledge base. BYO API keys, no cloud dependencies.
+Knowledge base for the [Latent Space](https://www.latent.space/) community. Podcasts, articles, AI news, conference talks, papers — searchable via semantic vector search and connected in a knowledge graph.
 
-## What is RA-H Light?
+Built on the [RA-H](https://github.com/bradwmorris/ra-h_os) foundation, deployed as its own product.
 
-RA-H Light is a stripped-down version of RA-H focused on being a **knowledge management backend for AI agents**. It provides:
+## Tech Stack
 
-- **2-panel UI** – Nodes list + focus panel for viewing/editing knowledge
-- **SQLite + sqlite-vec** – Local vector database with semantic search
-- **MCP Server** – Connect Claude Code, Cursor, or any MCP-compatible AI assistant
-- **Workflows** – Editable JSON workflows for multi-step operations
+- **Framework:** Next.js 15 + TypeScript + Tailwind CSS
+- **Database:** [Turso](https://turso.tech/) (cloud SQLite via `@libsql/client`)
+- **Search:** Turso native vector search (F32_BLOB + vector_top_k) + FTS5
+- **AI:** Anthropic (Claude) + OpenAI (GPT) models via Vercel AI SDK — BYO keys
+- **MCP:** Model Context Protocol server for AI agent access
+- **Deployment:** Vercel (readonly mode for public)
 
-**What's removed:** Built-in chat agents, voice features, delegation system. RA-H Light is designed for technical users who want to bring their own AI agents via MCP.
-
-## Platform Support
-
-| Platform | Status |
-|----------|--------|
-| macOS (Apple Silicon) | Supported |
-| macOS (Intel) | Supported |
-| Linux | Requires manual sqlite-vec build |
-| Windows | Requires manual sqlite-vec build |
-
-## Quick Start
+## Local Development
 
 ```bash
-git clone https://github.com/bradwmorris/ra-h_os.git
-cd ra-h_os
+git clone https://github.com/bradwmorris/latent-space-hub.git
+cd latent-space-hub
+cp .env.example .env.local    # Add your Turso + API keys
 npm install
-npm rebuild better-sqlite3
-scripts/dev/bootstrap-local.sh
-npm run dev
+npm run dev                    # localhost:3000
 ```
 
-Open http://localhost:3000 → **Settings → API Keys** → add your OpenAI key (for embeddings).
+### Required Environment Variables
 
-## Connecting AI Agents via MCP
-
-RA-H Light exposes an MCP server that external AI assistants can use to read/write your knowledge graph.
-
-### Claude Code Integration
-
-Add to your Claude Code settings:
-
-```json
-{
-  "mcpServers": {
-    "rah": {
-      "command": "node",
-      "args": ["/path/to/ra-h_os/apps/mcp-server/stdio-server.js"]
-    }
-  }
-}
 ```
-
-### Available MCP Tools
-
-| Tool | Description |
-|------|-------------|
-| `rah_add_node` | Create a new knowledge node |
-| `rah_search_nodes` | Search nodes by text |
-| `rah_update_node` | Update an existing node |
-| `rah_get_nodes` | Get nodes by ID |
-| `rah_create_edge` | Connect two nodes |
-| `rah_query_edges` | Find connections |
-| `rah_update_edge` | Update a connection |
-| `rah_create_dimension` | Create a tag/category |
-| `rah_update_dimension` | Update a dimension |
-| `rah_delete_dimension` | Delete a dimension |
-| `rah_search_embeddings` | Semantic vector search |
-
-### HTTP MCP Server
-
-For non-stdio clients, start the HTTP server:
-
-```bash
-node apps/mcp-server/server.js
+TURSO_DATABASE_URL=            # Your Turso database URL
+TURSO_AUTH_TOKEN=              # Turso auth token
+ANTHROPIC_API_KEY=             # For Claude models
+OPENAI_API_KEY=                # For GPT models + embeddings
 ```
-
-Listens on `http://127.0.0.1:44145/mcp` by default.
 
 ## Project Layout
 
 ```
-app/                 Next.js App Router
+app/                    Next.js App Router (pages + API routes)
 src/
-  components/        UI components
-  services/          Database, embeddings, workflows
-  tools/             Available tools for workflows
-apps/mcp-server/     MCP server (stdio + HTTP)
-docs/                Local documentation
-scripts/             Dev helpers
-vendor/              Pre-built binaries (sqlite-vec)
+  components/           UI components (2-panel layout)
+  services/
+    database/           Turso client, node/edge/chunk services
+    agents/             Agent logic
+    embedding/          Embedding generation
+    extractors/         YouTube, website, PDF extraction
+  tools/                MCP tools + database CRUD tools
+  config/
+    prompts/            Agent system prompts
+    guides/             Built-in markdown guides
+apps/
+  mcp-server/           MCP server (HTTP + stdio)
+docs/                   System documentation
+docs/development/       Dev workflow, backlog, PRDs
 ```
 
 ## Commands
@@ -101,25 +60,25 @@ vendor/              Pre-built binaries (sqlite-vec)
 | `npm run dev` | Dev server at localhost:3000 |
 | `npm run build` | Production build |
 | `npm run type-check` | TypeScript validation |
-| `npm run sqlite:backup` | Database snapshot |
-| `npm run sqlite:restore` | Restore from backup |
 
-## Documentation
+## MCP Integration
 
-- [docs/0_overview.md](docs/0_overview.md) – System overview
-- [docs/2_schema.md](docs/2_schema.md) – Database schema
-- [docs/8_mcp.md](docs/8_mcp.md) – MCP server details
+Connect Claude Code or any MCP-compatible assistant:
 
-## Linux/Windows Setup
+```json
+{
+  "mcpServers": {
+    "latent-space": {
+      "command": "node",
+      "args": ["/path/to/latent-space-hub/apps/mcp-server/stdio-server.js"]
+    }
+  }
+}
+```
 
-The bundled `sqlite-vec` binary is macOS-only. For other platforms:
+## Want to Self-Host Your Own?
 
-1. Clone https://github.com/asg017/sqlite-vec
-2. Build for your platform
-3. Place at `vendor/sqlite-extensions/vec0.so` (Linux) or `vec0.dll` (Windows)
-4. Set `SQLITE_VEC_EXTENSION_PATH` in `.env.local`
-
-Without sqlite-vec: UI, node CRUD, and basic search still work. Vector/semantic search requires it.
+This repo is the Latent Space community knowledge base. If you want to run your own local-first knowledge graph with a private SQLite database, use the open-source version: [RA-H Open Source](https://github.com/bradwmorris/ra-h_os).
 
 ## Contributing
 

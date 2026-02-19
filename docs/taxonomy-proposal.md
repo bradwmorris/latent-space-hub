@@ -1,7 +1,7 @@
 # Latent Space Hub: Taxonomy Proposal
 
 **Date:** February 2, 2026
-**Status:** Draft for Review
+**Status:** ARCHIVED — 27 dimensions now exist in production. This proposal was largely implemented.
 
 ---
 

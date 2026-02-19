@@ -1,60 +1,95 @@
-# RA-H Open Source - Knowledge Management System
+# Latent Space Hub
 
-## What This Is
-LLM-powered knowledge management system built for emergence and flexibility. This is the **open source, self-hosted version** with BYO (bring your own) API keys.
+Knowledge base for the Latent Space community. Built on the RA-H foundation, deployed as its own product.
+
+**This is NOT a demo. This is the product.**
+
+---
 
 ## Tech Stack
-- Next.js 15 + TypeScript + Tailwind CSS
-- SQLite + sqlite-vec (vector search)
-- Anthropic (Claude) + OpenAI (GPT) models via Vercel AI SDK
-- 3-panel UI: Nodes | Focus | Helpers
 
-## Quick Start
-```bash
-git clone https://github.com/bradwmorris/ra-h_os.git
-cd ra-h_os
-npm install
-npm rebuild better-sqlite3
-scripts/dev/bootstrap-local.sh
-npm run dev
-```
-
-Open http://localhost:3000 and enter your API keys (OpenAI + Anthropic).
-
-## Agent System
-**Orchestrator (Easy Mode):** GPT-5 Mini - DEFAULT - fast, cheap orchestration
-**Orchestrator (Hard Mode):** Claude Sonnet 4.5 - deep reasoning (toggle via UI)
-**Oracle (Wise ra-h):** GPT-5 - complex workflows, multi-step planning
-**Delegates:** GPT-4o mini - spawned for write operations, extraction, batch tasks
-
-Tools available: queryNodes, queryEdge, searchContentEmbeddings, webSearch, think, executeWorkflow, createNode, updateNode, createEdge, updateEdge, youtubeExtract, websiteExtract, paperExtract
-
-## Workflows System
-- **Code-first registry:** Defined in `src/services/workflows/registry.ts`
-- **Integrate workflow:** Database-wide connection discovery for focused nodes
-  - 5-step process: plan → ground → search → contextualize → append
-  - Finds 3-8 strong connections across your database
+- **Framework:** Next.js 15 + TypeScript + Tailwind CSS
+- **Database:** Turso (cloud SQLite via `@libsql/client`) — NOT local SQLite, NOT better-sqlite3
+- **Search:** Turso native vector search (F32_BLOB + vector_top_k) + FTS5 (being wired up)
+- **AI:** Anthropic (Claude) + OpenAI (GPT) models via Vercel AI SDK — BYO keys
+- **MCP:** Model Context Protocol server in `apps/mcp-server/` (HTTP + stdio)
+- **Deployment:** Vercel (readonly mode for public)
+- **UI:** 2-panel layout (Nodes list | Focus panel)
 
 ## Database
-- SQLite at `~/Library/Application Support/RA-H/db/rah.sqlite`
-- Schema defined in `docs/2_schema.md`
-- Health check: `GET /api/health/db`
 
-## Key Files
-- `src/services/agents/` - Agent executors and delegation
-- `src/tools/` - All available tools
-- `src/config/prompts/` - Agent system prompts
-- `src/services/workflows/` - Workflow definitions
-- `src/components/` - React components
+**Turso** — cloud-hosted SQLite. Not a local file.
 
-## Documentation
-- `docs/0_overview.md` - System overview
-- `docs/1_architecture.md` - Architecture details
-- `docs/2_schema.md` - Database schema
-- `docs/4_tools-and-workflows.md` - Tools reference
+- URL: `latentspace-bradwmorris.aws-us-east-2.turso.io`
+- Client: `@libsql/client` (NOT better-sqlite3)
+- Schema: `docs/2_schema.md`
+- Vector search: Turso supports native vector via F32_BLOB + `libsql_vector_idx` + `vector_top_k()`
 
-## Contributing
-See `CONTRIBUTING.md` for guidelines. Issues and PRs welcome!
+**Do NOT reference:**
+- `~/Library/Application Support/RA-H/db/rah.sqlite` (that's the local Mac app)
+- `npm rebuild better-sqlite3` (not used here)
+- `SQLITE_VEC_EXTENSION_PATH` (not needed for Turso)
 
-## License
-MIT - see LICENSE file
+## Key Directories
+
+```
+app/                    — Next.js App Router (pages + API routes)
+src/
+  components/           — React UI components
+  services/
+    database/           — Turso client, node/edge/chunk services
+    agents/             — Agent logic
+    embedding/          — Embedding generation
+    extractors/         — YouTube, website, PDF extraction
+  tools/                — MCP tools + database CRUD tools
+  config/
+    prompts/            — Agent system prompts
+    guides/             — Built-in markdown guides
+apps/
+  mcp-server/           — MCP server (HTTP + stdio)
+docs/                   — System documentation
+docs/development/       — Dev workflow, backlog, PRDs
+```
+
+## Development
+
+### Local dev
+
+```bash
+npm install
+npm run dev             # localhost:3000
+npm run type-check      # Must pass before committing
+```
+
+### Git workflow
+
+**Always work on feature branches. Never commit directly to main.**
+
+```bash
+git checkout main && git pull origin main
+git checkout -b feature/[name]
+# ... do work ...
+git add . && git commit -m "feat: description"
+# merge after review
+```
+
+### Slash commands
+
+| Command | What it does |
+|---------|-------------|
+| `/dev`  | Execute a PRD — branch, implement, commit |
+
+### Backlog
+
+**File:** `docs/development/backlog.json`
+
+Queue of projects in priority order. Each project has:
+- `status`: `ready` → `in_progress` → `review` → `completed`
+- `prd`: path to the PRD file with implementation details
+- `tasks`: checklist of individual items
+
+PRDs are in `docs/development/` — they are the spec. Read the PRD before coding.
+
+## Origin
+
+Forked from RA-H Open Source (`bradwmorris/ra-h_os`). The main RA-H app continues evolving separately. Schema changes from main should be evaluated for porting, but this repo has its own identity and roadmap.

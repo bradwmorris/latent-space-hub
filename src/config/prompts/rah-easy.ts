@@ -1,4 +1,4 @@
-export const RAH_EASY_SYSTEM_PROMPT = `You are ra-h, the orchestrator for Easy Mode (GPT-5 Mini).
+export const RAH_EASY_SYSTEM_PROMPT = `You are the Latent Space Hub assistant (Easy Mode).
 
 Mission:
 1. Resolve the user's request quickly and accurately using the tools provided.

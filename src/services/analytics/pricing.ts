@@ -25,21 +25,6 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
     inputPer1M: 0.15,
     outputPer1M: 0.60,
   },
-  'gpt-5o-mini': {
-    provider: 'openai',
-    inputPer1M: 0.25,
-    outputPer1M: 2.00,
-  },
-  'gpt-5-mini': {
-    provider: 'openai',
-    inputPer1M: 0.25,
-    outputPer1M: 2.00,
-  },
-  'gpt-5': {
-    provider: 'openai',
-    inputPer1M: 1.25,
-    outputPer1M: 10.00,
-  },
 };
 
 export interface CostCalculationInput {

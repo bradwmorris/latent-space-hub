@@ -4,32 +4,12 @@
 
 ### `npm install` fails
 
-**Symptom:** Error during native module compilation
+**Symptom:** Error during module installation
 
-**Fix:** Install build tools:
+**Fix:** Ensure Node.js 18+ is installed:
 ```bash
-# macOS
-xcode-select --install
-
-# Linux
-sudo apt install build-essential python3
-
-# Windows
-npm install -g windows-build-tools
+node --version   # Should be 18+
 ```
-
-### `npm rebuild better-sqlite3` fails
-
-**Symptom:** Native module rebuild errors
-
-**Fix:**
-1. Ensure Node.js 18+ is installed
-2. Delete `node_modules` and reinstall:
-   ```bash
-   rm -rf node_modules package-lock.json
-   npm install
-   npm rebuild better-sqlite3
-   ```
 
 ## Runtime Issues
 
@@ -38,18 +18,18 @@ npm install -g windows-build-tools
 **Symptom:** Error on `npm run dev`
 
 **Fixes:**
-1. Run the bootstrap script first: `scripts/dev/bootstrap-local.sh`
-2. Check `.env.local` exists (copy from `.env.example` if missing)
-3. Ensure database directory exists: `~/Library/Application Support/RA-H/db/`
+1. Check `.env.local` exists (copy from `.env.example` if missing)
+2. Verify `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are set
+3. Verify API keys are present (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`)
 
 ### Vector search returns no results
 
 **Symptom:** Semantic search doesn't find matches
 
 **Fixes:**
-1. Ensure `sqlite-vec` extension is loading (check console for errors)
-2. Verify `SQLITE_VEC_EXTENSION_PATH` in `.env.local` points to `vendor/sqlite-extensions/vec0.dylib`
-3. Note: sqlite-vec only works on macOS currently. Linux/Windows users need to compile it manually.
+1. Ensure embeddings have been generated for chunks
+2. Check that `OPENAI_API_KEY` is set (used for embedding generation)
+3. Vector search via Turso native `vector_top_k()` requires chunks to have embeddings stored
 
 ### API key validation fails
 
@@ -67,34 +47,30 @@ npm install -g windows-build-tools
 **Symptom:** Error messages when chatting
 
 **Fixes:**
-1. Check API keys are valid (Settings → API Keys)
+1. Check API keys are valid (Settings)
 2. Verify internet connection
 3. Check browser console for specific error messages
 
 ## Database Issues
 
-### Database locked
+### Connection fails
 
-**Symptom:** "SQLITE_BUSY" errors
+**Symptom:** "Failed to initialize Turso client" errors
 
-**Fix:** Only run one instance of RA-H at a time. Close any other terminals running the app.
+**Fix:** Verify your Turso credentials:
+```bash
+# Check env vars are set
+echo $TURSO_DATABASE_URL
+echo $TURSO_AUTH_TOKEN
+```
 
 ### Missing tables
 
 **Symptom:** "no such table" errors
 
-**Fix:** Re-run the schema script:
-```bash
-scripts/database/sqlite-ensure-app-schema.sh ~/Library/Application\ Support/RA-H/db/rah.sqlite
-```
+**Fix:** Run the schema setup script against your Turso database.
 
-## Platform-Specific
+## Self-Hosting (RA-H Open Source)
 
-### Linux/Windows
-
-The bundled `vec0.dylib` and `yt-dlp` binaries are macOS-only. For other platforms:
-
-1. **sqlite-vec**: Build from source at https://github.com/asg017/sqlite-vec
-2. **yt-dlp**: Download from https://github.com/yt-dlp/yt-dlp/releases
-
-See the main README for detailed instructions.
+For issues specific to the local SQLite version (better-sqlite3, sqlite-vec):
+- See [RA-H Open Source](https://github.com/bradwmorris/ra-h_os) for platform-specific setup
