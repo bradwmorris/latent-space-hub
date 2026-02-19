@@ -10,16 +10,16 @@
     "enable-vector-search": {
       "id": "enable-vector-search",
       "title": "Enable vector search — wire up Turso native vector_top_k, add FTS5, hybrid search",
-      "status": "ready",
+      "status": "review",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-04-vector-search.md",
-      "notes": "Confirmed working on Turso 2026-02-19. Code is stubbed with LIKE fallback. Need to replace with real vector_top_k() + add FTS5 + RRF hybrid.\n\nDepends on: schema-and-port (DONE)",
+      "notes": "Implemented 2026-02-20. vector_top_k + FTS5 + hybrid RRF all wired up. 0 chunks exist — will return results after PRD-05 content ingestion.",
       "tasks": [
-        { "done": false, "text": "Update searchChunks() with vector_top_k()" },
-        { "done": false, "text": "Add ftsSearch() method with FTS5" },
-        { "done": false, "text": "Implement hybridSearch() with RRF" },
-        { "done": false, "text": "Update searchContentEmbeddings MCP tool" },
+        { "done": true, "text": "Update searchChunks() with vector_top_k()" },
+        { "done": true, "text": "Add ftsSearch() method with FTS5" },
+        { "done": true, "text": "Implement hybridSearch() with RRF" },
+        { "done": true, "text": "Update searchContentEmbeddings MCP tool" },
         { "done": false, "text": "Test with real 1536d embeddings" }
       ]
     },

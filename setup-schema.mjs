@@ -196,6 +196,35 @@ async function migrate() {
     `CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(text, content='chunks', content_rowid='id')`,
     'Created FTS5 virtual table on chunks'
   );
+
+  // 12. FTS5 sync triggers — keep chunks_fts in sync with chunks table
+  await safeExec(
+    `CREATE TRIGGER IF NOT EXISTS chunks_fts_insert AFTER INSERT ON chunks BEGIN
+      INSERT INTO chunks_fts(rowid, text) VALUES (new.id, new.text);
+    END`,
+    'Created FTS5 insert trigger'
+  );
+
+  await safeExec(
+    `CREATE TRIGGER IF NOT EXISTS chunks_fts_delete AFTER DELETE ON chunks BEGIN
+      INSERT INTO chunks_fts(chunks_fts, rowid, text) VALUES('delete', old.id, old.text);
+    END`,
+    'Created FTS5 delete trigger'
+  );
+
+  await safeExec(
+    `CREATE TRIGGER IF NOT EXISTS chunks_fts_update AFTER UPDATE ON chunks BEGIN
+      INSERT INTO chunks_fts(chunks_fts, rowid, text) VALUES('delete', old.id, old.text);
+      INSERT INTO chunks_fts(rowid, text) VALUES (new.id, new.text);
+    END`,
+    'Created FTS5 update trigger'
+  );
+
+  // 13. Rebuild FTS5 index from existing chunks data
+  await safeExec(
+    `INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')`,
+    'Rebuilt FTS5 index from existing chunks'
+  );
 }
 
 // ─── Backfill node_type from dimensions ──────────────────────────────────────

@@ -17,6 +17,14 @@ export function serializeFloat32Vector(vector: number[]): Buffer {
 }
 
 /**
+ * Convert a float array to a JSON string for Turso's vector() SQL function.
+ * Used when passing embeddings to vector_top_k() queries.
+ */
+export function vectorToJsonString(vector: number[]): string {
+  return '[' + vector.join(',') + ']';
+}
+
+/**
  * Deserialize an F32_BLOB back to float array
  */
 export function deserializeFloat32Vector(blob: Buffer): number[] {

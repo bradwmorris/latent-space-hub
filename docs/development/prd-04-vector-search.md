@@ -79,3 +79,20 @@ ORDER BY score DESC LIMIT 10;
 - Hybrid search (RRF) combines both
 - searchContentEmbeddings MCP tool returns real similarity scores
 - Tested with actual 1536d embeddings on Turso
+
+---
+
+## COMPLETED
+**Date:** 2026-02-20
+**What was delivered:**
+- `searchChunks()` rewritten to use Turso native `vector_top_k('chunks_embedding_idx', vector(?), ?)` with cosine distance → similarity conversion
+- `ftsSearch()` added using FTS5 `chunks_fts` virtual table with BM25 ranking
+- `hybridSearch()` added combining vector + FTS5 via Reciprocal Rank Fusion (RRF, k=60) — runs both in parallel, merges by chunk ID
+- `vectorToJsonString()` helper added to `sqlite-vec.ts` for passing embeddings to Turso's `vector()` function
+- `searchContentEmbeddings` MCP tool updated to use hybrid search as primary path with graceful degradation: hybrid → vector → FTS → LIKE fallback
+- FTS5 sync triggers added to `setup-schema.mjs` (insert/update/delete) + initial rebuild step
+- `checkVectorExtension()` already returned true — no change needed
+- `getChunksWithoutEmbeddings()` already worked correctly — no change needed
+- Text fallback similarity changed from hardcoded 0.8 to 0.5 (more honest)
+- Type-check and build both pass clean
+- Note: 0 chunks exist currently — search will return results once PRD-05 (content ingestion) populates chunks with embeddings
