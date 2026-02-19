@@ -30,6 +30,8 @@ class SQLiteClient {
   private initialized: boolean = false;
 
   private isPlaceholder: boolean = false;
+  private legacySchemaChecked: boolean = false;
+  private legacySchemaCheckPromise: Promise<void> | null = null;
 
   private constructor() {
     this.embeddingsDisabled = process.env.DISABLE_EMBEDDINGS === 'true';
@@ -156,6 +158,8 @@ class SQLiteClient {
     params?: any[]
   ): Promise<SQLiteQueryResult<T>> {
     try {
+      await this.ensureLegacySchemaCompatibility();
+
       const stmt: InStatement = params
         ? { sql, args: params }
         : { sql, args: [] };
@@ -210,6 +214,70 @@ class SQLiteClient {
     } catch (error) {
       throw this.handleError(error);
     }
+  }
+
+  private async ensureLegacySchemaCompatibility(): Promise<void> {
+    if (this.isPlaceholder || this.legacySchemaChecked) {
+      return;
+    }
+
+    if (this.legacySchemaCheckPromise) {
+      await this.legacySchemaCheckPromise;
+      return;
+    }
+
+    this.legacySchemaCheckPromise = (async () => {
+      try {
+        const tables = await this.client.execute(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='nodes'"
+        );
+
+        if (tables.rows.length === 0) {
+          this.legacySchemaChecked = true;
+          return;
+        }
+
+        const nodeColumns = await this.client.execute("PRAGMA table_info('nodes')");
+        const nodeColumnNames = new Set(
+          nodeColumns.rows.map((row) => String((row as any).name))
+        );
+
+        if (!nodeColumnNames.has('notes') && nodeColumnNames.has('content')) {
+          await this.client.execute('ALTER TABLE nodes RENAME COLUMN content TO notes');
+        }
+
+        if (!nodeColumnNames.has('node_type')) {
+          await this.client.execute('ALTER TABLE nodes ADD COLUMN node_type TEXT');
+        }
+
+        if (!nodeColumnNames.has('event_date')) {
+          await this.client.execute('ALTER TABLE nodes ADD COLUMN event_date TEXT');
+        }
+
+        const dimensionColumns = await this.client.execute("PRAGMA table_info('dimensions')");
+        const dimensionColumnNames = new Set(
+          dimensionColumns.rows.map((row) => String((row as any).name))
+        );
+        if (!dimensionColumnNames.has('icon')) {
+          await this.client.execute('ALTER TABLE dimensions ADD COLUMN icon TEXT');
+        }
+
+        const edgeColumns = await this.client.execute("PRAGMA table_info('edges')");
+        const edgeColumnNames = new Set(
+          edgeColumns.rows.map((row) => String((row as any).name))
+        );
+        if (!edgeColumnNames.has('source')) {
+          await this.client.execute('ALTER TABLE edges ADD COLUMN source TEXT');
+        }
+      } catch (error) {
+        console.warn('Legacy schema compatibility check failed:', error);
+      } finally {
+        this.legacySchemaChecked = true;
+        this.legacySchemaCheckPromise = null;
+      }
+    })();
+
+    await this.legacySchemaCheckPromise;
   }
 
   public async testConnection(): Promise<boolean> {
