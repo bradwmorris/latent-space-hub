@@ -4,13 +4,12 @@ import { eventBroadcaster } from '../events';
 
 export class NodeService {
   async getNodes(filters: NodeFilters = {}): Promise<Node[]> {
-    const { dimensions, search, limit = 100, offset = 0, sortBy } = filters;
+    const { dimensions, node_type, search, limit = 100, offset = 0, sortBy } = filters;
     const sqlite = getSQLiteClient();
 
-    // Use nodes_v view for array-like dimensions behavior (exclude embedding BLOB for performance)
     let query = `
-      SELECT n.id, n.title, n.description, n.content, n.link, n.type, n.metadata, n.chunk,
-             n.chunk_status, n.embedding_updated_at, n.embedding_text,
+      SELECT n.id, n.title, n.description, n.notes, n.link, n.node_type, n.event_date,
+             n.metadata, n.chunk, n.chunk_status, n.embedding_updated_at, n.embedding_text,
              n.created_at, n.updated_at,
              COALESCE((SELECT JSON_GROUP_ARRAY(d.dimension)
                        FROM node_dimensions d WHERE d.node_id = n.id), '[]') as dimensions_json,
@@ -20,7 +19,7 @@ export class NodeService {
     `;
     const params: any[] = [];
 
-    // Filter by dimensions (SQLite JOIN with node_dimensions)
+    // Filter by dimensions
     if (dimensions && dimensions.length > 0) {
       query += ` AND EXISTS (
         SELECT 1 FROM node_dimensions nd
@@ -30,31 +29,35 @@ export class NodeService {
       params.push(...dimensions);
     }
 
-    // Text search in title, description, and content (SQLite LIKE with COLLATE NOCASE)
+    // Filter by node_type
+    if (node_type) {
+      query += ` AND n.node_type = ?`;
+      params.push(node_type);
+    }
+
+    // Text search in title, description, and notes
     if (search) {
-      query += ` AND (n.title LIKE ? COLLATE NOCASE OR n.description LIKE ? COLLATE NOCASE OR n.content LIKE ? COLLATE NOCASE)`;
+      query += ` AND (n.title LIKE ? COLLATE NOCASE OR n.description LIKE ? COLLATE NOCASE OR n.notes LIKE ? COLLATE NOCASE)`;
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
-    // Sorting logic
+    // Sorting
     if (search) {
-      // For search queries, prioritize by relevance: exact title → starts with → contains in title → description → content
       query += ` ORDER BY
         CASE WHEN LOWER(n.title) = LOWER(?) THEN 1 ELSE 6 END,
         CASE WHEN LOWER(n.title) LIKE LOWER(?) THEN 2 ELSE 6 END,
         CASE WHEN n.title LIKE ? COLLATE NOCASE THEN 3 ELSE 6 END,
         CASE WHEN n.description LIKE ? COLLATE NOCASE THEN 4 ELSE 6 END,
-        CASE WHEN n.content LIKE ? COLLATE NOCASE THEN 5 ELSE 6 END,
+        CASE WHEN n.notes LIKE ? COLLATE NOCASE THEN 5 ELSE 6 END,
         n.updated_at DESC`;
       params.push(
-        search,           // Exact match (case-insensitive)
-        `${search}%`,     // Starts with search term
-        `%${search}%`,    // Contains in title
-        `%${search}%`,    // Contains in description
-        `%${search}%`     // Contains in content
+        search,
+        `${search}%`,
+        `%${search}%`,
+        `%${search}%`,
+        `%${search}%`
       );
     } else if (sortBy === 'edges') {
-      // Sort by edge count (most connected first)
       query += ' ORDER BY edge_count DESC, n.updated_at DESC';
     } else {
       query += ' ORDER BY n.updated_at DESC';
@@ -72,7 +75,6 @@ export class NodeService {
 
     const result = await sqlite.query<Node & { dimensions_json: string }>(query, params);
 
-    // Parse dimensions_json and metadata back for compatibility
     return result.rows.map(row => ({
       ...row,
       dimensions: JSON.parse(row.dimensions_json || '[]'),
@@ -83,8 +85,8 @@ export class NodeService {
   async getNodeById(id: number): Promise<Node | null> {
     const sqlite = getSQLiteClient();
     const query = `
-      SELECT n.id, n.title, n.description, n.content, n.link, n.type, n.metadata, n.chunk,
-             n.chunk_status, n.embedding_updated_at, n.embedding_text,
+      SELECT n.id, n.title, n.description, n.notes, n.link, n.node_type, n.event_date,
+             n.metadata, n.chunk, n.chunk_status, n.embedding_updated_at, n.embedding_text,
              n.created_at, n.updated_at,
              COALESCE((SELECT JSON_GROUP_ARRAY(d.dimension)
                        FROM node_dimensions d WHERE d.node_id = n.id), '[]') as dimensions_json
@@ -107,9 +109,10 @@ export class NodeService {
     const {
       title,
       description,
-      content,
+      notes,
       link,
-      type,
+      node_type,
+      event_date,
       dimensions = [],
       chunk,
       chunk_status,
@@ -118,16 +121,16 @@ export class NodeService {
     const now = new Date().toISOString();
     const sqlite = getSQLiteClient();
 
-    // Insert node
     const nodeResult = await sqlite.query(`
-      INSERT INTO nodes (title, description, content, link, type, metadata, chunk, chunk_status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO nodes (title, description, notes, link, node_type, event_date, metadata, chunk, chunk_status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       title,
       description ?? null,
-      content ?? null,
+      notes ?? null,
       link ?? null,
-      type ?? null,
+      node_type ?? null,
+      event_date ?? null,
       JSON.stringify(metadata),
       chunk ?? null,
       chunk_status ?? null,
@@ -137,7 +140,6 @@ export class NodeService {
 
     const nodeId = nodeResult.lastInsertRowid!;
 
-    // Insert dimensions
     if (dimensions.length > 0) {
       for (const dimension of dimensions) {
         await sqlite.query(
@@ -147,13 +149,11 @@ export class NodeService {
       }
     }
 
-    // Get the created node with dimensions
     const createdNode = await this.getNodeById(nodeId);
     if (!createdNode) {
       throw new Error('Failed to create node');
     }
 
-    // Broadcast node creation event
     console.log('Broadcasting NODE_CREATED event for:', createdNode.title);
     eventBroadcaster.broadcast({
       type: 'NODE_CREATED',
@@ -164,7 +164,7 @@ export class NodeService {
   }
 
   async updateNode(id: number, updates: Partial<Node>): Promise<Node> {
-    const { title, description, content, link, type, dimensions, chunk, metadata } = updates;
+    const { title, description, notes, link, node_type, event_date, dimensions, chunk, metadata } = updates;
     const now = new Date().toISOString();
     const sqlite = getSQLiteClient();
 
@@ -174,15 +174,15 @@ export class NodeService {
       throw new Error(`Node with ID ${id} not found`);
     }
 
-    // Update node columns (only update provided fields)
     const setFields: string[] = [];
     const params: any[] = [];
 
     if (title !== undefined) { setFields.push('title = ?'); params.push(title); }
     if (description !== undefined) { setFields.push('description = ?'); params.push(description); }
-    if (content !== undefined) { setFields.push('content = ?'); params.push(content); }
+    if (notes !== undefined) { setFields.push('notes = ?'); params.push(notes); }
     if (link !== undefined) { setFields.push('link = ?'); params.push(link); }
-    if (type !== undefined) { setFields.push('type = ?'); params.push(type); }
+    if (node_type !== undefined) { setFields.push('node_type = ?'); params.push(node_type); }
+    if (event_date !== undefined) { setFields.push('event_date = ?'); params.push(event_date); }
     if (chunk !== undefined) { setFields.push('chunk = ?'); params.push(chunk); }
     if (Object.prototype.hasOwnProperty.call(updates, 'chunk_status')) {
       setFields.push('chunk_status = ?');
@@ -193,16 +193,14 @@ export class NodeService {
       params.push(JSON.stringify(metadata));
     }
 
-    // Always update timestamp
     setFields.push('updated_at = ?');
     params.push(now);
-    params.push(id); // id for WHERE clause
+    params.push(id);
 
-    if (setFields.length > 1) { // More than just updated_at
+    if (setFields.length > 1) {
       await sqlite.query(`UPDATE nodes SET ${setFields.join(', ')} WHERE id = ?`, params);
     }
 
-    // Handle dimensions separately
     if (Array.isArray(dimensions)) {
       await sqlite.query('DELETE FROM node_dimensions WHERE node_id = ?', [id]);
       for (const dim of dimensions) {
@@ -210,13 +208,11 @@ export class NodeService {
       }
     }
 
-    // Get updated node
     const updatedNode = await this.getNodeById(id);
     if (!updatedNode) {
       throw new Error(`Node with ID ${id} not found`);
     }
 
-    // Broadcast node update event
     eventBroadcaster.broadcast({
       type: 'NODE_UPDATED',
       data: { nodeId: id, node: updatedNode }
@@ -234,14 +230,12 @@ export class NodeService {
       throw new Error(`Node with ID ${id} not found`);
     }
 
-    // Broadcast node deletion event
     eventBroadcaster.broadcast({
       type: 'NODE_DELETED',
       data: { nodeId: id }
     });
   }
 
-  // Dimension-based filtering methods
   async getNodesByDimension(dimension: string): Promise<Node[]> {
     return this.getNodes({ dimensions: [dimension] });
   }
@@ -261,7 +255,6 @@ export class NodeService {
       return [];
     }
 
-    // Update one by one
     const updatedNodes: Node[] = [];
     for (const id of ids) {
       const updated = await this.updateNode(id, updates);
@@ -270,7 +263,6 @@ export class NodeService {
     return updatedNodes;
   }
 
-  // Get all unique dimensions for UI filtering
   async getAllDimensions(): Promise<string[]> {
     const sqlite = getSQLiteClient();
     const query = `
@@ -282,7 +274,6 @@ export class NodeService {
     return result.rows.map(row => row.dimension);
   }
 
-  // Get dimension usage statistics
   async getDimensionStats(): Promise<{dimension: string, count: number}[]> {
     const sqlite = getSQLiteClient();
     const query = `

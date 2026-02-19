@@ -3,13 +3,12 @@ import { z } from 'zod';
 import { edgeService } from '@/services/database/edges';
 
 export const updateEdgeTool = tool({
-  description: 'Update edge context/source/feedback',
+  description: 'Update edge context/source',
   inputSchema: z.object({
     edge_id: z.number().describe('The ID of the edge to update'),
     updates: z.object({
       context: z.record(z.any()).optional().describe('Updated context information for this edge - can include explanation, relationship type, strength, notes, etc.'),
-      source: z.enum(['user', 'ai_similarity', 'helper_name']).optional().describe('Updated source classification for this edge'),
-      user_feedback: z.boolean().optional().describe('User feedback on this edge connection (true = positive, false = negative)')
+      source: z.enum(['user', 'ai_similarity', 'helper_name']).optional().describe('Updated source classification for this edge')
     }).describe('Fields to update on the edge')
   }),
   execute: async (params) => {
@@ -46,9 +45,6 @@ export const updateEdgeTool = tool({
       const updateDescriptions = [];
       if (cleanUpdates.context) updateDescriptions.push('context');
       if (cleanUpdates.source) updateDescriptions.push(`source to ${cleanUpdates.source}`);
-      if (cleanUpdates.user_feedback !== undefined) {
-        updateDescriptions.push(`user feedback to ${cleanUpdates.user_feedback ? 'positive' : 'negative'}`);
-      }
 
       return {
         success: true,

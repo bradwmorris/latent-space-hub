@@ -3,10 +3,10 @@ import { z } from 'zod';
 import { formatNodeForChat } from '../infrastructure/nodeFormatter';
 
 export const createNodeTool = tool({
-  description: 'Create node with title/content/link and optional dimensions (locked dimensions auto-assigned)',
+  description: 'Create node with title/notes/link and optional dimensions (locked dimensions auto-assigned)',
   inputSchema: z.object({
     title: z.string().describe('The title of the node'),
-    content: z.string().optional().describe('The main content, description, or notes for this node'),
+    content: z.string().optional().describe('Node notes (mapped to notes field internally)'),
     link: z.string().optional().describe('A URL link to the source'),
     dimensions: z
       .array(z.string())

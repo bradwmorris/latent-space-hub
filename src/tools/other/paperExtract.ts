@@ -143,7 +143,7 @@ export const paperExtractTool = tool({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: nodeTitle,
-          content: enhancedDescription,
+          notes: enhancedDescription,
           link: url,
           dimensions: trimmedDimensions,
           chunk: result.chunk || result.content,

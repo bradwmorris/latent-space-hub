@@ -3,7 +3,7 @@ import { generateText } from 'ai';
 
 export interface DescriptionInput {
   title: string;
-  content?: string;
+  notes?: string;
   link?: string;
   metadata?: {
     source?: string;
@@ -11,7 +11,7 @@ export interface DescriptionInput {
     author?: string;
     site_name?: string;
   };
-  type?: string;
+  node_type?: string;
   dimensions?: string[];
 }
 
@@ -43,7 +43,7 @@ export async function generateDescription(input: DescriptionInput): Promise<stri
   } catch (error) {
     console.error('[DescriptionService] Error generating description:', error);
     // Return a fallback description
-    return `This is a ${input.type || 'knowledge item'} titled "${input.title.slice(0, 200)}".`;
+    return `This is a ${input.node_type || 'knowledge item'} titled "${input.title.slice(0, 200)}".`;
   }
 }
 
@@ -87,8 +87,8 @@ function buildDescriptionPrompt(input: DescriptionInput): string {
   if (publisherHint) lines.push(`Publisher hint: ${publisherHint}`);
   lines.push(`Likely user-authored: ${likelyUserAuthored ? 'yes' : 'no'}`);
 
-  const contentPreview = input.content?.slice(0, 800) || '';
-  if (contentPreview) lines.push(`Content: ${contentPreview}${input.content && input.content.length > 800 ? '...' : ''}`);
+  const notesPreview = input.notes?.slice(0, 800) || '';
+  if (notesPreview) lines.push(`Notes: ${notesPreview}${input.notes && input.notes.length > 800 ? '...' : ''}`);
 
   return `Your job is to answer: "what is this?" in one short line. Max 280 characters.
 

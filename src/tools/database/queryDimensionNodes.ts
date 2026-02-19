@@ -45,11 +45,11 @@ export const queryDimensionNodesTool = tool({
           dimensions: node.dimensions || [],
         };
 
-        if (includeContent && node.content) {
+        if (includeContent && node.notes) {
           // Truncate to ~100 chars
-          formatted.contentPreview = node.content.length > 100
-            ? node.content.substring(0, 100) + '...'
-            : node.content;
+          formatted.contentPreview = node.notes.length > 100
+            ? node.notes.substring(0, 100) + '...'
+            : node.notes;
         }
 
         return formatted;

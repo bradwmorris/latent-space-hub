@@ -7,8 +7,14 @@ import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 
+const EDGE_TYPES = [
+  'created_by', 'part_of', 'source_of', 'related_to',
+  'appeared_on', 'covers_topic', 'affiliated_with', 'interested_in',
+  'cites', 'expert_in', 'features', 'extends', 'supports', 'contradicts',
+] as const;
+
 const inferredEdgeContextSchema = z.object({
-  type: z.enum(['created_by', 'part_of', 'source_of', 'related_to']),
+  type: z.enum(EDGE_TYPES),
   confidence: z.number().min(0).max(1),
   swap_direction: z.boolean(),
 });
@@ -47,6 +53,31 @@ async function inferEdgeContext(params: {
   if (startsWithAny(['related to', 'related'])) {
     return { type: 'related_to', confidence: 0.8, swap_direction: false };
   }
+  // Media-org fast-paths
+  if (startsWithAny(['appeared on', 'guest on', 'hosted'])) {
+    return { type: 'appeared_on', confidence: 1.0, swap_direction: false };
+  }
+  if (startsWithAny(['covers', 'discusses', 'about'])) {
+    return { type: 'covers_topic', confidence: 0.9, swap_direction: false };
+  }
+  if (startsWithAny(['affiliated with', 'works at', 'employed by'])) {
+    return { type: 'affiliated_with', confidence: 1.0, swap_direction: false };
+  }
+  if (startsWithAny(['interested in', 'follows'])) {
+    return { type: 'interested_in', confidence: 0.9, swap_direction: false };
+  }
+  if (startsWithAny(['cites', 'references'])) {
+    return { type: 'cites', confidence: 0.9, swap_direction: false };
+  }
+  if (startsWithAny(['expert in', 'specializes in'])) {
+    return { type: 'expert_in', confidence: 0.9, swap_direction: false };
+  }
+  if (startsWithAny(['supports', 'evidence for'])) {
+    return { type: 'supports', confidence: 0.9, swap_direction: false };
+  }
+  if (startsWithAny(['contradicts', 'counters', 'disputes'])) {
+    return { type: 'contradicts', confidence: 0.9, swap_direction: false };
+  }
 
   // If no API key is configured, degrade gracefully.
   const apiKey = apiKeyService.getOpenAiKey();
@@ -63,9 +94,17 @@ async function inferEdgeContext(params: {
     `Explanation: "${explanation}"`,
     ``,
     `Edge types (the arrow shows required direction):`,
-    `- created_by: Content → Creator (e.g., "Book" → "Author", "Article" → "Writer")`,
-    `- part_of: Part → Whole (e.g., "Episode" → "Podcast", "Chapter" → "Book")`,
-    `- source_of: Derivative → Source (e.g., "Insight" → "Article it came from")`,
+    `- created_by: Content → Creator (e.g., "Book" → "Author")`,
+    `- part_of: Part → Whole (e.g., "Episode" → "Podcast")`,
+    `- source_of: Derivative → Source (e.g., "Insight" → "Article")`,
+    `- appeared_on: Person → Episode (guest/host on a show)`,
+    `- covers_topic: Episode/Source → Topic`,
+    `- affiliated_with: Person → Organization`,
+    `- interested_in: Subscriber → Topic/Person/Episode`,
+    `- cites: Episode/Source → Source`,
+    `- expert_in: Person → Topic`,
+    `- supports: Evidence → Claim`,
+    `- contradicts: Counter-evidence → Claim`,
     `- related_to: General relationship (bidirectional, no swap needed)`,
     ``,
     `IMPORTANT: Check if FROM and TO match the required direction for the type.`,
@@ -137,6 +176,14 @@ async function autoInferEdge(params: {
     `- created_by: Content → Person/Creator. The content node points to its creator.`,
     `- part_of: Part → Whole (episode→podcast, chapter→book)`,
     `- source_of: Derivative → Source (summary→original, insight→article)`,
+    `- appeared_on: Person → Episode (guest/host on a show)`,
+    `- covers_topic: Episode/Source → Topic`,
+    `- affiliated_with: Person → Organization`,
+    `- interested_in: Subscriber → Topic/Person/Episode`,
+    `- cites: Episode/Source → Source (references)`,
+    `- expert_in: Person → Topic`,
+    `- supports: Evidence → Claim`,
+    `- contradicts: Counter-evidence → Claim`,
     `- related_to: DEFAULT. Similar topics, related concepts, or when unsure.`,
     ``,
     `CRITICAL RULES:`,
@@ -168,7 +215,7 @@ async function autoInferEdge(params: {
 
     const schema = z.object({
       explanation: z.string(),
-      type: z.enum(['created_by', 'part_of', 'source_of', 'related_to']),
+      type: z.enum(EDGE_TYPES),
       confidence: z.number().min(0).max(1),
       swap_direction: z.boolean(),
     });
@@ -421,9 +468,9 @@ export class EdgeService {
           ELSE n_from.title
         END as connected_node_title,
         CASE
-          WHEN e.from_node_id = ? THEN n_to.content
-          ELSE n_from.content
-        END as connected_node_content,
+          WHEN e.from_node_id = ? THEN n_to.notes
+          ELSE n_from.notes
+        END as connected_node_notes,
         CASE
           WHEN e.from_node_id = ? THEN n_to.link
           ELSE n_from.link
@@ -494,7 +541,7 @@ export class EdgeService {
       const connected_node: Node = {
         id: row.connected_node_id,
         title: row.connected_node_title,
-        content: row.connected_node_content,
+        notes: row.connected_node_notes,
         link: row.connected_node_link,
         dimensions: JSON.parse(row.connected_node_dimensions_json || '[]'),
         embedding: undefined,
