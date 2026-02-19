@@ -1,46 +1,37 @@
 {
   "queue": [
-    "enable-vector-search",
     "content-ingestion",
     "mcp-server-and-skills",
     "discord-bot",
     "storylines"
   ],
   "projects": {
-    "enable-vector-search": {
-      "id": "enable-vector-search",
-      "title": "Enable vector search — wire up Turso native vector_top_k, add FTS5, hybrid search",
-      "status": "review",
-      "type": "feature",
-      "priority": "high",
-      "prd": "docs/development/prd-04-vector-search.md",
-      "notes": "Implemented 2026-02-20. vector_top_k + FTS5 + hybrid RRF all wired up. 0 chunks exist — will return results after PRD-05 content ingestion.",
-      "tasks": [
-        { "done": true, "text": "Update searchChunks() with vector_top_k()" },
-        { "done": true, "text": "Add ftsSearch() method with FTS5" },
-        { "done": true, "text": "Implement hybridSearch() with RRF" },
-        { "done": true, "text": "Update searchContentEmbeddings MCP tool" },
-        { "done": false, "text": "Test with real 1536d embeddings" }
-      ]
-    },
     "content-ingestion": {
       "id": "content-ingestion",
-      "title": "Content ingestion — backfill all podcasts, blogs, ainews + auto-ingest pipeline",
+      "title": "Content ingestion — backfill podcasts, articles, ainews, LatentSpaceTV (Jan 2025 → today)",
       "status": "ready",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-05-content-ingestion.md",
-      "notes": "204 nodes exist but 0 chunks. Phase 1: podcasts + blogs. Phase 2: 570+ ainews. Phase 3: auto-ingest.\n\nDepends on: schema-and-port (DONE), enable-vector-search",
+      "notes": "4 sources: podcasts (@LatentSpacePod), articles (Substack), ainews (smol-ai/ainews), LatentSpaceTV (builders club, paper club, meetups). 204 nodes exist but 0 chunks/embeddings. Existing scripts broken (old schema). Embedding services stubbed. AIE content removed.\n\nDepends on: schema-and-port (DONE), enable-vector-search (DONE)",
       "tasks": [
-        { "done": false, "text": "Scope: total podcast episodes on YouTube" },
-        { "done": false, "text": "Scope: total blog posts on Substack" },
-        { "done": false, "text": "Update ingestion scripts to chunk + embed" },
-        { "done": false, "text": "Run podcast backfill (all episodes)" },
-        { "done": false, "text": "Run blog backfill (all posts)" },
-        { "done": false, "text": "Run ainews backfill (570+ issues)" },
-        { "done": false, "text": "Create entity nodes from extracted tags" },
-        { "done": false, "text": "Create edges between entities and content" },
-        { "done": false, "text": "Set up auto-ingest (webhook + RSS)" }
+        { "done": false, "text": "Phase 0: Enumerate all @LatentSpacePod episodes (Jan 2025 → today)" },
+        { "done": false, "text": "Phase 0: Enumerate all latent.space Substack articles (Jan 2025 → today)" },
+        { "done": false, "text": "Phase 0: Index smol-ai/ainews repo markdown files (Jan 2025 → today)" },
+        { "done": false, "text": "Phase 0: Enumerate all @LatentSpaceTV videos, classify by series (builders-club, paper-club, meetup)" },
+        { "done": false, "text": "Phase 0: Build complete manifest JSONs for all 4 sources" },
+        { "done": false, "text": "Cleanup: Delete AIE scripts + data (bulk-ingest-aie.js, aie-videos.json)" },
+        { "done": false, "text": "Cleanup: Add 'newsletter' to SourceMetadata.source_type in database.ts" },
+        { "done": false, "text": "Phase 1: Build unified ingest script (replaces 3 broken scripts)" },
+        { "done": false, "text": "Phase 1: Ingest all podcast episodes as nodes with full transcripts" },
+        { "done": false, "text": "Phase 1: Ingest all Substack articles as nodes with full text" },
+        { "done": false, "text": "Phase 1: Ingest all ainews issues as nodes with full markdown" },
+        { "done": false, "text": "Phase 1: Ingest all LatentSpaceTV videos as nodes with transcripts" },
+        { "done": false, "text": "Phase 2: Chunk + embed all content (~17K chunks, uses PRD-04 pipeline)" },
+        { "done": false, "text": "Phase 3: Entity extraction — create person/org/topic nodes" },
+        { "done": false, "text": "Phase 3: Create typed edges (appeared_on, covers_topic, affiliated_with)" },
+        { "done": false, "text": "Phase 3: AINews entity extraction from frontmatter tags" },
+        { "done": false, "text": "Verify: Hybrid search returns results across full corpus" }
       ]
     },
     "mcp-server-and-skills": {
@@ -50,7 +41,7 @@
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-07-mcp-server-and-skills.md",
-      "notes": "Make the MCP server an NPX package (like ra-h-mcp-server). Add skills/guides system that ships with the server. Same interface for humans (Claude Code/Desktop) and Discord bots. Bot imports service layer directly.\n\nDepends on: dev-setup-cleanup (DONE), schema-and-port (DONE), enable-vector-search, content-ingestion\nBlocks: discord-bot",
+      "notes": "Make the MCP server an NPX package (like ra-h-mcp-server). Add skills/guides system that ships with the server. Same interface for humans (Claude Code/Desktop) and Discord bots. Bot imports service layer directly.\n\nDepends on: dev-setup-cleanup (DONE), schema-and-port (DONE), enable-vector-search (DONE), content-ingestion\nBlocks: discord-bot",
       "tasks": [
         { "done": false, "text": "Create apps/mcp-server-standalone/ structure" },
         { "done": false, "text": "Implement Turso client service" },
@@ -72,7 +63,7 @@
       "type": "feature",
       "priority": "medium",
       "prd": "docs/development/prd-06-discord-bot.md",
-      "notes": "Two bots from day one. Sig (precise, factual, cites sources) and Slop (unhinged, hot takes, debate starter). Same KB, different personalities.\n\nArchitecture: OpenClaw-style Discord gateway — single Node.js process, thread-per-conversation. No complex MD workspace files — bots pull everything from the LS knowledge base. System prompt + KB search = their entire world.\n\nBoth react to new content, debate each other, and draw community members into threads.\n\nDepends on: schema-and-port (DONE), enable-vector-search, content-ingestion, mcp-server-and-skills",
+      "notes": "Two bots from day one. Sig (precise, factual, cites sources) and Slop (unhinged, hot takes, debate starter). Same KB, different personalities.\n\nArchitecture: OpenClaw-style Discord gateway — single Node.js process, thread-per-conversation. No complex MD workspace files — bots pull everything from the LS knowledge base. System prompt + KB search = their entire world.\n\nBoth react to new content, debate each other, and draw community members into threads.\n\nDepends on: schema-and-port (DONE), enable-vector-search (DONE), content-ingestion, mcp-server-and-skills",
       "tasks": [
         { "done": false, "text": "Create new repo" },
         { "done": false, "text": "Discord.js gateway — single process routing to both bots" },
@@ -127,6 +118,13 @@
       "prd": "docs/development/completed-prds/prd-03-naming-audit.md",
       "completed_date": "2026-02-19",
       "branch": "codex/prd-03-naming-audit"
+    },
+    {
+      "id": "enable-vector-search",
+      "title": "Enable vector search — wire up Turso native vector_top_k, add FTS5, hybrid search",
+      "prd": "docs/development/completed-prds/prd-04-vector-search.md",
+      "completed_date": "2026-02-20",
+      "branch": "feature/enable-vector-search"
     }
   ]
 }
