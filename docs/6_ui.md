@@ -1,8 +1,8 @@
 # User Interface
 
-> How to navigate and use RA-H Light's interface.
+> How to navigate and use Latent Space Hub's interface.
 
-**How it works:** RA-H Light uses a 2-panel layout: browse nodes on the left, work with focused content on the right. Settings give you access to workflows, database views, a knowledge map, and more.
+**How it works:** Latent Space Hub uses a 2-panel layout: browse nodes on the left, work with focused content on the right. Settings give you access to workflows, database views, a knowledge map, and more.
 
 ---
 

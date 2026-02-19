@@ -54,3 +54,5 @@ npm run dev           # Local dev server
 - Schema now uses `nodes.notes` (not `nodes.content`) with legacy compatibility bridging in `sqlite-client.ts`
 - Always work on feature branches for implementation; merge after review
 - PRDs are the implementation spec and require a `COMPLETED` section when done
+- Keep `package-lock.json` name aligned with `package.json` after identity renames
+- Naming audit boundary: user-facing docs/UI must say "Latent Space Hub"; legacy/internal protocol identifiers can remain when intentional

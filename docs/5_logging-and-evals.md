@@ -2,7 +2,7 @@
 
 ## Logging System
 
-RA-H uses a **trigger-based logging system** that automatically captures all database activity in the `logs` table.
+Latent Space Hub uses a **trigger-based logging system** that automatically captures all database activity in the `logs` table.
 
 ### What Gets Logged
 
@@ -120,7 +120,7 @@ LIMIT 100
 **Settings → Analytics panel shows:**
 - Total tokens used (all time)
 - Total cost (USD)
-- Breakdown by agent (ra-h, ra-h-easy, mini-rah, wise-rah)
+- Breakdown by helper (`helper_name` values in your environment)
 - Breakdown by conversation thread
 - Average cost per chat
 

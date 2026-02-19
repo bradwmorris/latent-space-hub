@@ -61,10 +61,10 @@ prepare_next_standalone() {
   echo "   • Node module ABI: $(node -p 'process.versions.modules')"
   local enable_subscriptions backend_url supabase_url supabase_anon app_url
   enable_subscriptions="$(resolve_public_env_value "NEXT_PUBLIC_ENABLE_SUBSCRIPTION_BACKEND" "true")"
-  backend_url="$(resolve_public_env_value "NEXT_PUBLIC_BACKEND_URL" "https://api.ra-h.app")"
+  backend_url="$(resolve_public_env_value "NEXT_PUBLIC_BACKEND_URL" "https://latent-space-hub.vercel.app")"
   supabase_url="$(resolve_public_env_value "NEXT_PUBLIC_SUPABASE_URL" "https://wabhzavwgsizrkjpnryd.supabase.co")"
   supabase_anon="$(resolve_public_env_value "NEXT_PUBLIC_SUPABASE_ANON_KEY" "")"
-  app_url="$(resolve_public_env_value "NEXT_PUBLIC_APP_URL" "https://ra-h.app")"
+  app_url="$(resolve_public_env_value "NEXT_PUBLIC_APP_URL" "https://latent-space-hub.vercel.app")"
 
   NEXT_PUBLIC_DEPLOYMENT_MODE=cloud \
   NEXT_PUBLIC_ENABLE_SUBSCRIPTION_BACKEND="${enable_subscriptions}" \
@@ -528,7 +528,7 @@ prepare_env_stub() {
     echo "⚠️  Forcing NEXT_PUBLIC_DEPLOYMENT_MODE=cloud for production build" >&2
   fi
   local backend_url
-  backend_url="$(resolve_public_env_value "NEXT_PUBLIC_BACKEND_URL" "https://api.ra-h.app")"
+  backend_url="$(resolve_public_env_value "NEXT_PUBLIC_BACKEND_URL" "https://latent-space-hub.vercel.app")"
   local supabase_url
   supabase_url="$(resolve_public_env_value "NEXT_PUBLIC_SUPABASE_URL" "https://wabhzavwgsizrkjpnryd.supabase.co")"
   local supabase_anon
