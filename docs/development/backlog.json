@@ -5,7 +5,8 @@
     "enable-vector-search",
     "content-ingestion",
     "mcp-server-and-skills",
-    "discord-bot"
+    "discord-bot",
+    "storylines"
   ],
   "projects": {
     "dev-setup-cleanup": {
@@ -38,14 +39,19 @@
     },
     "schema-and-port": {
       "id": "schema-and-port",
-      "title": "Schema cleanup + port RA-H changes — finalize DB structure, bring across recent UX improvements",
+      "title": "Schema cleanup + typed entity model — finalize DB structure with node_type, port RA-H UX",
       "status": "ready",
       "type": "architecture",
       "priority": "high",
       "prd": "docs/development/prd-02-schema-and-port.md",
-      "notes": "66 commits on main RA-H app in last 3 weeks. Schema changes (content→notes, event_date, drop dead cols) + UX (Table Pane, Feed simplification). Do in one batch.\n\nKey constraint: Schema is painful to change later. Get it right.",
+      "notes": "Evolve from personal KG to typed entity graph for media org. Single nodes table with node_type column (episode, person, organization, topic, source, event, concept, subscriber). Type-specific metadata schemas. Extended edge relationship types. Subscribers are nodes. Research-backed: BBC, Netflix, SPoRC all use one unified graph with typed entities.\n\nKey constraint: Schema is painful to change later. Get it right.",
       "tasks": [
-        { "done": false, "text": "Map final table schemas" },
+        { "done": false, "text": "Map final table schemas with node_type enum" },
+        { "done": false, "text": "Add node_type column to nodes table" },
+        { "done": false, "text": "Add index on nodes.node_type" },
+        { "done": false, "text": "Backfill node_type for existing 204 nodes from dimensions" },
+        { "done": false, "text": "Define metadata schemas per node_type in types/database.ts" },
+        { "done": false, "text": "Extend edge context.type with media-org relationships (appeared_on, covers_topic, affiliated_with, interested_in, cites, expert_in)" },
         { "done": false, "text": "Drop dead columns (nodes.type, is_pinned, edges.user_feedback, chat_memory_state)" },
         { "done": false, "text": "Rename content → notes across codebase" },
         { "done": false, "text": "Add event_date column" },
@@ -138,6 +144,25 @@
         { "done": false, "text": "Deploy to test Discord server" },
         { "done": false, "text": "Demo to swyx" },
         { "done": false, "text": "Add to LS Discord" }
+      ]
+    }
+  },
+    "storylines": {
+      "id": "storylines",
+      "title": "Storylines / narrative arcs — temporal narrative layer connecting content, entities, and claims over time",
+      "status": "ready",
+      "type": "feature",
+      "priority": "low",
+      "prd": "docs/development/prd-08-storylines.md",
+      "notes": "BBC-inspired narrative layer. A storyline is a node_type='storyline' that tracks arcs like 'the scaling laws debate' or 'open vs closed source AI' across episodes, guests, and claims over time. Enables editorial planning and temporal bot queries.\n\nFuture — revisit after core graph is populated and bot is live.\n\nDepends on: schema-and-port, content-ingestion, mcp-server-and-skills",
+      "tasks": [
+        { "done": false, "text": "Define storyline metadata schema" },
+        { "done": false, "text": "Add storyline edge types (advances, central_to, subsumes)" },
+        { "done": false, "text": "Add temporal edge metadata (valid_from, valid_until)" },
+        { "done": false, "text": "Create initial storylines from existing content" },
+        { "done": false, "text": "Storyline timeline UI component" },
+        { "done": false, "text": "Bot can answer 'trace the arc of X across episodes'" },
+        { "done": false, "text": "Auto-detect emerging storylines from new content" }
       ]
     }
   },

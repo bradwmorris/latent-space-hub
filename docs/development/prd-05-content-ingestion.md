@@ -50,6 +50,23 @@ Phase 3: Auto-ingest pipeline for new content
 - Substack RSS for new blog posts
 - Each triggers: create node → chunk → embed → extract entities → create edges
 
+### Typed entity creation
+
+Per PRD-02, all nodes have a `node_type` column. Ingestion must set this correctly:
+
+- Podcast episodes → `node_type = 'episode'`, metadata includes `publish_date`, `duration`, `series`
+- Blog posts → `node_type = 'source'`, metadata includes `source_type: 'blog'`, `publish_date`
+- AI News issues → `node_type = 'source'`, metadata includes `source_type: 'newsletter'`, `publish_date`
+- Extracted people → `node_type = 'person'`, metadata includes `role`, `affiliations`
+- Extracted companies → `node_type = 'organization'`, metadata includes `org_type`
+- Extracted topics → `node_type = 'topic'`
+
+Edge types for entity relationships (from PRD-02):
+- Person → Episode: `appeared_on` (with role: host/guest)
+- Episode → Topic: `covers_topic` (with depth: mention/discussion/deep-dive)
+- Person → Organization: `affiliated_with`
+- Source → Source: `cites`
+
 ### Chunking strategy
 
 - ~500 token chunks with ~100 token overlap
@@ -57,9 +74,13 @@ Phase 3: Auto-ingest pipeline for new content
 - Each chunk gets embedded via text-embedding-3-small (1536d)
 - Cost estimate: ~35K chunks × 900 chars avg = ~$0.62 total
 
+### Current state of node.chunk data
+
+The existing 204 nodes have AI-generated **summaries** in the `chunk` column (not full transcripts). The YouTube transcript fetching in `bulk-ingest-podcasts.js` often fails. Re-ingestion with proper transcript sources (YouTube API, Substack full text) is needed.
+
 ### Depends on
 
-- PRD 02 (schema with chunks table, vector index)
+- PRD 02 (schema with node_type, chunks table, vector index)
 - PRD 04 (vector search working so we can verify embeddings)
 
 ## Done =
@@ -67,7 +88,7 @@ Phase 3: Auto-ingest pipeline for new content
 - All LS podcast transcripts chunked and embedded
 - All LS blog posts chunked and embedded
 - All 570+ ainews issues chunked and embedded
-- Entity nodes created (guests, companies, topics)
-- Edges connecting entities to content
+- Entity nodes created with correct node_type and metadata
+- Typed edges connecting entities to content (appeared_on, covers_topic, affiliated_with)
 - Auto-ingest pipeline running for new content
 - Hybrid search returns relevant results across entire corpus
