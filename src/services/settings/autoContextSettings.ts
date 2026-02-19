@@ -27,19 +27,24 @@ async function bootstrapFromLegacyPins(): Promise<void> {
     return;
   }
 
-  // Otherwise check for pinned nodes in database
+  // Otherwise check for pinned nodes in legacy schemas only.
   try {
     const db = getSQLiteClient();
-    const result = await db.query<{ count: number }>(
-      'SELECT COUNT(*) as count FROM nodes WHERE is_pinned = 1'
-    );
-    const pinnedCount = Number(result.rows[0]?.count ?? 0);
-    if (pinnedCount > 0) {
-      cachedSettings = {
-        autoContextEnabled: true,
-        lastPinnedMigration: new Date().toISOString(),
-      };
-      return;
+    const columns = await db.query<{ name: string }>("PRAGMA table_info('nodes')");
+    const hasPinnedColumn = columns.rows.some((col) => col.name === 'is_pinned');
+
+    if (hasPinnedColumn) {
+      const result = await db.query<{ count: number }>(
+        'SELECT COUNT(*) as count FROM nodes WHERE is_pinned = 1'
+      );
+      const pinnedCount = Number(result.rows[0]?.count ?? 0);
+      if (pinnedCount > 0) {
+        cachedSettings = {
+          autoContextEnabled: true,
+          lastPinnedMigration: new Date().toISOString(),
+        };
+        return;
+      }
     }
   } catch (error) {
     console.warn('Auto-context pin bootstrap failed:', error);

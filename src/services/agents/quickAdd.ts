@@ -207,7 +207,7 @@ async function handleNoteQuickAdd(rawInput: string, task: string, userDescriptio
   const title = deriveNoteTitle(content);
   const nodePayload: Record<string, unknown> = {
     title,
-    content,
+    notes: content,
     metadata: {
       source: 'quick-add-note',
       refined_at: new Date().toISOString(),
@@ -312,7 +312,7 @@ async function handleChatTranscriptQuickAdd(rawInput: string, task: string): Pro
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       title,
-      content,
+      notes: content,
       chunk: transcript,
       metadata,
     }),

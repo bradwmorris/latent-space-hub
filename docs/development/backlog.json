@@ -1,7 +1,5 @@
 {
   "queue": [
-    "dev-setup-cleanup",
-    "schema-and-port",
     "enable-vector-search",
     "content-ingestion",
     "mcp-server-and-skills",
@@ -9,63 +7,6 @@
     "storylines"
   ],
   "projects": {
-    "dev-setup-cleanup": {
-      "id": "dev-setup-cleanup",
-      "title": "Identity, dev process & repo cleanup — establish LSH as the product, set up workflow, fix stale code",
-      "status": "review",
-      "type": "infrastructure",
-      "priority": "high",
-      "prd": "docs/development/prd-01-dev-setup-cleanup.md",
-      "notes": "Three layers: (1) Identity rewrite — this is the Latent Space Hub, not a demo of RA-H. (2) Dev process — recreate the proven RA-H workflow (.claude/, skills, branching, PRD-gating). (3) Code cleanup — false vector comments, ghost model names, stale docs. Absorbs PRD-03 (naming audit).",
-      "tasks": [
-        { "done": true, "text": "Rewrite README.md — LSH is the product, not a demo" },
-        { "done": true, "text": "Rewrite CLAUDE.md — Turso reality, correct architecture, dev workflow" },
-        { "done": true, "text": "Update system prompts (rah-easy.ts, rah-main.ts) — 'Latent Space Hub', not 'ra-h'" },
-        { "done": true, "text": "Update package.json name → latent-space-hub" },
-        { "done": true, "text": "Complete MCP tool rename (rah_* → ls_*) in server.js" },
-        { "done": true, "text": "Fix RA-H references in ExternalAgentsPanel.tsx and sqliteQuery.ts" },
-        { "done": true, "text": "Create .claude/ — settings.json, commands/, skills/ (plan, dev, finish)" },
-        { "done": true, "text": "Create docs/development/process/ — workflow.md, agents.md, handoff.md" },
-        { "done": false, "text": "Move backlog to docs/development/backlog/backlog.json — kept at current location" },
-        { "done": true, "text": "Fix chunks.ts — remove false 'vector not supported' comments" },
-        { "done": true, "text": "Fix sqlite-vec.ts — remove false 'not usable in Turso' comments" },
-        { "done": true, "text": "Fix sqlite-client.ts — checkVectorExtension() should not return false" },
-        { "done": true, "text": "Fix model names in paperExtract, websiteExtract, youtubeExtract (gpt-5-mini → gpt-4o-mini)" },
-        { "done": true, "text": "Fix pricing.ts — remove non-existent model pricing" },
-        { "done": true, "text": "Fix .env.example — clarify Turso, remove SQLITE_VEC_EXTENSION_PATH" },
-        { "done": true, "text": "Clean up docs (schema, overview, troubleshooting, taxonomy archive)" },
-        { "done": true, "text": "Verify end-to-end: create a feature branch, follow the workflow, merge" }
-      ]
-    },
-    "schema-and-port": {
-      "id": "schema-and-port",
-      "title": "Schema cleanup + typed entity model — finalize DB structure with node_type, port RA-H UX",
-      "status": "ready",
-      "type": "architecture",
-      "priority": "high",
-      "prd": "docs/development/prd-02-schema-and-port.md",
-      "notes": "Evolve from personal KG to typed entity graph for media org. Single nodes table with node_type column (episode, person, organization, topic, source, event, concept, subscriber). Type-specific metadata schemas. Extended edge relationship types. Subscribers are nodes. Research-backed: BBC, Netflix, SPoRC all use one unified graph with typed entities.\n\nKey constraint: Schema is painful to change later. Get it right.",
-      "tasks": [
-        { "done": false, "text": "Map final table schemas with node_type enum" },
-        { "done": false, "text": "Add node_type column to nodes table" },
-        { "done": false, "text": "Add index on nodes.node_type" },
-        { "done": false, "text": "Backfill node_type for existing 204 nodes from dimensions" },
-        { "done": false, "text": "Define metadata schemas per node_type in types/database.ts" },
-        { "done": false, "text": "Extend edge context.type with media-org relationships (appeared_on, covers_topic, affiliated_with, interested_in, cites, expert_in)" },
-        { "done": false, "text": "Drop dead columns (nodes.type, is_pinned, edges.user_feedback, chat_memory_state)" },
-        { "done": false, "text": "Rename content → notes across codebase" },
-        { "done": false, "text": "Add event_date column" },
-        { "done": false, "text": "Add dimensions.icon column" },
-        { "done": false, "text": "Add vector index on chunks.embedding" },
-        { "done": false, "text": "Add FTS5 virtual table on chunks.text" },
-        { "done": false, "text": "MCP backward compat (content → notes mapping)" },
-        { "done": false, "text": "Port Database Table Pane component" },
-        { "done": false, "text": "Simplify Feed Pane (remove kanban/grid)" },
-        { "done": false, "text": "Port UI polish fixes" },
-        { "done": false, "text": "Update setup-schema.mjs" },
-        { "done": false, "text": "Test in readonly mode" }
-      ]
-    },
     "enable-vector-search": {
       "id": "enable-vector-search",
       "title": "Enable vector search — wire up Turso native vector_top_k, add FTS5, hybrid search",
@@ -73,7 +14,7 @@
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-04-vector-search.md",
-      "notes": "Confirmed working on Turso 2026-02-19. Code is stubbed with LIKE fallback. Need to replace with real vector_top_k() + add FTS5 + RRF hybrid.\n\nDepends on: schema-and-port",
+      "notes": "Confirmed working on Turso 2026-02-19. Code is stubbed with LIKE fallback. Need to replace with real vector_top_k() + add FTS5 + RRF hybrid.\n\nDepends on: schema-and-port (DONE)",
       "tasks": [
         { "done": false, "text": "Update searchChunks() with vector_top_k()" },
         { "done": false, "text": "Add ftsSearch() method with FTS5" },
@@ -89,7 +30,7 @@
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-05-content-ingestion.md",
-      "notes": "204 nodes exist but 0 chunks. Phase 1: podcasts + blogs. Phase 2: 570+ ainews. Phase 3: auto-ingest.\n\nDepends on: schema-and-port, enable-vector-search",
+      "notes": "204 nodes exist but 0 chunks. Phase 1: podcasts + blogs. Phase 2: 570+ ainews. Phase 3: auto-ingest.\n\nDepends on: schema-and-port (DONE), enable-vector-search",
       "tasks": [
         { "done": false, "text": "Scope: total podcast episodes on YouTube" },
         { "done": false, "text": "Scope: total blog posts on Substack" },
@@ -109,7 +50,7 @@
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-07-mcp-server-and-skills.md",
-      "notes": "Make the MCP server an NPX package (like ra-h-mcp-server). Add skills/guides system that ships with the server. Same interface for humans (Claude Code/Desktop) and Discord bots. Bot imports service layer directly.\n\nDepends on: dev-setup-cleanup, schema-and-port, enable-vector-search, content-ingestion\nBlocks: discord-bot",
+      "notes": "Make the MCP server an NPX package (like ra-h-mcp-server). Add skills/guides system that ships with the server. Same interface for humans (Claude Code/Desktop) and Discord bots. Bot imports service layer directly.\n\nDepends on: dev-setup-cleanup (DONE), schema-and-port (DONE), enable-vector-search, content-ingestion\nBlocks: discord-bot",
       "tasks": [
         { "done": false, "text": "Create apps/mcp-server-standalone/ structure" },
         { "done": false, "text": "Implement Turso client service" },
@@ -131,7 +72,7 @@
       "type": "feature",
       "priority": "medium",
       "prd": "docs/development/prd-06-discord-bot.md",
-      "notes": "Two bots from day one. Sig (precise, factual, cites sources) and Slop (unhinged, hot takes, debate starter). Same KB, different personalities.\n\nArchitecture: OpenClaw-style Discord gateway — single Node.js process, thread-per-conversation. No complex MD workspace files — bots pull everything from the LS knowledge base. System prompt + KB search = their entire world.\n\nBoth react to new content, debate each other, and draw community members into threads.\n\nDepends on: schema-and-port, enable-vector-search, content-ingestion, mcp-server-and-skills",
+      "notes": "Two bots from day one. Sig (precise, factual, cites sources) and Slop (unhinged, hot takes, debate starter). Same KB, different personalities.\n\nArchitecture: OpenClaw-style Discord gateway — single Node.js process, thread-per-conversation. No complex MD workspace files — bots pull everything from the LS knowledge base. System prompt + KB search = their entire world.\n\nBoth react to new content, debate each other, and draw community members into threads.\n\nDepends on: schema-and-port (DONE), enable-vector-search, content-ingestion, mcp-server-and-skills",
       "tasks": [
         { "done": false, "text": "Create new repo" },
         { "done": false, "text": "Discord.js gateway — single process routing to both bots" },
@@ -145,8 +86,7 @@
         { "done": false, "text": "Demo to swyx" },
         { "done": false, "text": "Add to LS Discord" }
       ]
-    }
-  },
+    },
     "storylines": {
       "id": "storylines",
       "title": "Storylines / narrative arcs — temporal narrative layer connecting content, entities, and claims over time",
@@ -154,7 +94,7 @@
       "type": "feature",
       "priority": "low",
       "prd": "docs/development/prd-08-storylines.md",
-      "notes": "BBC-inspired narrative layer. A storyline is a node_type='storyline' that tracks arcs like 'the scaling laws debate' or 'open vs closed source AI' across episodes, guests, and claims over time. Enables editorial planning and temporal bot queries.\n\nFuture — revisit after core graph is populated and bot is live.\n\nDepends on: schema-and-port, content-ingestion, mcp-server-and-skills",
+      "notes": "BBC-inspired narrative layer. A storyline is a node_type='storyline' that tracks arcs like 'the scaling laws debate' or 'open vs closed source AI' across episodes, guests, and claims over time. Enables editorial planning and temporal bot queries.\n\nFuture — revisit after core graph is populated and bot is live.\n\nDepends on: schema-and-port (DONE), content-ingestion, mcp-server-and-skills",
       "tasks": [
         { "done": false, "text": "Define storyline metadata schema" },
         { "done": false, "text": "Add storyline edge types (advances, central_to, subsumes)" },
@@ -166,5 +106,20 @@
       ]
     }
   },
-  "completed": []
+  "completed": [
+    {
+      "id": "dev-setup-cleanup",
+      "title": "Identity, dev process & repo cleanup — establish LSH as the product, set up workflow, fix stale code",
+      "prd": "docs/development/prd-01-dev-setup-cleanup.md",
+      "completed_date": "2026-02-19",
+      "branch": "feature/dev-setup-cleanup"
+    },
+    {
+      "id": "schema-and-port",
+      "title": "Schema cleanup + typed entity model — finalize DB structure with node_type, port RA-H UX",
+      "prd": "docs/development/prd-02-schema-and-port.md",
+      "completed_date": "2026-02-19",
+      "branch": "feature/schema-and-port"
+    }
+  ]
 }

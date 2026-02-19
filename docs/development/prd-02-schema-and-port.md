@@ -123,3 +123,18 @@ Extend the existing `context.type` enum for media-org relationships:
 - Table Pane, Feed simplification, UI polish ported
 - MCP tools backward compatible
 - Everything works in readonly mode
+
+---
+
+## COMPLETED
+**Date:** 2026-02-19
+**What was delivered:**
+- **Schema migration script** (`setup-schema.mjs`): Idempotent migration that renames `content` → `notes`, adds `node_type`, `event_date`, `dimensions.icon` columns, drops dead columns (`nodes.type`, `nodes.is_pinned`, `edges.user_feedback`, `chat_memory_state`), creates vector index on chunks.embedding, creates FTS5 virtual table, and backfills `node_type` from existing dimensions.
+- **TypeScript types** (`src/types/database.ts`): New `NodeType` enum (episode, person, organization, topic, source, event, concept, subscriber), per-type metadata interfaces (EpisodeMetadata, PersonMetadata, etc.), extended `EdgeContextType` with media-org relationships (appeared_on, covers_topic, affiliated_with, interested_in, cites, expert_in, supports, contradicts).
+- **Database services**: `nodes.ts` updated for `notes`, `node_type`, `event_date` in all CRUD. `edges.ts` extended with new edge types in inference heuristics and AI prompts. `descriptionService.ts` and `dimensionService.ts` updated for `notes` property.
+- **content → notes rename**: ~40 files updated across services, API routes, MCP tools, extractors, UI components. All references to `node.content` now use `node.notes`.
+- **MCP backward compatibility**: External MCP tools still accept `content` parameter, mapped to `notes` at the handler boundary. Internal tools (createNode, updateNode) accept both.
+- **API backward compat**: Node API routes accept both `notes` and `content` in request bodies, with `content` mapped to `notes` for backward compatibility.
+- **Edge types**: Extended inference heuristics with fast-paths for appeared_on, covers_topic, affiliated_with, interested_in, cites, expert_in, supports, contradicts. AI prompts updated to include all 14 edge types.
+- **UI enhancements**: Node type badge displayed in FocusPanel and ListView. Event date shown with green highlight when available. Node type shown as filter-ready badge in list view.
+- **Type-check**: Clean pass. **Build**: Clean pass. All readonly mode compatible.

@@ -12,30 +12,30 @@ export async function GET(
   try {
     const { id } = await params;
     const nodeId = parseInt(id, 10);
-    
+
     if (isNaN(nodeId)) {
       return NextResponse.json({
         success: false,
         error: 'Invalid node ID'
       }, { status: 400 });
     }
-    
+
     const node = await nodeService.getNodeById(nodeId);
-    
+
     if (!node) {
       return NextResponse.json({
         success: false,
         error: 'Node not found'
       }, { status: 404 });
     }
-    
+
     return NextResponse.json({
       success: true,
       node: node
     });
   } catch (error) {
     console.error('Error fetching node:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch node'
@@ -50,7 +50,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const nodeId = parseInt(id, 10);
-    
+
     if (isNaN(nodeId)) {
       return NextResponse.json({
         success: false,
@@ -68,16 +68,27 @@ export async function PUT(
       }, { status: 404 });
     }
 
+    // Strip legacy fields
     if (body && Object.prototype.hasOwnProperty.call(body, 'is_pinned')) {
       console.warn(`[nodes/${nodeId}] Ignoring legacy is_pinned payload`);
       delete body.is_pinned;
+    }
+    if (body && Object.prototype.hasOwnProperty.call(body, 'type')) {
+      console.warn(`[nodes/${nodeId}] Ignoring legacy type payload`);
+      delete body.type;
+    }
+
+    // Backward compat: accept "content" and map to "notes"
+    if (body && Object.prototype.hasOwnProperty.call(body, 'content') && !Object.prototype.hasOwnProperty.call(body, 'notes')) {
+      body.notes = body.content;
+      delete body.content;
     }
 
     const updates: Record<string, unknown> = { ...body };
     let shouldQueueEmbed = false;
 
     const incomingChunk = typeof body.chunk === 'string' ? body.chunk : undefined;
-    const incomingContent = typeof body.content === 'string' ? body.content : undefined;
+    const incomingNotes = typeof body.notes === 'string' ? body.notes : undefined;
     const existingChunk = existingNode.chunk ?? '';
 
     if (incomingChunk !== undefined) {
@@ -92,8 +103,8 @@ export async function PUT(
       } else {
         delete updates.chunk_status;
       }
-    } else if (!existingChunk.trim() && hasSufficientContent(incomingContent)) {
-      updates.chunk = incomingContent;
+    } else if (!existingChunk.trim() && hasSufficientContent(incomingNotes)) {
+      updates.chunk = incomingNotes;
       updates.chunk_status = 'not_chunked';
       shouldQueueEmbed = true;
     }
@@ -125,7 +136,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const nodeId = parseInt(id, 10);
-    
+
     if (isNaN(nodeId)) {
       return NextResponse.json({
         success: false,
@@ -141,7 +152,7 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting node:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to delete node'

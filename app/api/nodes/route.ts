@@ -12,7 +12,7 @@ export const runtime = 'nodejs';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    
+
     const filters: NodeFilters = {
       search: searchParams.get('search') || undefined,
       limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100,
@@ -25,6 +25,12 @@ export async function GET(request: NextRequest) {
       filters.dimensions = dimensionsParam.split(',').map(dim => dim.trim()).filter(Boolean);
     }
 
+    // Handle node_type parameter
+    const nodeTypeParam = searchParams.get('node_type');
+    if (nodeTypeParam) {
+      filters.node_type = nodeTypeParam as any;
+    }
+
     // Handle sortBy parameter
     const sortByParam = searchParams.get('sortBy');
     if (sortByParam === 'edges' || sortByParam === 'updated') {
@@ -32,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const nodes = await nodeService.getNodes(filters);
-    
+
     return NextResponse.json({
       success: true,
       data: nodes,
@@ -40,7 +46,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching nodes:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch nodes'
@@ -51,7 +57,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.title) {
       return NextResponse.json({
@@ -60,7 +66,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const rawContent = typeof body.content === 'string' ? body.content : null;
+    // Accept both "notes" and "content" (backward compat) from request body
+    const rawNotes = typeof body.notes === 'string' ? body.notes
+                   : typeof body.content === 'string' ? body.content
+                   : null;
 
     // Process provided dimensions first (needed for description generation)
     const providedDimensions = Array.isArray(body.dimensions) ? body.dimensions : [];
@@ -74,21 +83,20 @@ export async function POST(request: NextRequest) {
     try {
       nodeDescription = await generateDescription({
         title: body.title,
-        content: rawContent || undefined,
+        notes: rawNotes || undefined,
         link: body.link || undefined,
         metadata: body.metadata,
-        type: body.type,
+        node_type: body.node_type,
         dimensions: trimmedProvidedDimensions
       });
     } catch (error) {
       console.error('Error generating description:', error);
-      // Continue without description - dimension assignment will use content as fallback
     }
 
     // Auto-assign locked dimensions + keyword dimensions for all new nodes
     const { locked, keywords } = await DimensionService.assignDimensions({
       title: body.title,
-      content: rawContent || undefined,
+      notes: rawNotes || undefined,
       link: body.link,
       description: nodeDescription
     });
@@ -100,23 +108,25 @@ export async function POST(request: NextRequest) {
 
     // Combine provided, locked, and keyword dimensions, remove duplicates
     const finalDimensions = [...new Set([...trimmedProvidedDimensions, ...locked, ...keywords])]
-      .slice(0, 8); // max 8 total
+      .slice(0, 8);
     const rawChunk = typeof body.chunk === 'string' ? body.chunk : null;
     let chunkToStore = rawChunk;
     let chunkStatus: Node['chunk_status'];
 
     if (chunkToStore && chunkToStore.trim().length > 0) {
       chunkStatus = 'not_chunked';
-    } else if (!chunkToStore && hasSufficientContent(rawContent)) {
-      chunkToStore = rawContent;
+    } else if (!chunkToStore && hasSufficientContent(rawNotes)) {
+      chunkToStore = rawNotes;
       chunkStatus = 'not_chunked';
     }
 
     const node = await nodeService.createNode({
       title: body.title,
       description: nodeDescription,
-      content: rawContent ?? undefined,
+      notes: rawNotes ?? undefined,
       link: body.link,
+      node_type: body.node_type,
+      event_date: body.event_date,
       dimensions: finalDimensions,
       chunk: chunkToStore ?? undefined,
       chunk_status: chunkStatus,
@@ -139,7 +149,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating node:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create node'

@@ -24,7 +24,7 @@ export const getNodesByIdTool = tool({
           const node = await nodeService.getNodeById(id);
           if (!node) return null;
           const preview = includeContentPreview
-            ? (node.content || node.description || '')
+            ? (node.notes || node.description || '')
                 .split(/\s+/)
                 .slice(0, 80)
                 .join(' ')

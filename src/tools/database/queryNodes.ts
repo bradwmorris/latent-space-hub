@@ -5,11 +5,11 @@ import { formatNodeForChat } from '../infrastructure/nodeFormatter';
 import type { Node } from '@/types/database';
 
 export const queryNodesTool = tool({
-  description: 'Search nodes by title/content/dimensions',
+  description: 'Search nodes by title/notes/dimensions',
   inputSchema: z.object({
     filters: z.object({
       dimensions: z.array(z.string()).describe('Filter by dimensions (e.g., ["research", "ai", "technology"]). Replaces old type/stage filtering.').optional(),
-      search: z.string().describe('Search term to match against title or content').optional(),
+      search: z.string().describe('Search term to match against title or notes').optional(),
       limit: z.number().min(1).max(50).default(10).describe('Maximum number of results to return')
     }).optional()
   }),

@@ -382,8 +382,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
     try {
       const updateData: Record<string, string> = {};
 
-      if (editingField === 'content') {
-        updateData.content = editingValue;
+      if (editingField === 'notes') {
+        updateData.notes = editingValue;
       } else {
         updateData[editingField] = editingValue;
       }
@@ -440,15 +440,15 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
     }
   };
 
-  // Explicit content saver to avoid stale state reads (used after @mention insert)
+  // Explicit notes saver to avoid stale state reads (used after @mention insert)
   const saveContentExplicit = async (contentValue: string, nodeId: number) => {
     if (!nodeId) return;
-    setSavingField('content');
+    setSavingField('notes');
     try {
       const response = await fetch(`/api/nodes/${nodeId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: contentValue }),
+        body: JSON.stringify({ notes: contentValue }),
       });
       if (!response.ok) throw new Error('Failed to save');
       const result = await response.json();
@@ -560,7 +560,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
     }
   };
 
-  // Save notes (content) with explicit Save button
+  // Save notes with explicit Save button
   const saveNotes = async () => {
     if (!activeTab) return;
     setNotesSaving(true);
@@ -568,7 +568,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
       const response = await fetch(`/api/nodes/${activeTab}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: notesEditValue }),
+        body: JSON.stringify({ notes: notesEditValue }),
       });
       if (!response.ok) throw new Error('Failed to save');
       const result = await response.json();
@@ -614,7 +614,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
   // Start editing notes
   const startNotesEdit = () => {
     if (!activeTab || !nodesData[activeTab]) return;
-    setNotesEditValue(nodesData[activeTab].content || '');
+    setNotesEditValue(nodesData[activeTab].notes || '');
     setNotesEditMode(true);
   };
 
@@ -719,8 +719,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: noteTitle,
-          type: 'note',
-          content: '',
+          node_type: 'concept',
+          notes: '',
           description: noteDescription,
           dimensions: currentNode.dimensions || []
         }),
@@ -1023,15 +1023,15 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
 
   const embedContent = async (nodeId: number) => {
     const node = nodesData[nodeId];
-    const hasContent = node?.content?.trim();
+    const hasNotes = node?.notes?.trim();
     const hasChunk = node?.chunk?.trim();
-    // If chunk is empty but content exists, auto-populate chunk from content
-    if (!hasChunk && hasContent) {
+    // If chunk is empty but notes exist, auto-populate chunk from notes
+    if (!hasChunk && hasNotes) {
       try {
         const response = await fetch(`/api/nodes/${nodeId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chunk: hasContent })
+          body: JSON.stringify({ chunk: hasNotes })
         });
         
         if (response.ok) {
@@ -1046,7 +1046,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
       }
     }
     // If neither content nor chunk exist, require content
-    if (!hasContent && !hasChunk) {
+    if (!hasNotes && !hasChunk) {
       startEdit('content', '');
       return;
     }
@@ -1882,6 +1882,23 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 {activeTab}
               </span>
 
+              {/* Node type badge */}
+              {nodesData[activeTab]?.node_type && (
+                <span style={{
+                  display: 'inline-block',
+                  background: '#1a1a2e',
+                  color: '#818cf8',
+                  fontSize: '10px',
+                  fontWeight: 500,
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  flexShrink: 0,
+                  border: '1px solid #2d2d5e'
+                }}>
+                  {nodesData[activeTab].node_type}
+                </span>
+              )}
+
               {/* Title editing - disabled in readonly mode */}
               {!isReadOnly && editingField === 'title' ? (
                 <input
@@ -2667,7 +2684,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         </div>
                       )}
                     </div>
-                  ) : nodesData[activeTab]?.content ? (
+                  ) : nodesData[activeTab]?.notes ? (
                     <div
                       style={{
                         color: '#e5e5e5',
@@ -2679,7 +2696,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                       }}
                     >
                       <MarkdownWithNodeTokens
-                        content={nodesData[activeTab].content}
+                        content={nodesData[activeTab].notes}
                         onNodeClick={onNodeClick || onTabSelect}
                       />
                     </div>

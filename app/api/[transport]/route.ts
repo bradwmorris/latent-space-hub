@@ -119,7 +119,7 @@ const handler = createMcpHandler(
                 + `**Description:** ${node.description || 'None'}\n`
                 + `**Dimensions:** ${(node.dimensions || []).join(', ') || 'None'}\n`
                 + `**Link:** ${node.link || 'None'}\n`
-                + `**Content:** ${node.content || 'None'}\n`
+                + `**Notes:** ${node.notes || 'None'}\n`
               );
             } else {
               results.push(`Node #${id}: Not found`);
@@ -277,9 +277,10 @@ const handler = createMcpHandler(
           },
         },
         async ({ title, content, link, description, dimensions }) => {
+          // MCP backward compat: external schema uses "content", internally we store as "notes"
           const node = await nodeService.createNode({
             title: title.trim(),
-            content: content?.trim(),
+            notes: content?.trim(),
             link: link?.trim(),
             description: description?.trim(),
             dimensions,

@@ -1,36 +1,122 @@
-// New Node-based type system replacing rigid Item categorization
+// ─── Node Types ──────────────────────────────────────────────────────────────
+
+export type NodeType =
+  | 'episode'
+  | 'person'
+  | 'organization'
+  | 'topic'
+  | 'source'
+  | 'event'
+  | 'concept'
+  | 'subscriber';
+
 export interface Node {
   id: number;
   title: string;
   description?: string;
-  content?: string;           // Consolidated content from description + abstract + notes
+  notes?: string;              // Was "content" — user notes / analysis
   link?: string;
-  type?: string;
-  dimensions: string[];       // Flexible dimensions replacing type + stage + segment + tags
-  embedding?: Buffer;         // Node-level embedding (BLOB data)
+  node_type?: NodeType;        // Typed entity classification
+  event_date?: string;         // ISO 8601 date for temporal queries
+  dimensions: string[];        // Flexible dimension tags
+  embedding?: Buffer;          // Node-level embedding (BLOB)
   chunk?: string;
-  metadata?: any;            // Flexible metadata storage from extras + chunk_status + sub_type
+  metadata?: any;              // Type-specific metadata (see schemas below)
   created_at: string;
   updated_at: string;
-  is_pinned?: number;        // Legacy pin flag (read-only, slated for removal)
-  edge_count?: number;       // Derived count of edges, included in some queries
+  edge_count?: number;         // Derived count from queries
 
-  // Optional embedding fields (restored from migration)
+  // Embedding pipeline fields
   embedding_updated_at?: string;
   embedding_text?: string;
   chunk_status?: 'not_chunked' | 'chunking' | 'chunked' | 'error' | null;
 }
 
+// ─── Node Metadata Schemas (application-layer validation) ────────────────────
+
+export interface EpisodeMetadata {
+  publish_date: string;
+  duration?: string;
+  series: string;
+  audio_url?: string;
+  video_url?: string;
+  episode_number?: number;
+  season?: number;
+}
+
+export interface PersonMetadata {
+  role: string;
+  affiliations?: string[];
+  expertise?: string[];
+  twitter?: string;
+  website?: string;
+  contact?: string;
+}
+
+export interface OrganizationMetadata {
+  org_type: 'startup' | 'lab' | 'bigco' | 'institution';
+  website?: string;
+  founded?: string;
+  hq?: string;
+}
+
+export interface TopicMetadata {
+  parent_topic?: string;
+  aliases?: string[];
+}
+
+export interface SourceMetadata {
+  source_type: 'paper' | 'article' | 'blog' | 'doc';
+  authors?: string[];
+  publish_date?: string;
+  doi?: string;
+}
+
+export interface EventMetadata {
+  event_date: string;
+  event_type: 'conference' | 'launch' | 'release';
+  location?: string;
+  url?: string;
+}
+
+export interface ConceptMetadata {
+  definition?: string;
+  related_terms?: string[];
+}
+
+export interface SubscriberMetadata {
+  platform: 'discord' | 'web';
+  platform_id: string;
+  display_name?: string;
+  joined_date?: string;
+  tier?: string;
+}
+
+export type NodeMetadataMap = {
+  episode: EpisodeMetadata;
+  person: PersonMetadata;
+  organization: OrganizationMetadata;
+  topic: TopicMetadata;
+  source: SourceMetadata;
+  event: EventMetadata;
+  concept: ConceptMetadata;
+  subscriber: SubscriberMetadata;
+};
+
+// ─── Chunks ──────────────────────────────────────────────────────────────────
+
 export interface Chunk {
   id: number;
-  node_id: number;           // Updated from item_id to node_id
+  node_id: number;
   chunk_idx?: number;
   text: string;
   embedding?: number[];
   embedding_type: string;
-  metadata?: any;            // Updated from extras to metadata
+  metadata?: any;
   created_at: string;
 }
+
+// ─── Edges ───────────────────────────────────────────────────────────────────
 
 export interface Edge {
   id: number;
@@ -44,15 +130,26 @@ export interface Edge {
 export type EdgeSource = 'user' | 'ai_similarity' | 'helper_name';
 
 export type EdgeContextType =
-  | 'created_by'   // Content → Creator (book by author, podcast by host)
-  | 'part_of'      // Part → Whole (episode of podcast, person discussed in book)
-  | 'source_of'    // Derivative → Source (insight from article)
-  | 'related_to';  // Default — anything else or when unsure
+  | 'created_by'       // Content → Creator
+  | 'part_of'          // Part → Whole
+  | 'source_of'        // Derivative → Source
+  | 'related_to'       // Default / general
+  // Media-org relationship types
+  | 'appeared_on'      // Person → Episode
+  | 'covers_topic'     // Episode/Source → Topic
+  | 'affiliated_with'  // Person → Organization
+  | 'interested_in'    // Subscriber → Topic/Person/Episode
+  | 'cites'            // Episode/Source → Source
+  | 'expert_in'        // Person → Topic
+  | 'features'         // Whole → Part (reverse of part_of)
+  | 'extends'          // Builds on prior work
+  | 'supports'         // Evidence for a claim
+  | 'contradicts';     // Counter-evidence
 
 export type EdgeCreatedVia = 'ui' | 'agent' | 'mcp' | 'workflow' | 'quicklink' | 'quick_capture_auto';
 
 export interface EdgeContext {
-  // SYSTEM-INFERRED (AI classifies from explanation + nodes)
+  // SYSTEM-INFERRED
   type: EdgeContextType;
   confidence: number;   // 0-1
   inferred_at: string;  // ISO timestamp
@@ -62,24 +159,32 @@ export interface EdgeContext {
 
   // SYSTEM-MANAGED
   created_via: EdgeCreatedVia;
+
+  // Optional typed-edge metadata
+  role?: string;           // e.g. host/guest/co-host for appeared_on
+  depth?: string;          // e.g. mention/discussion/deep-dive for covers_topic
+  valid_from?: string;     // ISO date for temporal relationships
+  valid_until?: string;    // ISO date for temporal relationships
 }
 
-// New NodeFilters interface replacing rigid ItemFilters
+// ─── Filters & Data Shapes ──────────────────────────────────────────────────
+
 export interface NodeFilters {
-  dimensions?: string[];      // Filter by dimensions (replaces stage/type filtering)
-  search?: string;           // Text search in title/content
+  dimensions?: string[];
+  node_type?: NodeType;     // Filter by entity type
+  search?: string;          // Text search in title/notes
   limit?: number;
   offset?: number;
-  sortBy?: 'updated' | 'edges';  // Sort by updated_at or edge count
+  sortBy?: 'updated' | 'edges';
 }
 
 export interface ChunkData {
-  node_id: number;           // Updated from item_id
+  node_id: number;
   chunk_idx?: number;
   text: string;
   embedding?: number[];
   embedding_type: string;
-  metadata?: any;            // Updated from extras
+  metadata?: any;
 }
 
 export interface EdgeData {
@@ -88,22 +193,23 @@ export interface EdgeData {
   explanation: string;
   created_via: EdgeCreatedVia;
   source: EdgeSource;
-  skip_inference?: boolean; // reserved for bulk imports / migrations
+  skip_inference?: boolean;
 }
 
 export interface ChatData {
   user_message?: string;
   assistant_message?: string;
   thread_id: string;
-  focused_node_id?: number;  // Updated from focused_item_id
+  focused_node_id?: number;
   metadata?: any;
-  embedding?: number[];      // Renamed from content_embedding
+  embedding?: number[];
 }
 
-// New NodeConnection interface
+// ─── Connections & Errors ────────────────────────────────────────────────────
+
 export interface NodeConnection {
   id: number;
-  connected_node: Node;      // Updated from connected_item
+  connected_node: Node;
   edge: Edge;
 }
 
@@ -113,10 +219,12 @@ export interface DatabaseError {
   details?: any;
 }
 
-// Dimension interface for dimension management
+// ─── Dimensions ──────────────────────────────────────────────────────────────
+
 export interface Dimension {
   name: string;
   description?: string | null;
+  icon?: string | null;       // Visual icon for dimension browsing
   is_priority: boolean;
   updated_at: string;
 }

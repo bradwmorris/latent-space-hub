@@ -89,21 +89,41 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
 
             {/* Content */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              {/* Title */}
+              {/* Title row with node_type badge */}
               <div style={{
-                fontSize: '13px',
-                fontWeight: 500,
-                color: '#e5e5e5',
-                marginBottom: '4px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginBottom: '4px'
               }}>
-                {node.title || 'Untitled'}
+                {node.node_type && (
+                  <span style={{
+                    padding: '1px 5px',
+                    background: '#1a1a2e',
+                    color: '#818cf8',
+                    borderRadius: '3px',
+                    fontSize: '9px',
+                    fontWeight: 500,
+                    flexShrink: 0,
+                    border: '1px solid #2d2d5e'
+                  }}>
+                    {node.node_type}
+                  </span>
+                )}
+                <div style={{
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  color: '#e5e5e5',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {node.title || 'Untitled'}
+                </div>
               </div>
 
-              {/* Description or Content Preview */}
-              {(node.description || node.content) && (
+              {/* Description or Notes Preview */}
+              {(node.description || node.notes) && (
                 <div style={{
                   fontSize: '12px',
                   color: '#666',
@@ -114,7 +134,7 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden'
                 }}>
-                  {node.description || truncateContent(node.content)}
+                  {node.description || truncateContent(node.notes)}
                 </div>
               )}
 
@@ -158,12 +178,12 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                   </div>
                 )}
 
-                {/* Date */}
+                {/* Event date (if available) or Updated date */}
                 <span style={{
                   fontSize: '10px',
-                  color: '#555'
+                  color: node.event_date ? '#6ee7b7' : '#555'
                 }}>
-                  {formatDate(node.updated_at || node.created_at)}
+                  {node.event_date ? formatDate(node.event_date) : formatDate(node.updated_at || node.created_at)}
                 </span>
 
                 {/* Edge count */}
