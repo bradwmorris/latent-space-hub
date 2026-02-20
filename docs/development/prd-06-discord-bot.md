@@ -100,3 +100,33 @@ When new content is ingested (new podcast, new ainews):
 - Both running in Brad's test Discord server
 - Demo'd to swyx
 - Invited to LS Discord
+
+---
+
+## Status Update (2026-02-20)
+
+### Completed so far
+
+- Separate bot repo exists and is active: `latent-space-bots`
+- Railway deployment is working from latest `main`
+- Runtime implemented as one process with two Discord clients (Sig + Slop)
+- Mention/reply handling implemented
+- Thread-first response behavior implemented
+- Slash commands implemented: `/ask`, `/search`, `/episode`, `/debate`
+- Turso-backed retrieval implemented with hybrid attempt (vector + FTS) and fallback search
+- Basic debate loop implemented with capped exchanges
+- Basic rate limiting implemented (user + channel)
+
+### Verified in live test
+
+- Bot receives Discord messages and sends replies in test server
+- Turso connectivity path is live
+- LLM call path is live (OpenRouter errors are surfaced in-channel when credits are insufficient)
+
+### Current blockers / gaps
+
+- OpenRouter account must have credits (`402 Insufficient credits` currently observed)
+- KB relevance depends on ingestion/embedding completeness (PRD-05 dependency)
+- Final channel allowlist and permission hardening still needs confirmation
+- Proactive posting on new ingest events is not implemented yet
+- Full go/no-go validation suite still pending
