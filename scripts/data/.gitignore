@@ -1,0 +1,4 @@
+# Generated manifests (large, reproducible via generate-manifests.ts)
+manifest-*.json
+seed-dimensions.json
+blocklist-nontopics.json

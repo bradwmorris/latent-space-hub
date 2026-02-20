@@ -66,7 +66,7 @@ export interface TopicMetadata {
 }
 
 export interface SourceMetadata {
-  source_type: 'paper' | 'article' | 'blog' | 'doc';
+  source_type: 'paper' | 'article' | 'blog' | 'doc' | 'newsletter';
   authors?: string[];
   publish_date?: string;
   doi?: string;

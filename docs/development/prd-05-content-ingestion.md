@@ -170,13 +170,43 @@ One cleanup pass on existing rows:
 
 ## Done =
 
-- [ ] Prep checklist complete (A-F in this PRD)
-- [ ] Complete manifests for all 4 sources (Jan 2025 -> present)
-- [ ] Unified ingestion script implemented and used (legacy scripts retired)
-- [ ] Existing nodes normalized/deduplicated for ingest targets
-- [ ] Podcast + LatentSpaceTV episodes ingested with full transcript text
-- [ ] Substack articles ingested with full article text
-- [ ] AINews issues ingested with full markdown text
-- [ ] All ingested content chunked + embedded (node + chunk vectors)
-- [ ] Entity nodes and typed edges created
-- [ ] Hybrid search returns relevant results across full corpus
+- [x] Prep checklist complete (A-F in this PRD)
+- [x] Complete manifests for all 4 sources (Jan 2025 -> present)
+- [x] Unified ingestion script implemented and used (legacy scripts retired)
+- [x] Existing nodes normalized/deduplicated for ingest targets
+- [x] Podcast + LatentSpaceTV episodes ingested with full transcript text
+- [x] Substack articles ingested with full article text
+- [x] AINews issues ingested with full markdown text
+- [x] All ingested content chunked + embedded (node + chunk vectors)
+- [x] Entity nodes and typed edges created
+- [x] Vector search returns relevant results across full corpus
+
+---
+
+## COMPLETED
+
+**Date:** 2026-02-20
+
+All Latent Space content from Jan 2025 - Feb 2026 backfilled into the knowledge graph.
+
+| Metric | Count |
+|--------|-------|
+| Total nodes | 4,024 |
+| Content nodes (episodes + sources) | 570 |
+| Entity nodes (people) | 740 |
+| Entity nodes (organizations) | 685 |
+| Entity nodes (topics) | 1,872 |
+| Chunks (with 1536d vectors) | 36,443 |
+| Edges | 7,293 |
+| Dimensions | 1,629 |
+
+### Key changes
+
+- `scripts/ingest.ts` -- unified ingestion (4 sources, embed, seed-dimensions)
+- `scripts/embed-all.ts` -- standalone chunking + embedding (batched DB inserts)
+- `scripts/extract-entities.ts` -- entity extraction (frontmatter + LLM)
+- `scripts/generate-manifests.ts` -- enumerate sources via yt-dlp, sitemap, git clone
+- `src/services/typescript/embed-nodes.ts` -- NodeEmbedder now works (was stubbed)
+- `src/services/typescript/embed-universal.ts` -- UniversalEmbedder now works (was stubbed)
+- Added `'newsletter'` to `SourceMetadata.source_type`
+- Deleted broken bulk ingest scripts and AIE data

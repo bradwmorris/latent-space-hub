@@ -1,6 +1,5 @@
 {
   "queue": [
-    "content-ingestion",
     "ux-overhaul",
     "mcp-server-and-skills",
     "discord-bot",
@@ -10,29 +9,29 @@
     "content-ingestion": {
       "id": "content-ingestion",
       "title": "Content ingestion — backfill podcasts, articles, ainews, LatentSpaceTV (Jan 2025 → today)",
-      "status": "ready",
+      "status": "completed",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-05-content-ingestion.md",
-      "notes": "4 sources: podcasts (@LatentSpacePod), articles (Substack), ainews (smol-ai/ainews), LatentSpaceTV (builders club, paper club, meetups). 204 nodes exist but 0 chunks/embeddings. Existing scripts broken (old schema). Embedding services stubbed. AIE content removed.\n\nDepends on: schema-and-port (DONE), enable-vector-search (DONE)",
+      "notes": "COMPLETED 2026-02-20. 4,024 nodes, 36,443 chunks, 7,293 edges, 1,629 dimensions.",
       "tasks": [
-        { "done": false, "text": "Phase 0: Enumerate all @LatentSpacePod episodes (Jan 2025 → today)" },
-        { "done": false, "text": "Phase 0: Enumerate all latent.space Substack articles (Jan 2025 → today)" },
-        { "done": false, "text": "Phase 0: Index smol-ai/ainews repo markdown files (Jan 2025 → today)" },
-        { "done": false, "text": "Phase 0: Enumerate all @LatentSpaceTV videos, classify by series (builders-club, paper-club, meetup)" },
-        { "done": false, "text": "Phase 0: Build complete manifest JSONs for all 4 sources" },
-        { "done": false, "text": "Cleanup: Delete AIE scripts + data (bulk-ingest-aie.js, aie-videos.json)" },
-        { "done": false, "text": "Cleanup: Add 'newsletter' to SourceMetadata.source_type in database.ts" },
-        { "done": false, "text": "Phase 1: Build unified ingest script (replaces 3 broken scripts)" },
-        { "done": false, "text": "Phase 1: Ingest all podcast episodes as nodes with full transcripts" },
-        { "done": false, "text": "Phase 1: Ingest all Substack articles as nodes with full text" },
-        { "done": false, "text": "Phase 1: Ingest all ainews issues as nodes with full markdown" },
-        { "done": false, "text": "Phase 1: Ingest all LatentSpaceTV videos as nodes with transcripts" },
-        { "done": false, "text": "Phase 2: Chunk + embed all content (~17K chunks, uses PRD-04 pipeline)" },
-        { "done": false, "text": "Phase 3: Entity extraction — create person/org/topic nodes" },
-        { "done": false, "text": "Phase 3: Create typed edges (appeared_on, covers_topic, affiliated_with)" },
-        { "done": false, "text": "Phase 3: AINews entity extraction from frontmatter tags" },
-        { "done": false, "text": "Verify: Hybrid search returns results across full corpus" }
+        { "done": true, "text": "Phase 0: Enumerate all @LatentSpacePod episodes (Jan 2025 → today)" },
+        { "done": true, "text": "Phase 0: Enumerate all latent.space Substack articles (Jan 2025 → today)" },
+        { "done": true, "text": "Phase 0: Index smol-ai/ainews repo markdown files (Jan 2025 → today)" },
+        { "done": true, "text": "Phase 0: Enumerate all @LatentSpaceTV videos, classify by series" },
+        { "done": true, "text": "Phase 0: Build complete manifest JSONs for all 4 sources" },
+        { "done": true, "text": "Cleanup: Delete AIE scripts + data" },
+        { "done": true, "text": "Cleanup: Add 'newsletter' to SourceMetadata.source_type" },
+        { "done": true, "text": "Phase 1: Build unified ingest script (replaces 3 broken scripts)" },
+        { "done": true, "text": "Phase 1: Ingest all podcast episodes as nodes with full transcripts" },
+        { "done": true, "text": "Phase 1: Ingest all Substack articles as nodes with full text" },
+        { "done": true, "text": "Phase 1: Ingest all ainews issues as nodes with full markdown" },
+        { "done": true, "text": "Phase 1: Ingest all LatentSpaceTV videos as nodes with transcripts" },
+        { "done": true, "text": "Phase 2: Chunk + embed all content (36K chunks)" },
+        { "done": true, "text": "Phase 3: Entity extraction — create person/org/topic nodes" },
+        { "done": true, "text": "Phase 3: Create typed edges (appeared_on, covers_topic, affiliated_with)" },
+        { "done": true, "text": "Phase 3: AINews entity extraction from frontmatter tags" },
+        { "done": true, "text": "Verify: Vector search returns results across full corpus" }
       ]
     },
     "ux-overhaul": {
@@ -150,6 +149,13 @@
       "prd": "docs/development/completed-prds/prd-04-vector-search.md",
       "completed_date": "2026-02-20",
       "branch": "feature/enable-vector-search"
+    },
+    {
+      "id": "content-ingestion",
+      "title": "Content ingestion — backfill podcasts, articles, ainews, LatentSpaceTV (Jan 2025 → today)",
+      "prd": "docs/development/prd-05-content-ingestion.md",
+      "completed_date": "2026-02-20",
+      "branch": "feature/content-ingestion"
     }
   ]
 }

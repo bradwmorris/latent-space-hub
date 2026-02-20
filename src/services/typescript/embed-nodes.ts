@@ -1,14 +1,11 @@
 /**
- * Node embedding service for Latent Space Hub (Turso fork)
+ * Node embedding service for Latent Space Hub.
+ * Uses OpenAI text-embedding-3-small + Turso native vector (F32_BLOB).
  *
- * ⚠️ DISABLED: This service requires local SQLite with sqlite-vec extension.
- * Turso does not support the sqlite-vec vector extension.
- *
- * For vector search in Turso deployments, use:
- * - Full-text search (FTS) built into SQLite
- * - External vector database (Pinecone, Weaviate, etc.)
- * - Turso's upcoming native vector support (when available)
+ * For batch operations, prefer scripts/embed-all.ts (uses @libsql/client directly).
+ * This service is used by the embedNodeContent pipeline in the Next.js app.
  */
+import { getSQLiteClient } from '@/src/services/database/sqlite-client';
 
 interface EmbedNodeOptions {
   nodeId?: number;
@@ -17,28 +14,78 @@ interface EmbedNodeOptions {
 }
 
 export class NodeEmbedder {
+  private apiKey: string;
+
   constructor() {
-    throw new Error(
-      'NodeEmbedder is not supported in Turso fork. ' +
-      'Vector embeddings require sqlite-vec which is not available in Turso. ' +
-      'Use full-text search (FTS) instead.'
-    );
+    this.apiKey = process.env.OPENAI_API_KEY || '';
+    if (!this.apiKey) throw new Error('OPENAI_API_KEY is required for NodeEmbedder');
   }
 
-  async embedNodes(_options: EmbedNodeOptions): Promise<{ processed: number; failed: number }> {
-    throw new Error('NodeEmbedder is not supported in Turso fork');
+  private async getEmbedding(text: string): Promise<number[]> {
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ model: 'text-embedding-3-small', input: text }),
+    });
+    if (!response.ok) throw new Error(`OpenAI embedding error ${response.status}`);
+    const data = await response.json();
+    return data.data[0].embedding;
+  }
+
+  async embedNodes(options: EmbedNodeOptions): Promise<{ processed: number; failed: number }> {
+    const sqlite = getSQLiteClient();
+    let processed = 0, failed = 0;
+
+    let whereClause = 'WHERE 1=1';
+    const params: any[] = [];
+
+    if (options.nodeId) {
+      whereClause += ' AND id = ?';
+      params.push(options.nodeId);
+    } else if (!options.forceReEmbed) {
+      whereClause += ' AND embedding IS NULL';
+    }
+
+    const nodes = await sqlite.query<{ id: number; title: string; description: string | null }>(
+      `SELECT id, title, description FROM nodes ${whereClause} ORDER BY id ASC LIMIT 1000`,
+      params
+    );
+
+    for (const node of nodes.rows) {
+      try {
+        const text = `${node.title}\n${node.description || ''}`.trim();
+        const embedding = await this.getEmbedding(text);
+        const vecJson = '[' + embedding.join(',') + ']';
+
+        await sqlite.query(
+          'UPDATE nodes SET embedding = vector(?), embedding_text = ?, embedding_updated_at = datetime() WHERE id = ?',
+          [vecJson, text.slice(0, 2000), node.id]
+        );
+
+        processed++;
+        if (options.verbose) console.log(`  Embedded node ${node.id}: ${node.title.slice(0, 50)}`);
+      } catch (err: any) {
+        failed++;
+        if (options.verbose) console.error(`  Failed node ${node.id}: ${err.message}`);
+      }
+    }
+
+    return { processed, failed };
   }
 
   close(): void {
-    // No-op
+    // No-op — connection managed by getSQLiteClient
   }
 }
 
-export async function runCLI(_args: string[]): Promise<void> {
-  console.error('ERROR: embed-nodes CLI is not supported in Turso fork.');
-  console.error('Vector embeddings require sqlite-vec which is not available in Turso.');
-  console.error('Use full-text search (FTS) instead.');
-  process.exit(1);
+export async function runCLI(args: string[]): Promise<void> {
+  const embedder = new NodeEmbedder();
+  const nodeId = args[0] ? parseInt(args[0], 10) : undefined;
+  const result = await embedder.embedNodes({ nodeId, verbose: true });
+  console.log(`Done: ${result.processed} embedded, ${result.failed} failed`);
 }
 
 if (require.main === module) {
