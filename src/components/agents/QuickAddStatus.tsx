@@ -58,7 +58,7 @@ export default function QuickAddStatus({ delegations, onDelegationClick }: Quick
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
-          borderLeft: activeDelegations.length > 0 ? '3px solid #9333ea' : '3px solid #6b6b6b'
+          borderLeft: activeDelegations.length > 0 ? '3px solid #888' : '3px solid #6b6b6b'
         }}>
           <span>
             {activeDelegations.length > 0 
@@ -98,7 +98,7 @@ export default function QuickAddStatus({ delegations, onDelegationClick }: Quick
       )}
       
       {delegations.map((delegation) => {
-        const statusColor = delegation.status === 'in_progress' ? '#9333ea' : 
+        const statusColor = delegation.status === 'in_progress' ? '#888' : 
                            delegation.status === 'completed' ? '#6b6b6b' : 
                            delegation.status === 'failed' ? '#ff6b6b' : '#5c9aff';
         

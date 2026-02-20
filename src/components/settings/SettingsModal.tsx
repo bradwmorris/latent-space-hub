@@ -117,8 +117,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 padding: '12px 24px',
                 fontSize: '14px',
                 color: activeTab === 'logs' ? '#fff' : '#888',
-                background: activeTab === 'logs' ? '#1e1b4b' : 'transparent',
-                borderLeft: activeTab === 'logs' ? '3px solid #9333ea' : '3px solid transparent',
+                background: activeTab === 'logs' ? '#1a1a1a' : 'transparent',
+                borderLeft: activeTab === 'logs' ? '3px solid #666' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -131,8 +131,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 padding: '12px 24px',
                 fontSize: '14px',
                 color: activeTab === 'tools' ? '#fff' : '#888',
-                background: activeTab === 'tools' ? '#1e1b4b' : 'transparent',
-                borderLeft: activeTab === 'tools' ? '3px solid #9333ea' : '3px solid transparent',
+                background: activeTab === 'tools' ? '#1a1a1a' : 'transparent',
+                borderLeft: activeTab === 'tools' ? '3px solid #666' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -145,8 +145,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 padding: '12px 24px',
                 fontSize: '14px',
                 color: activeTab === 'guides' ? '#fff' : '#888',
-                background: activeTab === 'guides' ? '#1e1b4b' : 'transparent',
-                borderLeft: activeTab === 'guides' ? '3px solid #9333ea' : '3px solid transparent',
+                background: activeTab === 'guides' ? '#1a1a1a' : 'transparent',
+                borderLeft: activeTab === 'guides' ? '3px solid #666' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -159,8 +159,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 padding: '12px 24px',
                 fontSize: '14px',
                 color: activeTab === 'apikeys' ? '#fff' : '#888',
-                background: activeTab === 'apikeys' ? '#1e1b4b' : 'transparent',
-                borderLeft: activeTab === 'apikeys' ? '3px solid #9333ea' : '3px solid transparent',
+                background: activeTab === 'apikeys' ? '#1a1a1a' : 'transparent',
+                borderLeft: activeTab === 'apikeys' ? '3px solid #666' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -173,8 +173,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 padding: '12px 24px',
                 fontSize: '14px',
                 color: activeTab === 'database' ? '#fff' : '#888',
-                background: activeTab === 'database' ? '#1e1b4b' : 'transparent',
-                borderLeft: activeTab === 'database' ? '3px solid #9333ea' : '3px solid transparent',
+                background: activeTab === 'database' ? '#1a1a1a' : 'transparent',
+                borderLeft: activeTab === 'database' ? '3px solid #666' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -187,8 +187,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 padding: '12px 24px',
                 fontSize: '14px',
                 color: activeTab === 'context' ? '#fff' : '#888',
-                background: activeTab === 'context' ? '#1e1b4b' : 'transparent',
-                borderLeft: activeTab === 'context' ? '3px solid #9333ea' : '3px solid transparent',
+                background: activeTab === 'context' ? '#1a1a1a' : 'transparent',
+                borderLeft: activeTab === 'context' ? '3px solid #666' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -201,8 +201,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 padding: '12px 24px',
                 fontSize: '14px',
                 color: activeTab === 'agents' ? '#fff' : '#888',
-                background: activeTab === 'agents' ? '#1e1b4b' : 'transparent',
-                borderLeft: activeTab === 'agents' ? '3px solid #9333ea' : '3px solid transparent',
+                background: activeTab === 'agents' ? '#1a1a1a' : 'transparent',
+                borderLeft: activeTab === 'agents' ? '3px solid #666' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}

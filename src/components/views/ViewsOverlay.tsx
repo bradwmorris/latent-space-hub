@@ -451,7 +451,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
             width: '24px',
             height: '24px',
             borderRadius: '6px',
-            background: 'rgba(147, 51, 234, 0.1)',
+            background: 'rgba(136, 136, 136, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -504,8 +504,8 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                       style={{
                         fontSize: '10px',
                         padding: '2px 6px',
-                        background: 'rgba(147, 51, 234, 0.1)',
-                        color: '#9333ea',
+                        background: 'rgba(136, 136, 136, 0.1)',
+                        color: '#888',
                         borderRadius: '4px'
                       }}
                     >
@@ -647,9 +647,9 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               style={{
                 minWidth: '280px',
                 maxWidth: '320px',
-                background: columnDropTarget === column.id ? 'rgba(147, 51, 234, 0.05)' : '#0c0c0c',
+                background: columnDropTarget === column.id ? 'rgba(136, 136, 136, 0.05)' : '#0c0c0c',
                 borderRadius: '10px',
-                border: isDropTarget ? '2px dashed #9333ea' : '1px solid #1a1a1a',
+                border: isDropTarget ? '2px dashed #888' : '1px solid #1a1a1a',
                 display: 'flex',
                 flexDirection: 'column',
                 maxHeight: '100%',
@@ -762,11 +762,11 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 alignItems: 'center',
                 gap: '6px',
                 padding: '4px 10px',
-                background: 'rgba(147, 51, 234, 0.1)',
-                border: '1px solid rgba(147, 51, 234, 0.2)',
+                background: 'rgba(136, 136, 136, 0.1)',
+                border: '1px solid rgba(136, 136, 136, 0.2)',
                 borderRadius: '6px',
                 fontSize: '12px',
-                color: '#9333ea'
+                color: '#888'
               }}
             >
               {filter}
@@ -775,7 +775,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#9333ea',
+                  color: '#888',
                   cursor: 'pointer',
                   padding: '0',
                   display: 'flex',
@@ -805,8 +805,8 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#9333ea';
-                e.currentTarget.style.color = '#9333ea';
+                e.currentTarget.style.borderColor = '#888';
+                e.currentTarget.style.color = '#888';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = '#333';
@@ -927,7 +927,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               background: viewMode === 'list' ? '#1a1a1a' : 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: viewMode === 'list' ? '#9333ea' : '#666',
+              color: viewMode === 'list' ? '#999' : '#666',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center'
@@ -943,7 +943,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               background: viewMode === 'grid' ? '#1a1a1a' : 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: viewMode === 'grid' ? '#9333ea' : '#666',
+              color: viewMode === 'grid' ? '#999' : '#666',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center'
@@ -959,7 +959,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               background: viewMode === 'kanban' ? '#1a1a1a' : 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: viewMode === 'kanban' ? '#9333ea' : '#666',
+              color: viewMode === 'kanban' ? '#999' : '#666',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center'
@@ -982,7 +982,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               background: 'transparent',
               border: '1px solid #2a2a2a',
               borderRadius: '6px',
-              color: activeView ? '#9333ea' : '#888',
+              color: activeView ? '#999' : '#888',
               fontSize: '12px',
               cursor: 'pointer'
             }}
@@ -1071,7 +1071,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                     background: 'transparent',
                     border: 'none',
                     borderRadius: '4px',
-                    color: '#9333ea',
+                    color: '#999',
                     fontSize: '12px',
                     cursor: 'pointer'
                   }}

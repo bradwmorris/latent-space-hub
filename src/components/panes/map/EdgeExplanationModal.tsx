@@ -51,7 +51,7 @@ export default function EdgeExplanationModal({
           <div className="edge-modal-connection">
             <span className="edge-modal-node-badge">{sourceTitle.length > 24 ? sourceTitle.slice(0, 22) + '\u2026' : sourceTitle}</span>
             <svg width="20" height="12" viewBox="0 0 20 12" fill="none" style={{ flexShrink: 0 }}>
-              <path d="M0 6h16M12 1l5 5-5 5" stroke="#9333ea" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M0 6h16M12 1l5 5-5 5" stroke="#888" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span className="edge-modal-node-badge">{targetTitle.length > 24 ? targetTitle.slice(0, 22) + '\u2026' : targetTitle}</span>
           </div>
@@ -131,8 +131,8 @@ export default function EdgeExplanationModal({
           display: inline-flex;
           align-items: center;
           padding: 6px 12px;
-          background: rgba(147, 51, 234, 0.08);
-          border: 1px solid rgba(147, 51, 234, 0.15);
+          background: rgba(136, 136, 136, 0.08);
+          border: 1px solid rgba(136, 136, 136, 0.15);
           border-radius: 8px;
           color: #86efac;
           font-size: 13px;
@@ -230,13 +230,13 @@ export default function EdgeExplanationModal({
         }
 
         .edge-modal-btn--submit.active {
-          background: #9333ea;
-          color: #1e1b4b;
+          background: #333;
+          color: #e5e5e5;
           cursor: pointer;
         }
 
         .edge-modal-btn--submit.active:hover {
-          background: #7c3aed;
+          background: #555;
         }
 
         @keyframes edgeBackdropIn {

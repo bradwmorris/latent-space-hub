@@ -3,13 +3,13 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&display=swap');
 
-/* Latent Space Design Tokens */
+/* Latent Space Design Tokens — Codex-matched neutral palette */
 :root {
-  /* Accent colors - Latent Space Purple */
-  --accent-primary: #9333ea;
-  --accent-light: #a855f7;
-  --accent-dark: #7c3aed;
-  --accent-subtle: rgba(147, 51, 234, 0.15);
+  /* Accent colors — neutral grayscale (Codex-matched, no saturated hue) */
+  --accent-primary: #888;
+  --accent-light: #aaa;
+  --accent-dark: #666;
+  --accent-subtle: rgba(136, 136, 136, 0.12);
 
   /* Background colors */
   --bg-base: #0a0a0a;
@@ -97,6 +97,14 @@ html, body {
 /* Heading font class - Latent Space editorial style */
 .font-heading {
   font-family: 'Roboto Slab', Georgia, 'Times New Roman', serif;
+}
+
+/* Display/brand font class — Tachyon for nav headings and brand moments */
+/* NOTE: Tachyon font files must be added to public/fonts/ to activate.
+   Until then, falls back to Inter/system sans-serif. */
+.font-display {
+  font-family: 'Tachyon', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: 0.04em;
 }
 
 /* Scrollbar styling for terminal theme */

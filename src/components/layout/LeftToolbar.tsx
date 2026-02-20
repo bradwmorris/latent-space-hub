@@ -67,7 +67,7 @@ function ToolbarButton({ icon: Icon, label, shortcut, onClick, disabled, isActiv
         borderRadius: '8px',
         border: 'none',
         background: isHovered ? '#1a1a1a' : 'transparent',
-        color: isActive ? '#9333ea' : (isHovered ? '#aaa' : '#666'),
+        color: isActive ? '#888' : (isHovered ? '#aaa' : '#666'),
         cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -96,7 +96,7 @@ function PaneTypeButton({ icon: Icon, label, paneType, isOpen, isActivePane, onC
   // Determine color: green if open, brighter if it's the active pane
   const getColor = () => {
     if (isOpen) {
-      return isActivePane ? '#a855f7' : '#9333ea'; // Brighter green for active
+      return isActivePane ? '#aaa' : '#888'; // Brighter green for active
     }
     return isHovered ? '#aaa' : '#666';
   };
@@ -134,7 +134,7 @@ function PaneTypeButton({ icon: Icon, label, paneType, isOpen, isActivePane, onC
             width: '4px',
             height: '4px',
             borderRadius: '50%',
-            background: '#a855f7',
+            background: '#aaa',
           }}
         />
       )}

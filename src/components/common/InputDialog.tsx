@@ -175,9 +175,9 @@ export default function InputDialog({
             style={{
               padding: '10px 16px',
               borderRadius: '8px',
-              border: '1px solid #9333ea',
-              background: inputValue.trim() ? '#1e1b4b' : '#0f0d1a',
-              color: inputValue.trim() ? '#a78bfa' : '#4a4a5f',
+              border: '1px solid #555',
+              background: inputValue.trim() ? '#1a1a1a' : '#0f0f0f',
+              color: inputValue.trim() ? '#ccc' : '#4a4a4a',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               fontSize: '11px',
@@ -187,16 +187,16 @@ export default function InputDialog({
             }}
             onMouseEnter={(e) => {
               if (inputValue.trim()) {
-                e.currentTarget.style.background = '#2e1065';
-                e.currentTarget.style.borderColor = '#a855f7';
-                e.currentTarget.style.color = '#c4b5fd';
+                e.currentTarget.style.background = '#2a2a2a';
+                e.currentTarget.style.borderColor = '#aaa';
+                e.currentTarget.style.color = '#e5e5e5';
               }
             }}
             onMouseLeave={(e) => {
               if (inputValue.trim()) {
-                e.currentTarget.style.background = '#1e1b4b';
-                e.currentTarget.style.borderColor = '#9333ea';
-                e.currentTarget.style.color = '#a78bfa';
+                e.currentTarget.style.background = '#1a1a1a';
+                e.currentTarget.style.borderColor = '#555';
+                e.currentTarget.style.color = '#ccc';
               }
             }}
           >

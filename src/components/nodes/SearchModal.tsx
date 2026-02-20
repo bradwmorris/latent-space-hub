@@ -172,7 +172,7 @@ export default function SearchModal({ isOpen, onClose, onNodeSelect, existingFil
             <Chip
               key={index}
               label={filter.value}
-              color={'#1a1a4d'}
+              color={'#1a1a1a'}
               maxWidth={120}
             />
           ))}
@@ -338,7 +338,7 @@ export default function SearchModal({ isOpen, onClose, onNodeSelect, existingFil
           font-weight: 600;
           font-family: 'SF Mono', 'Fira Code', monospace;
           color: #0a0a0a;
-          background: #9333ea;
+          background: #333;
           padding: 4px 8px;
           border-radius: 6px;
           min-width: 28px;

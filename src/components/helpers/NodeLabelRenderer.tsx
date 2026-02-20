@@ -34,8 +34,8 @@ function NodeLabel({ id, title, dimensions, onNodeClick }: NodeLabelProps) {
         style={{
           display: 'inline',
           padding: '2px 6px',
-          background: '#9333ea',
-          color: '#000',
+          background: '#333',
+          color: '#e5e5e5',
           borderRadius: '3px',
           fontSize: '11px',
           fontWeight: '600',

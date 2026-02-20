@@ -342,7 +342,7 @@ export default function LucideIconPicker({ selectedIcon, onSelect, onClose }: Lu
             outline: 'none'
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = '#9333ea';
+            e.currentTarget.style.borderColor = '#888';
           }}
           onBlur={(e) => {
             e.currentTarget.style.borderColor = '#333';
@@ -377,11 +377,11 @@ export default function LucideIconPicker({ selectedIcon, onSelect, onClose }: Lu
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: isSelected ? 'rgba(147, 51, 234, 0.15)' : 'transparent',
-                border: isSelected ? '1px solid #9333ea' : '1px solid transparent',
+                background: isSelected ? 'rgba(136, 136, 136, 0.15)' : 'transparent',
+                border: isSelected ? '1px solid #888' : '1px solid transparent',
                 borderRadius: '6px',
                 cursor: 'pointer',
-                color: isSelected ? '#9333ea' : '#888',
+                color: isSelected ? '#fff' : '#888',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {

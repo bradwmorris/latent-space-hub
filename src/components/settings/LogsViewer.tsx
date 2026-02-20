@@ -196,10 +196,10 @@ export default function LogsViewer() {
               onClick={handleApplyFilters}
               style={{
                 padding: '8px 14px',
-                background: '#9333ea',
+                background: '#333',
                 border: 'none',
                 borderRadius: '6px',
-                color: '#1e1b4b',
+                color: '#fff',
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: 500,

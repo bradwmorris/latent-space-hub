@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       filters.dimensions = dimensionsParam.split(',').map(dim => dim.trim()).filter(Boolean);
     }
 
-    // Handle node_type parameter
-    const nodeTypeParam = searchParams.get('node_type');
+    // Handle node_type parameter (accept both 'node_type' and 'type' alias)
+    const nodeTypeParam = searchParams.get('node_type') || searchParams.get('type');
     if (nodeTypeParam) {
       filters.node_type = nodeTypeParam as any;
     }

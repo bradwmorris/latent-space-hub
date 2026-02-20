@@ -36,6 +36,7 @@ Notes:
 - `notes` is the canonical replacement for legacy `content`.
 - `node_type` values used by the app:
   - `episode`, `person`, `organization`, `topic`, `source`, `event`, `concept`, `subscriber`
+- **Naming convention:** The canonical DB column is `node_type`. The product UI uses "Type" as the user-facing label. The API accepts both `node_type` and `type` as query parameters for forward compatibility.
 
 ### `dimensions`
 Dimension/tag definitions.

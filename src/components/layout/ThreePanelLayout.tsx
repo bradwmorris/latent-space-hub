@@ -8,49 +8,232 @@ import { DatabaseEvent } from '@/services/events';
 import { usePersistentState } from '@/hooks/usePersistentState';
 
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
-// ChatMessage import removed - chat disabled in rah-light
-
-// Stub type for delegation (delegation system removed in rah-light)
-type AgentDelegation = {
-  id: number;
-  sessionId: string;
-  task: string;
-  context: string[];
-  status: 'queued' | 'in_progress' | 'completed' | 'failed';
-  summary?: string | null;
-  agentType: string;
-  createdAt: string;
-  updatedAt: string;
-};
 
 // Layout components
-import LeftToolbar from './LeftToolbar';
-import SplitHandle from './SplitHandle';
+import LeftTypePanel from './LeftTypePanel';
+import MainViewSwitcher, { MainView } from './MainViewSwitcher';
 
-// Pane components (ChatPane removed in rah-light)
-import { NodePane, GuidesPane, DimensionsPane, MapPane, ViewsPane } from '../panes';
+// Content pane components
+import { NodePane, MapPane, ViewsPane } from '../panes';
 import QuickAddInput from '../agents/QuickAddInput';
-import type { PaneType, SlotState, PaneAction } from '../panes/types';
 
+// ─── Type View: list of nodes for selected type ──────────────────────────────
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`;
+  return `${Math.floor(diffDays / 365)}y ago`;
+}
+
+function TypeNodeList({
+  selectedType,
+  onNodeClick,
+}: {
+  selectedType: string | null;
+  onNodeClick: (nodeId: number) => void;
+}) {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!selectedType) {
+      setNodes([]);
+      return;
+    }
+    setLoading(true);
+    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=100&sortBy=updated`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setNodes(data.data);
+      })
+      .catch(err => console.error('Failed to fetch type nodes:', err))
+      .finally(() => setLoading(false));
+  }, [selectedType]);
+
+  if (!selectedType) {
+    return (
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#444', fontSize: '13px', flexDirection: 'column', gap: '6px',
+      }}>
+        <div style={{ color: '#555' }}>Select a type from the left panel</div>
+        <div style={{ fontSize: '12px', color: '#3a3a3a' }}>or switch to Feed or Map view</div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '13px' }}>
+        Loading...
+      </div>
+    );
+  }
+
+  if (nodes.length === 0) {
+    return (
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#444', fontSize: '13px',
+      }}>
+        No {selectedType} nodes yet
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto' }}>
+      {/* Header */}
+      <div style={{
+        padding: '16px 24px 12px',
+        display: 'flex',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid #1a1a1a',
+      }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: '#999', textTransform: 'capitalize' }}>
+          {selectedType}
+        </span>
+        <span style={{ fontSize: '11px', color: '#444' }}>
+          {nodes.length} node{nodes.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Node list */}
+      <div style={{ padding: '4px 0' }}>
+        {nodes.map(node => {
+          const isHovered = hoveredId === node.id;
+          const dims = node.dimensions?.slice(0, 3) || [];
+          const edgeCount = node.edge_count ?? 0;
+          const dateStr = node.updated_at || node.created_at;
+
+          return (
+            <button
+              key={node.id}
+              onClick={() => onNodeClick(node.id)}
+              onMouseEnter={() => setHoveredId(node.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                padding: '12px 24px',
+                background: isHovered ? '#161616' : 'transparent',
+                border: 'none',
+                borderBottom: '1px solid #161616',
+                color: '#ccc',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.12s ease',
+              }}
+            >
+              {/* Title */}
+              <div style={{
+                fontSize: '13px',
+                fontWeight: 500,
+                color: isHovered ? '#fff' : '#e0e0e0',
+                lineHeight: 1.4,
+                transition: 'color 0.12s ease',
+              }}>
+                {node.title}
+              </div>
+
+              {/* Description */}
+              {node.description && (
+                <div style={{
+                  fontSize: '12px',
+                  color: '#666',
+                  lineHeight: 1.4,
+                  overflow: 'hidden',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                }}>
+                  {node.description}
+                </div>
+              )}
+
+              {/* Metadata row */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+                marginTop: '2px',
+              }}>
+                {/* Date */}
+                {dateStr && (
+                  <span style={{ fontSize: '11px', color: '#444' }}>
+                    {formatRelativeDate(dateStr)}
+                  </span>
+                )}
+
+                {/* Edge count */}
+                {edgeCount > 0 && (
+                  <span style={{
+                    fontSize: '11px',
+                    color: '#444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                  }}>
+                    <span style={{ fontSize: '9px' }}>&#9679;</span>
+                    {edgeCount} edge{edgeCount !== 1 ? 's' : ''}
+                  </span>
+                )}
+
+                {/* Dimensions */}
+                {dims.length > 0 && (
+                  <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+                    {dims.map(dim => (
+                      <span
+                        key={dim}
+                        style={{
+                          fontSize: '10px',
+                          color: '#555',
+                          background: '#1a1a1a',
+                          padding: '1px 6px',
+                          borderRadius: '3px',
+                          border: '1px solid #222',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {dim}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Layout ─────────────────────────────────────────────────────────────
 export default function ThreePanelLayout() {
-  // Container ref for resize calculations
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Slot states - the core of the flexible pane system
-  // Default: Feed on left, closed on right (chat removed in rah-light)
-  const [slotA, setSlotA] = usePersistentState<SlotState | null>('ui.slotA.v5', {
-    type: 'map',
-  });
+  // ── New simple state model ──
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = usePersistentState<boolean>('ui.leftPanel.collapsed', false);
+  const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'map');
+  const [selectedType, setSelectedType] = usePersistentState<string | null>('ui.selectedType', null);
 
-  // SlotB can be null (closed) or a SlotState
-  // Default: closed (chat removed in rah-light)
-  const [slotB, setSlotB] = usePersistentState<SlotState | null>('ui.slotB.v4', null);
-
-  // SlotB width as percentage (when open)
-  const [slotBWidth, setSlotBWidth] = usePersistentState<number>('ui.slotBWidth', 50);
-
-  // Track which pane is active (last interacted with)
-  const [activePane, setActivePane] = useState<'A' | 'B'>('A');
+  // Node focus state
+  const [openTabs, setOpenTabs] = useState<number[]>([]);
+  const [activeTab, setActiveTab] = useState<number | null>(null);
+  const [focusedNodeId, setFocusedNodeId] = useState<number | null>(null);
 
   // Settings modal state
   const [showSettings, setShowSettings] = useState(false);
@@ -66,218 +249,90 @@ export default function ThreePanelLayout() {
   // Add Stuff modal state
   const [showAddStuff, setShowAddStuff] = useState(false);
 
-  // Track selected nodes (for context)
-  const [selectedNodes, setSelectedNodes] = useState<Set<number>>(new Set<number>());
-
-  // Open tabs data (full node objects for context)
-  const [openTabsData, setOpenTabsData] = useState<Node[]>([]);
-
-  // Event handlers for SSE events
+  // SSE refresh triggers
   const [nodesPanelRefresh, setNodesPanelRefresh] = useState(0);
   const [focusPanelRefresh, setFocusPanelRefresh] = useState(0);
-  const [folderViewRefresh, setFolderViewRefresh] = useState(0);
 
-  // Active dimension tracking
-  const [activeDimension, setActiveDimension] = usePersistentState<string | null>('ui.focus.activeDimension', null);
-
-  // Delegations state (deprecated - kept for component compatibility)
-  const [delegationsMap] = useState<Record<string, AgentDelegation>>({});
-  const delegations = useMemo(() => Object.values(delegationsMap), [delegationsMap]);
-
-  // Source awareness - highlighted passage context
+  // Highlighted passage context for source awareness
   const [highlightedPassage, setHighlightedPassage] = useState<{
     nodeId: number;
     nodeTitle: string;
     selectedText: string;
   } | null>(null);
 
-  // Ref to get current openTabs value in SSE handler
+  // Track open tabs in a ref for SSE handler
   const openTabsRef = useRef<number[]>([]);
+  useEffect(() => { openTabsRef.current = openTabs; }, [openTabs]);
 
-  // Get open tabs from the slot that has nodes
-  // Memoize to prevent infinite re-renders
-  const { openTabs, activeTab } = useMemo(() => {
-    const slotAHasNodes = slotA?.type === 'node';
-    const slotBHasNodes = slotB?.type === 'node';
-
-    // Use Slot A if it has nodes
-    if (slotAHasNodes && slotA) {
-      return {
-        openTabs: slotA.nodeTabs ?? [],
-        activeTab: slotA.activeNodeTab ?? null,
-      };
-    }
-
-    // Fallback: use Slot B if it has nodes
-    if (slotBHasNodes && slotB) {
-      return {
-        openTabs: slotB.nodeTabs ?? [],
-        activeTab: slotB.activeNodeTab ?? null,
-      };
-    }
-
-    return { openTabs: [], activeTab: null };
-  }, [slotA, slotB]);
-
-  // Fetch full node data for open tabs
-  const fetchOpenTabsData = async (tabIds: number[]) => {
-    if (tabIds.length === 0) {
-      setOpenTabsData([]);
-      return;
-    }
-
-    try {
-      const nodePromises = tabIds.map(async (id) => {
-        const response = await fetch(`/api/nodes/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          return data.node as Node;
-        }
-        return null;
-      });
-
-      const nodes = await Promise.all(nodePromises);
-      const validNodes = nodes.filter((node): node is Node => Boolean(node)).map(node => ({
-        id: node.id,
-        title: node.title,
-        link: node.link,
-        notes: node.notes,
-        dimensions: node.dimensions,
-        created_at: node.created_at,
-        updated_at: node.updated_at,
-        chunk_status: node.chunk_status,
-        chunk: node.chunk,
-        metadata: node.metadata,
-      }));
-      setOpenTabsData(validNodes);
-    } catch (error) {
-      console.error('Failed to fetch tab data:', error);
-      setOpenTabsData([]);
-    }
-  };
-
-  // Update tab data whenever openTabs changes (use string key to prevent infinite loops)
-  const openTabsKey = openTabs.join(',');
-  useEffect(() => {
-    openTabsRef.current = openTabs;
-    fetchOpenTabsData(openTabs);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openTabsKey]);
-
-  // Delegations loading removed (delegation system removed in rah-light)
-
-  // Keyboard shortcut handler
+  // ── Keyboard shortcuts ──
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd+K - open search modal
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setShowSearchModal(true);
       }
-      // Cmd+\ - toggle second pane
-      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
-        e.preventDefault();
-        if (slotB) {
-          setSlotB(null);
-        } else {
-          // Open with node pane by default (chat removed in rah-light)
-          setSlotB({ type: 'node', nodeTabs: [], activeNodeTab: null });
-        }
-      }
-      // Cmd+N - open Add Stuff modal
       if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
-        // Don't prevent default - browser may want this for new window
-        // Only handle if we're focused in the app
         if (document.activeElement?.closest('[data-rah-app]')) {
           e.preventDefault();
           setShowAddStuff(true);
         }
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [slotB, setSlotB]);
+  }, []);
 
-  // SSE connection for real-time updates
+  // ── SSE connection ──
   useEffect(() => {
     let eventSource: EventSource | null = null;
 
     try {
       eventSource = new EventSource('/api/events');
-
-      eventSource.onopen = () => {
-        console.log('🔌 SSE connected for real-time updates');
-      };
-
       eventSource.onmessage = (event) => {
         try {
           const data: DatabaseEvent = JSON.parse(event.data);
-
           switch (data.type) {
             case 'NODE_CREATED':
               setNodesPanelRefresh(prev => prev + 1);
-              console.log('📥 Node created via helper:', data.data.node.title);
               break;
-
-            case 'NODE_UPDATED':
-              const currentOpenTabs = openTabsRef.current;
+            case 'NODE_UPDATED': {
               const updatedNodeId = Number(data.data.nodeId);
-              if (currentOpenTabs.includes(updatedNodeId)) {
+              if (openTabsRef.current.includes(updatedNodeId)) {
                 setFocusPanelRefresh(prev => prev + 1);
               }
               setNodesPanelRefresh(prev => prev + 1);
               break;
-
+            }
             case 'NODE_DELETED':
-              handleNodeDeleted(data.data.nodeId);
+              handleCloseTab(data.data.nodeId);
               setNodesPanelRefresh(prev => prev + 1);
               break;
-
             case 'EDGE_CREATED':
             case 'EDGE_DELETED':
-              const currentOpenTabsForEdge = openTabsRef.current;
-              if (currentOpenTabsForEdge.includes(data.data.fromNodeId) ||
-                  currentOpenTabsForEdge.includes(data.data.toNodeId)) {
+              if (openTabsRef.current.includes(data.data.fromNodeId) ||
+                  openTabsRef.current.includes(data.data.toNodeId)) {
                 setFocusPanelRefresh(prev => prev + 1);
               }
               break;
-
             case 'DIMENSION_UPDATED':
               setNodesPanelRefresh(prev => prev + 1);
-              setFolderViewRefresh(prev => prev + 1);
               break;
-
+            case 'GUIDE_UPDATED':
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('guides:updated', { detail: data.data }));
+              }
+              break;
             case 'HELPER_UPDATED':
             case 'AGENT_UPDATED':
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('agents:updated', { detail: data.data }));
               }
               break;
-
-            case 'AGENT_DELEGATION_CREATED':
-            case 'AGENT_DELEGATION_UPDATED':
-              // Delegation events ignored (delegation system removed in rah-light)
-              break;
-
-            case 'GUIDE_UPDATED':
-              if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('guides:updated', { detail: data.data }));
-              }
-              break;
-
-            case 'CONNECTION_ESTABLISHED':
-              console.log('✅ SSE connection established');
-              break;
-
-            default:
-              console.log('📡 Unknown SSE event:', data.type);
           }
         } catch (error) {
           console.error('Failed to parse SSE event:', error);
         }
       };
-
       eventSource.onerror = (error) => {
         console.error('SSE connection error:', error);
       };
@@ -286,118 +341,59 @@ export default function ThreePanelLayout() {
     }
 
     return () => {
-      if (eventSource) {
-        eventSource.close();
-        console.log('🔌 SSE connection closed');
-      }
+      if (eventSource) eventSource.close();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Node tab management
-  const handleNodeSelect = useCallback((nodeId: number, multiSelect: boolean) => {
-    // If slotA is not a node pane (or doesn't exist), switch it to node
-    if (!slotA || slotA.type !== 'node') {
-      setSlotA({
-        type: 'node',
-        nodeTabs: [nodeId],
-        activeNodeTab: nodeId,
-      });
-      setSelectedNodes(new Set([nodeId]));
-      setActivePane('A');
-      return;
-    }
-
-    if (multiSelect) {
-      const newSelection = new Set(selectedNodes);
-      if (newSelection.has(nodeId)) {
-        newSelection.delete(nodeId);
-      } else {
-        newSelection.add(nodeId);
-      }
-      setSelectedNodes(newSelection);
-
-      const newTabs = Array.from(newSelection);
-      setSlotA(prev => prev ? ({
-        ...prev,
-        nodeTabs: newTabs,
-        activeNodeTab: newTabs.length > 0 ? (prev.activeNodeTab || newTabs[0]) : null,
-      }) : { type: 'node', nodeTabs: newTabs, activeNodeTab: newTabs[0] || null });
-    } else {
-      setSelectedNodes(new Set([nodeId]));
-
-      const currentTabs = slotA.nodeTabs || [];
-      const newTabs = currentTabs.includes(nodeId) ? currentTabs : [...currentTabs, nodeId];
-
-      setSlotA(prev => prev ? ({
-        ...prev,
-        nodeTabs: newTabs,
-        activeNodeTab: nodeId,
-      }) : { type: 'node', nodeTabs: newTabs, activeNodeTab: nodeId });
-    }
-    setActivePane('A');
-  }, [slotA, selectedNodes, setSlotA]);
+  // ── Node opening / tab management ──
+  const handleNodeSelect = useCallback((nodeId: number) => {
+    setFocusedNodeId(nodeId);
+    setOpenTabs(prev => {
+      if (prev.includes(nodeId)) return prev;
+      return [...prev, nodeId];
+    });
+    setActiveTab(nodeId);
+  }, []);
 
   const handleTabSelect = useCallback((tabId: number) => {
-    setSelectedNodes(new Set([tabId]));
-    setSlotA(prev => prev ? ({
-      ...prev,
-      activeNodeTab: tabId,
-    }) : { type: 'node', nodeTabs: [tabId], activeNodeTab: tabId });
-    setActivePane('A');
-  }, [setSlotA]);
+    setActiveTab(tabId);
+    setFocusedNodeId(tabId);
+  }, []);
 
   const handleCloseTab = useCallback((tabId: number) => {
-    if (!slotA) return;
-    const currentTabs = slotA.nodeTabs || [];
-    const newTabs = currentTabs.filter(id => id !== tabId);
-
-    let newActiveTab = slotA.activeNodeTab;
-    if (slotA.activeNodeTab === tabId) {
-      const currentIndex = currentTabs.indexOf(tabId);
-      if (newTabs.length > 0) {
-        const newIndex = Math.min(currentIndex, newTabs.length - 1);
-        newActiveTab = newTabs[newIndex];
-      } else {
-        newActiveTab = null;
+    setOpenTabs(prev => {
+      const newTabs = prev.filter(id => id !== tabId);
+      // If we closed the active tab, activate the nearest remaining
+      if (activeTab === tabId && newTabs.length > 0) {
+        const idx = Math.min(prev.indexOf(tabId), newTabs.length - 1);
+        setActiveTab(newTabs[idx]);
+        setFocusedNodeId(newTabs[idx]);
+      } else if (newTabs.length === 0) {
+        setActiveTab(null);
+        setFocusedNodeId(null);
       }
-    }
+      return newTabs;
+    });
+  }, [activeTab]);
 
-    setSlotA(prev => prev ? ({
-      ...prev,
-      nodeTabs: newTabs,
-      activeNodeTab: newActiveTab,
-    }) : null);
-
-    const newSelection = new Set(selectedNodes);
-    newSelection.delete(tabId);
-    setSelectedNodes(newSelection);
-  }, [slotA, selectedNodes, setSlotA]);
+  const handleReorderTabs = useCallback((fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    setOpenTabs(prev => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    });
+  }, []);
 
   const handleNodeCreated = useCallback((newNode: Node) => {
-    setSelectedNodes(new Set([newNode.id]));
+    setOpenTabs(prev => prev.includes(newNode.id) ? prev : [...prev, newNode.id]);
+    setActiveTab(newNode.id);
+    setFocusedNodeId(newNode.id);
+  }, []);
 
-    // If slotA is node type, add to tabs
-    if (slotA?.type === 'node') {
-      const currentTabs = slotA.nodeTabs || [];
-      if (!currentTabs.includes(newNode.id)) {
-        setSlotA(prev => prev ? ({
-          ...prev,
-          nodeTabs: [...(prev.nodeTabs || []), newNode.id],
-          activeNodeTab: newNode.id,
-        }) : { type: 'node', nodeTabs: [newNode.id], activeNodeTab: newNode.id });
-      }
-    } else {
-      // Switch slotA to node and open the new node
-      setSlotA({
-        type: 'node',
-        nodeTabs: [newNode.id],
-        activeNodeTab: newNode.id,
-      });
-    }
-    setActivePane('A');
-  }, [slotA, setSlotA]);
-
-  // Handle Quick Add submit (used by global Add Stuff modal)
+  // Handle Quick Add submit
   const handleQuickAddSubmit = useCallback(async ({ input, mode, description }: { input: string; mode: 'link' | 'note' | 'chat'; description?: string }) => {
     try {
       const response = await fetch('/api/quick-add', {
@@ -405,463 +401,75 @@ export default function ThreePanelLayout() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input, mode, description })
       });
-
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to submit Quick Add');
       }
-
-      // Close the modal on success
       setShowAddStuff(false);
     } catch (error) {
       console.error('[ThreePanelLayout] Quick Add error:', error);
     }
   }, []);
 
-  const handleNodeDeleted = useCallback((nodeId: number) => {
-    handleCloseTab(nodeId);
-  }, [handleCloseTab]);
-
-  const handleReorderTabs = useCallback((fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex || !slotA) return;
-    const currentTabs = slotA.nodeTabs || [];
-    if (fromIndex < 0 || toIndex < 0 || fromIndex >= currentTabs.length || toIndex >= currentTabs.length) {
-      return;
-    }
-    const updated = [...currentTabs];
-    const [moved] = updated.splice(fromIndex, 1);
-    updated.splice(toIndex, 0, moved);
-    setSlotA(prev => prev ? ({
-      ...prev,
-      nodeTabs: updated,
-    }) : null);
-  }, [slotA, setSlotA]);
-
-  const handleFolderViewDataChanged = useCallback(() => {
-    setFolderViewRefresh(prev => prev + 1);
-    setNodesPanelRefresh(prev => prev + 1);
-  }, []);
-
-  const handleNodeOpenFromDimensions = useCallback((nodeId: number) => {
-    // Switch to node pane and open the node
-    const currentTabs = slotA?.type === 'node' ? (slotA.nodeTabs || []) : [];
-    const newTabs = currentTabs.includes(nodeId) ? currentTabs : [...currentTabs, nodeId];
-
-    setSlotA({
-      type: 'node',
-      nodeTabs: newTabs,
-      activeNodeTab: nodeId,
-    });
-    setSelectedNodes(new Set([nodeId]));
-    setActivePane('A');
-  }, [slotA, setSlotA]);
-
-  // Handle pane type selection from toolbar
-  const handlePaneTypeClick = useCallback((paneType: PaneType) => {
-    // If no panes open → open in slot A
-    if (!slotA) {
-      setSlotA({ type: paneType });
-      setActivePane('A');
-      return;
-    }
-
-    // If only one pane open → open second pane with this type
-    if (!slotB) {
-      setSlotB({ type: paneType });
-      setActivePane('B');
-      return;
-    }
-
-    // Two panes open → replace the active pane
-    if (activePane === 'A') {
-      setSlotA(prev => prev ? ({
-        ...prev,
-        type: paneType,
-      }) : { type: paneType });
-    } else {
-      setSlotB(prev => prev ? ({
-        ...prev,
-        type: paneType,
-      }) : { type: paneType });
-    }
-  }, [activePane, slotA, slotB, setSlotA, setSlotB]);
-
-  // Handle closing a pane
-  const handleCloseSlotA = useCallback(() => {
-    if (slotB) {
-      // Move slot B to slot A position
-      setSlotA(slotB);
-      setSlotB(null);
-    } else {
-      // Close the only pane → empty state
-      setSlotA(null);
-    }
-    setActivePane('A');
-  }, [slotB, setSlotA, setSlotB]);
-
-  const handleCloseSlotB = useCallback(() => {
-    setSlotB(null);
-    setActivePane('A');
-  }, [setSlotB]);
-
-  // Handle pane actions
-  const handleSlotAAction = useCallback((action: PaneAction) => {
-    switch (action.type) {
-      case 'switch-pane-type':
-        setSlotA(prev => ({
-          ...prev,
-          type: action.paneType,
-        }));
-        break;
-      case 'open-node':
-        handleNodeSelect(action.nodeId, false);
-        break;
-    }
-  }, [handleNodeSelect, setSlotA]);
-
-  const handleSlotBAction = useCallback((action: PaneAction) => {
-    if (!slotB) return;
-    switch (action.type) {
-      case 'switch-pane-type':
-        setSlotB(prev => prev ? ({
-          ...prev,
-          type: action.paneType,
-        }) : null);
-        break;
-      case 'open-node':
-        // Open node in slot B (if it's a node pane)
-        if (slotB.type === 'node') {
-          const currentTabs = slotB.nodeTabs || [];
-          const newTabs = currentTabs.includes(action.nodeId) ? currentTabs : [...currentTabs, action.nodeId];
-          setSlotB(prev => prev ? ({
-            ...prev,
-            nodeTabs: newTabs,
-            activeNodeTab: action.nodeId,
-          }) : null);
-        } else {
-          // Switch to node pane
-          setSlotB({
-            type: 'node',
-            nodeTabs: [action.nodeId],
-            activeNodeTab: action.nodeId,
-          });
-        }
-        break;
-    }
-  }, [slotB, setSlotB]);
-
-  // Open a node directly in Slot B (for Alt+Click)
-  const handleNodeOpenInSlotB = useCallback((nodeId: number) => {
-    // Open Slot B if closed
-    if (!slotB) {
-      setSlotB({
-        type: 'node',
-        nodeTabs: [nodeId],
-        activeNodeTab: nodeId,
-      });
-      setActivePane('B');
-      return;
-    }
-
-    // If Slot B is already a node pane, add to its tabs
-    if (slotB.type === 'node') {
-      const currentTabs = slotB.nodeTabs || [];
-      const newTabs = currentTabs.includes(nodeId) ? currentTabs : [...currentTabs, nodeId];
-      setSlotB(prev => prev ? ({
-        ...prev,
-        nodeTabs: newTabs,
-        activeNodeTab: nodeId,
-      }) : null);
-    } else {
-      // Switch Slot B to node pane
-      setSlotB({
-        type: 'node',
-        nodeTabs: [nodeId],
-        activeNodeTab: nodeId,
-      });
-    }
-    setActivePane('B');
-  }, [slotB, setSlotB]);
-
-  // Open a node directly in Slot A (for "Open in other panel" from Slot B)
-  const handleNodeOpenInSlotA = useCallback((nodeId: number) => {
-    // If Slot A is already a node pane, add to its tabs
-    if (slotA?.type === 'node') {
-      const currentTabs = slotA.nodeTabs || [];
-      const newTabs = currentTabs.includes(nodeId) ? currentTabs : [...currentTabs, nodeId];
-      setSlotA(prev => prev ? ({
-        ...prev,
-        nodeTabs: newTabs,
-        activeNodeTab: nodeId,
-      }) : { type: 'node', nodeTabs: newTabs, activeNodeTab: nodeId });
-    } else {
-      // Switch Slot A to node pane
-      setSlotA({
-        type: 'node',
-        nodeTabs: [nodeId],
-        activeNodeTab: nodeId,
-      });
-    }
-    setActivePane('A');
-  }, [slotA, setSlotA]);
-
   // Handle search result selection
   const handleSearchNodeSelect = useCallback((nodeId: number) => {
-    handleNodeSelect(nodeId, false);
+    handleNodeSelect(nodeId);
     setShowSearchModal(false);
   }, [handleNodeSelect]);
 
-  // Drag state for cross-slot tab dragging
-  const [dragOverSlot, setDragOverSlot] = useState<'A' | 'B' | null>(null);
+  // Determine if we're showing a focused node (node detail view)
+  const showingFocusedNode = activeTab !== null && openTabs.length > 0;
 
-  const handleSlotDragOver = useCallback((e: React.DragEvent, slot: 'A' | 'B') => {
-    // Check if this is a tab or node being dragged
-    if (e.dataTransfer.types.includes('application/x-rah-tab') ||
-        e.dataTransfer.types.includes('application/node-info')) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
-      setDragOverSlot(slot);
+  // ── Render main workspace content ──
+  const renderMainContent = () => {
+    // If a node is focused, show it
+    if (showingFocusedNode) {
+      return (
+        <NodePane
+          slot="A"
+          isActive={true}
+          openTabs={openTabs}
+          activeTab={activeTab}
+          onTabSelect={handleTabSelect}
+          onTabClose={handleCloseTab}
+          onNodeClick={handleNodeSelect}
+          onReorderTabs={handleReorderTabs}
+          refreshTrigger={focusPanelRefresh}
+          onTextSelect={(nodeId, nodeTitle, text) => {
+            setHighlightedPassage({ nodeId, nodeTitle, selectedText: text });
+          }}
+          highlightedPassage={highlightedPassage}
+        />
+      );
     }
-  }, []);
 
-  const handleSlotDragLeave = useCallback(() => {
-    setDragOverSlot(null);
-  }, []);
-
-  const handleSlotDrop = useCallback((e: React.DragEvent, targetSlot: 'A' | 'B') => {
-    setDragOverSlot(null);
-
-    // Try tab data first, then node data from sidebar
-    let tabData = e.dataTransfer.getData('application/x-rah-tab');
-    if (!tabData) {
-      tabData = e.dataTransfer.getData('application/node-info');
-    }
-    if (!tabData) return;
-
-    try {
-      const parsed = JSON.parse(tabData);
-      const nodeId = parsed.id;
-      const sourceSlot = parsed.sourceSlot;
-      if (typeof nodeId !== 'number') return;
-
-      // If dropping on the same slot, just select the tab
-      if (sourceSlot && sourceSlot === targetSlot) {
-        if (targetSlot === 'A') {
-          setSlotA(prev => prev ? ({ ...prev, activeNodeTab: nodeId }) : { type: 'node', nodeTabs: [nodeId], activeNodeTab: nodeId });
-        } else if (slotB) {
-          setSlotB(prev => prev ? ({ ...prev, activeNodeTab: nodeId }) : null);
-        }
-        return;
-      }
-
-      // Remove from source slot (only if sourceSlot is specified)
-      if (sourceSlot === 'A' && slotA?.type === 'node') {
-        const currentTabs = slotA.nodeTabs || [];
-        const newTabs = currentTabs.filter(id => id !== nodeId);
-        let newActiveTab = slotA.activeNodeTab;
-        if (slotA.activeNodeTab === nodeId) {
-          const currentIndex = currentTabs.indexOf(nodeId);
-          newActiveTab = newTabs.length > 0 ? newTabs[Math.min(currentIndex, newTabs.length - 1)] : null;
-        }
-        setSlotA(prev => prev ? ({
-          ...prev,
-          nodeTabs: newTabs,
-          activeNodeTab: newActiveTab,
-        }) : null);
-      } else if (sourceSlot === 'B' && slotB?.type === 'node') {
-        const currentTabs = slotB.nodeTabs || [];
-        const newTabs = currentTabs.filter(id => id !== nodeId);
-        let newActiveTab = slotB.activeNodeTab;
-        if (slotB.activeNodeTab === nodeId) {
-          const currentIndex = currentTabs.indexOf(nodeId);
-          newActiveTab = newTabs.length > 0 ? newTabs[Math.min(currentIndex, newTabs.length - 1)] : null;
-        }
-        setSlotB(prev => prev ? ({
-          ...prev,
-          nodeTabs: newTabs,
-          activeNodeTab: newActiveTab,
-        }) : null);
-      }
-
-      // Add to target slot
-      if (targetSlot === 'B') {
-        // Open Slot B if closed
-        if (!slotB) {
-          setSlotB({
-            type: 'node',
-            nodeTabs: [nodeId],
-            activeNodeTab: nodeId,
-          });
-        } else if (slotB.type === 'node') {
-          const currentTabs = slotB.nodeTabs || [];
-          if (!currentTabs.includes(nodeId)) {
-            setSlotB(prev => prev ? ({
-              ...prev,
-              nodeTabs: [...(prev.nodeTabs || []), nodeId],
-              activeNodeTab: nodeId,
-            }) : null);
-          } else {
-            setSlotB(prev => prev ? ({ ...prev, activeNodeTab: nodeId }) : null);
-          }
-        } else {
-          setSlotB({
-            type: 'node',
-            nodeTabs: [nodeId],
-            activeNodeTab: nodeId,
-          });
-        }
-        setActivePane('B');
-      } else {
-        // Drop on Slot A
-        if (slotA?.type === 'node') {
-          const currentTabs = slotA.nodeTabs || [];
-          if (!currentTabs.includes(nodeId)) {
-            setSlotA(prev => prev ? ({
-              ...prev,
-              nodeTabs: [...(prev.nodeTabs || []), nodeId],
-              activeNodeTab: nodeId,
-            }) : { type: 'node', nodeTabs: [nodeId], activeNodeTab: nodeId });
-          } else {
-            setSlotA(prev => prev ? ({ ...prev, activeNodeTab: nodeId }) : null);
-          }
-        } else {
-          setSlotA({
-            type: 'node',
-            nodeTabs: [nodeId],
-            activeNodeTab: nodeId,
-          });
-        }
-        setActivePane('A');
-      }
-    } catch (err) {
-      console.error('Failed to parse dropped tab data:', err);
-    }
-  }, [slotA, slotB, setSlotA, setSlotB]);
-
-  // Split handle callbacks
-  const handleOpenSecondPane = useCallback(() => {
-    setSlotB({ type: 'node', nodeTabs: [], activeNodeTab: null }); // Default to node pane (chat removed in rah-light)
-    setActivePane('B');
-  }, [setSlotB]);
-
-  const handleResizeSlotB = useCallback((newWidth: number) => {
-    setSlotBWidth(newWidth);
-  }, [setSlotBWidth]);
-
-  const handleCloseSecondPane = useCallback(() => {
-    setSlotB(null);
-    setActivePane('A');
-  }, [setSlotB]);
-
-  // Swap panes (triggered by dragging pane header to other side)
-  const handleSwapPanes = useCallback(() => {
-    if (!slotB) return;
-    const tempA = slotA;
-    setSlotA(slotB);
-    setSlotB(tempA);
-  }, [slotA, slotB, setSlotA, setSlotB]);
-
-  // Render a slot based on its state
-  const renderSlot = (slot: 'A' | 'B', state: SlotState) => {
-    const isActive = activePane === slot;
-    // Always allow closing panes - shows empty state if all closed
-    const onCollapse = slot === 'A' ? handleCloseSlotA : handleCloseSlotB;
-
-    switch (state.type) {
-      case 'node':
+    // Otherwise render the active view
+    switch (activeView) {
+      case 'type':
         return (
-          <NodePane
-            slot={slot}
-            isActive={isActive}
-            onPaneAction={slot === 'A' ? handleSlotAAction : handleSlotBAction}
-            onCollapse={onCollapse}
-            onSwapPanes={slotB ? handleSwapPanes : undefined}
-            openTabs={state.nodeTabs || []}
-            activeTab={state.activeNodeTab || null}
-            onTabSelect={slot === 'A' ? handleTabSelect : (tabId) => {
-              setSlotB(prev => prev ? ({ ...prev, activeNodeTab: tabId }) : null);
-              setActivePane('B');
-            }}
-            onTabClose={slot === 'A' ? handleCloseTab : (tabId) => {
-              if (!slotB) return;
-              const currentTabs = state.nodeTabs || [];
-              const newTabs = currentTabs.filter(id => id !== tabId);
-              let newActiveTab = state.activeNodeTab;
-              if (state.activeNodeTab === tabId) {
-                const currentIndex = currentTabs.indexOf(tabId);
-                newActiveTab = newTabs.length > 0 ? newTabs[Math.min(currentIndex, newTabs.length - 1)] : null;
-              }
-              setSlotB(prev => prev ? ({ ...prev, nodeTabs: newTabs, activeNodeTab: newActiveTab }) : null);
-            }}
-            onNodeClick={(nodeId) => {
-              handleNodeSelect(nodeId, false);
-              setActivePane(slot);
-            }}
-            onReorderTabs={slot === 'A' ? handleReorderTabs : undefined}
-            refreshTrigger={focusPanelRefresh}
-            onOpenInOtherSlot={slot === 'A' ? handleNodeOpenInSlotB : handleNodeOpenInSlotA}
-            onTextSelect={(nodeId, nodeTitle, text) => {
-              setHighlightedPassage({ nodeId, nodeTitle, selectedText: text });
-            }}
-            highlightedPassage={highlightedPassage}
+          <TypeNodeList
+            selectedType={selectedType}
+            onNodeClick={handleNodeSelect}
           />
         );
 
-      // case 'chat' removed in rah-light
-
-      case 'guides':
+      case 'feed':
         return (
-          <GuidesPane
-            slot={slot}
-            isActive={isActive}
-            onPaneAction={slot === 'A' ? handleSlotAAction : handleSlotBAction}
-            onCollapse={onCollapse}
-            onSwapPanes={slotB ? handleSwapPanes : undefined}
-          />
-        );
-
-      case 'dimensions':
-        return (
-          <DimensionsPane
-            slot={slot}
-            isActive={isActive}
-            onPaneAction={slot === 'A' ? handleSlotAAction : handleSlotBAction}
-            onCollapse={onCollapse}
-            onSwapPanes={slotB ? handleSwapPanes : undefined}
-            onNodeOpen={handleNodeOpenFromDimensions}
-            refreshToken={folderViewRefresh}
-            onDataChanged={handleFolderViewDataChanged}
-            onDimensionSelect={setActiveDimension}
+          <ViewsPane
+            slot="A"
+            isActive={true}
+            onNodeClick={handleNodeSelect}
+            refreshToken={nodesPanelRefresh}
           />
         );
 
       case 'map':
         return (
           <MapPane
-            slot={slot}
-            isActive={isActive}
-            onPaneAction={slot === 'A' ? handleSlotAAction : handleSlotBAction}
-            onCollapse={onCollapse}
-            onSwapPanes={slotB ? handleSwapPanes : undefined}
-            onNodeClick={slot === 'A' ? handleNodeOpenInSlotB : handleNodeOpenInSlotA}
+            slot="A"
+            isActive={true}
+            onNodeClick={handleNodeSelect}
             activeTabId={activeTab}
-          />
-        );
-
-      case 'views':
-        return (
-          <ViewsPane
-            slot={slot}
-            isActive={isActive}
-            onPaneAction={slot === 'A' ? handleSlotAAction : handleSlotBAction}
-            onCollapse={onCollapse}
-            onSwapPanes={slotB ? handleSwapPanes : undefined}
-            onNodeClick={(nodeId) => {
-              handleNodeSelect(nodeId, false);
-              setActivePane(slot);
-            }}
-            onNodeOpenInOtherPane={slot === 'A' ? handleNodeOpenInSlotB : handleNodeOpenInSlotA}
-            refreshToken={nodesPanelRefresh}
           />
         );
 
@@ -879,108 +487,64 @@ export default function ThreePanelLayout() {
         height: '100vh',
         width: '100vw',
         background: '#0a0a0a',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
-      {/* Left Toolbar */}
-      <LeftToolbar
+      {/* Left Type Panel */}
+      <LeftTypePanel
+        isCollapsed={isLeftPanelCollapsed}
+        onToggleCollapse={() => setIsLeftPanelCollapsed(prev => !prev)}
+        selectedType={selectedType}
+        onTypeSelect={(type) => {
+          setSelectedType(type);
+          if (type) {
+            setActiveView('type');
+            // Clear focused node when switching types
+            if (showingFocusedNode) {
+              setActiveTab(null);
+              setFocusedNodeId(null);
+            }
+          }
+        }}
+        onNodeSelect={handleNodeSelect}
         onSearchClick={() => setShowSearchModal(true)}
-        onAddStuffClick={() => setShowAddStuff(true)}
+        onAddClick={() => setShowAddStuff(true)}
         onSettingsClick={() => {
           setSettingsInitialTab(undefined);
           setShowSettings(true);
         }}
-        onPaneTypeClick={handlePaneTypeClick}
-        activePane={activePane}
-        slotAType={slotA?.type ?? null}
-        slotBType={slotB?.type ?? null}
       />
 
-      {/* Main content area */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', padding: '8px', gap: '8px' }}>
-        {/* Empty state - no panes open */}
-        {!slotA && !slotB && (
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#666',
-              gap: '12px',
-            }}
-          >
-            <div style={{ fontSize: '14px' }}>No panes open</div>
-            <div style={{ fontSize: '12px', color: '#555' }}>
-              Select a view from the toolbar to get started
-            </div>
-          </div>
-        )}
-
-        {/* Slot A - when open */}
-        {/* When single pane (except map): centered with max-width */}
-        {/* When split or map: full width */}
-        {slotA && (
-          <div
-            onClick={() => setActivePane('A')}
-            onDragOver={(e) => handleSlotDragOver(e, 'A')}
-            onDragLeave={handleSlotDragLeave}
-            onDrop={(e) => handleSlotDrop(e, 'A')}
-            style={{
-              flex: slotB ? `0 0 calc(${100 - slotBWidth}% - 4px)` : 1,
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              // Center single pane (except map)
-              ...((!slotB && slotA.type !== 'map') ? {
-                maxWidth: '900px',
-                margin: '0 auto',
-                width: '100%',
-              } : {}),
-              background: '#111111',
-              borderRadius: '10px',
-              outline: dragOverSlot === 'A' ? '2px dashed #9333ea' : 'none',
-              outlineOffset: '-4px',
-              transition: 'outline 0.15s ease',
-            }}
-          >
-            {renderSlot('A', slotA)}
-          </div>
-        )}
-
-        {/* Split Handle */}
-        <SplitHandle
-          isSecondPaneOpen={slotB !== null}
-          onOpenSecondPane={handleOpenSecondPane}
-          onResize={handleResizeSlotB}
-          onCloseSecondPane={handleCloseSecondPane}
-          containerRef={containerRef as React.RefObject<HTMLDivElement>}
-          toolbarWidth={50}
+      {/* Main Workspace */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Top view switcher */}
+        <MainViewSwitcher
+          activeView={activeView}
+          onViewChange={(view) => {
+            setActiveView(view);
+            // Clear focused node when switching views
+            if (showingFocusedNode) {
+              setActiveTab(null);
+              setFocusedNodeId(null);
+            }
+          }}
+          selectedType={selectedType}
         />
 
-        {/* Slot B - only when open */}
-        {slotB && (
-          <div
-            onClick={() => setActivePane('B')}
-            onDragOver={(e) => handleSlotDragOver(e, 'B')}
-            onDragLeave={handleSlotDragLeave}
-            onDrop={(e) => handleSlotDrop(e, 'B')}
-            style={{
-              flex: `0 0 calc(${slotBWidth}% - 4px)`,
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              background: '#111111',
-              borderRadius: '10px',
-              outline: dragOverSlot === 'B' ? '2px dashed #9333ea' : 'none',
-              outlineOffset: '-4px',
-              transition: 'outline 0.15s ease',
-            }}
-          >
-            {renderSlot('B', slotB)}
-          </div>
-        )}
+        {/* Workspace content */}
+        <div
+          style={{
+            flex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            background: '#111',
+            margin: '0 8px 8px 0',
+            borderRadius: '8px',
+          }}
+        >
+          {renderMainContent()}
+        </div>
       </div>
 
       {/* Search Modal */}
@@ -991,7 +555,7 @@ export default function ThreePanelLayout() {
         existingFilters={[]}
       />
 
-      {/* Settings Modal - hidden in readonly mode */}
+      {/* Settings Modal */}
       {!isReadOnly && (
         <SettingsModal
           isOpen={showSettings}
@@ -1000,7 +564,7 @@ export default function ThreePanelLayout() {
         />
       )}
 
-      {/* Add Stuff Modal - hidden in readonly mode */}
+      {/* Add Stuff Modal */}
       {!isReadOnly && (
         <QuickAddInput
           isOpen={showAddStuff}

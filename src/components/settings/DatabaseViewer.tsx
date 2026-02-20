@@ -342,10 +342,10 @@ export default function DatabaseViewer() {
               onClick={handleApplyFilters}
               style={{
                 padding: '8px 16px',
-                background: '#9333ea33',
-                border: '1px solid #9333ea66',
+                background: '#33333333',
+                border: '1px solid #33333366',
                 borderRadius: '4px',
-                color: '#9333ea',
+                color: '#888',
                 cursor: 'pointer',
                 fontSize: '12px',
               }}

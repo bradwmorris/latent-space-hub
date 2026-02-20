@@ -45,7 +45,7 @@ export default function ApiKeysViewer() {
   };
 
   const getStatusLabel = (s: string) => {
-    if (s === 'connected') return { text: 'Connected', color: '#9333ea' };
+    if (s === 'connected') return { text: 'Connected', color: '#888' };
     if (s === 'failed') return { text: 'Failed', color: '#ef4444' };
     if (s === 'testing') return { text: 'Testing...', color: '#6b7280' };
     return { text: 'Not set', color: '#6b7280' };
@@ -212,8 +212,8 @@ const btnPrimaryStyle: CSSProperties = {
   padding: '8px 14px',
   fontSize: 12,
   fontWeight: 500,
-  background: '#9333ea',
-  color: '#1e1b4b',
+  background: '#333',
+  color: '#fff',
   border: 'none',
   borderRadius: 6,
   cursor: 'pointer',
@@ -241,6 +241,6 @@ const helpStyle: CSSProperties = {
 };
 
 const linkStyle: CSSProperties = {
-  color: '#9333ea',
+  color: '#888',
   textDecoration: 'none',
 };
