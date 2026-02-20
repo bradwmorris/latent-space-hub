@@ -14,9 +14,93 @@ PRD-05 ingested ~523 nodes via the pipeline. The raw content (chunk) is there, b
 
 The database has data but it's not usable. This PRD fixes that.
 
+## Open Question: Graph Structure — Hub Nodes vs Flat Types
+
+Before diving into refinement, we need to decide how the graph should be structured for maximum efficiency — both for SQL queries and for bot retrieval.
+
+### The problem
+
+Right now every node is a flat peer. 182 podcast episodes sit alongside 121 newsletter issues and 755 topic nodes with no structural hierarchy. `node_type` lets us filter (`WHERE node_type = 'podcast'`), but there's no single place in the graph that says "what IS the Latent Space podcast?" The bots have to infer context from individual nodes.
+
+### Option A: Flat types only (current state, cleaned up)
+
+Keep the current flat model. `node_type` is the only grouping mechanism. Bots get grounding context from their system prompts and guides, not from the graph itself.
+
+**Pros:**
+- Simplest. No extra nodes to create or maintain.
+- `node_type` queries are fast and well-understood.
+- Guides (MCP `start-here`, `content-types`) can carry the grounding context instead.
+
+**Cons:**
+- Bots can't "discover" what LS is from the graph — they only know what's hardcoded in prompts.
+- No graph-level representation of content series as first-class entities.
+- No natural parent-child traversal (e.g., "show me all episodes of the podcast" requires a flat WHERE, not a graph walk).
+
+### Option B: Hub nodes as structural anchors
+
+Create a small number of "hub" nodes — one master identity node ("Latent Space") and one per content series (podcast, AINews, articles, etc.). All content nodes connect to their hub via edges. Bots retrieve hub nodes for instant contextual grounding.
+
+**Possible hierarchy:**
+```
+"Latent Space" (master hub)
+  ├── "Latent Space Podcast" → podcast episodes
+  ├── "AINews" → newsletter issues
+  ├── "Latent Space Articles" → article nodes
+  ├── "Builders Club" → meetup recordings
+  ├── "Paper Club" → paper-club sessions
+  └── "AI Engineer Conference" → AIE event nodes
+```
+
+**Pros:**
+- Bots can retrieve a single node and instantly understand "what is the LS podcast?"
+- Graph becomes navigable — traversal from hub → content → entities is natural.
+- Hub nodes can store aggregate metadata (total episodes, date range, hosts, key themes).
+- Rich descriptions on hubs improve vector search — "Latent Space podcast" query hits the hub node first.
+- People connect to hubs naturally (swyx → "hosts" → LS Podcast).
+
+**Cons:**
+- More nodes and edges to create and maintain.
+- Need to decide: what `node_type` do hubs get? A new `'hub'` type? Or something else?
+- Every new content node needs a "contains" edge to its hub — maintenance overhead.
+- Could the same grounding be achieved with just better guides/prompts instead?
+
+### Option C: Hybrid — hub nodes exist but are lightweight
+
+Create hub nodes for identity/grounding, but don't wire every content node to its hub via individual edges. Instead, the hub nodes exist as rich context anchors that the bots retrieve when they need grounding, and the `node_type` filter handles the actual content grouping.
+
+**Pros:**
+- Hub nodes provide grounding without the edge maintenance overhead.
+- `node_type` remains the primary grouping mechanism.
+- Hub → content association is implicit (hub's `anchors_type` metadata points to the `node_type` value).
+
+**Cons:**
+- Graph doesn't actually connect hubs to content — it's metadata-level association, not graph-level.
+- Loses the traversal benefit of Option B.
+
+### Questions to resolve during Phase 0
+
+These should be explored during the audit before committing to an approach:
+
+1. **How do the bots actually retrieve context today?** Is the bottleneck the data structure, or the prompt/guide content? Would better guides alone solve the grounding problem?
+2. **How many "contains" edges would Option B create?** If it's ~500 content nodes × 1 hub edge each, that's manageable. If it bloats the edge table, it's a problem.
+3. **Would hub nodes clutter the UI type navigation?** If hubs show up alongside regular content, is that confusing? Does the UI need to filter them out?
+4. **Do we need a master "Latent Space" hub, or just per-series hubs?** The master hub is appealing but might be redundant with the `start-here` guide.
+5. **What `node_type` should hubs use?** Options: `'hub'` (new type), `'collection'` (generic), or same type as their children with a metadata flag.
+6. **How do hubs interact with the planned PRD-08 Storylines?** Storylines are also structural/narrative nodes — is there overlap?
+7. **What's the maintenance story?** When new content is ingested, do hub edges get created automatically? Do hub node stats (episode count, date range) need periodic updates?
+
+### Decision point
+
+This decision should be made after Phase 0 (audit) when we have a concrete understanding of the current data shape. The audit should include explicit evaluation of:
+- Sample bot retrieval quality with and without hub-like context
+- Edge count impact analysis
+- UI rendering implications
+
 ## Approach
 
-**Phase 0: Audit** — manual review of current state, identify all issues, update this PRD with specifics before any code runs.
+**Phase 0: Audit** — manual review of current state, identify all issues, update this PRD with specifics before any code runs. Includes evaluating the hub nodes question above.
+
+**Phase 0.5: Graph structure decision** — based on audit findings, decide on flat types vs hub nodes vs hybrid. If hub nodes: create them before fixing individual nodes.
 
 **Phase 1: Build refinement script** — batch processor that fixes each category below, with dry-run mode and example output for human review before committing changes.
 
@@ -33,6 +117,8 @@ Before writing any code, manually audit the database:
 - [ ] Check chunk coverage — which node types have chunks, which don't?
 - [ ] Check for duplicate nodes (same content, different IDs)
 - [ ] Document all issues found → update this PRD
+
+---
 
 ---
 
@@ -56,6 +142,7 @@ The current `node_type` values are wrong. `episode` and `source` are too generic
 | `person` | Individual human | already correct | 264 |
 | `organization` | Company, lab, institution | already correct | 187 |
 | `topic` | Concept, technology, subject area | already correct | 755 |
+| `hub` | Structural anchor — master identity or content series | TBD (see graph structure question) | 0 → 7? |
 | `insight` | Extracted insight or synthesis node | keep if exists | — |
 | `paper` | Academic or research paper | for future use | — |
 
@@ -167,6 +254,9 @@ Current state is broken:
 
 | Relationship | Direction | Example |
 |---|---|---|
+| Hub → content hub (if hubs adopted) | Latent Space → LS Podcast | "produces" |
+| Hub → content node (if hubs adopted) | LS Podcast → Episode X | "contains" |
+| Person → hub (if hubs adopted) | swyx → LS Podcast | "hosts" |
 | Person appeared on episode | person → episode | "appeared as guest on" |
 | Episode covers topic | episode → topic | "covers in depth" |
 | Person works at org | person → org | "is CEO of" |
@@ -209,6 +299,10 @@ Single script with subcommands:
 # Audit mode — show current state
 npx tsx scripts/refine-data.ts --audit
 
+# Create hub nodes (if hub approach adopted — run once, idempotent)
+# npx tsx scripts/refine-data.ts --task hubs --dry-run
+# npx tsx scripts/refine-data.ts --task hubs
+
 # Dry run — show what would change for N nodes
 npx tsx scripts/refine-data.ts --task types --limit 5 --dry-run
 npx tsx scripts/refine-data.ts --task descriptions --limit 5 --dry-run
@@ -216,6 +310,10 @@ npx tsx scripts/refine-data.ts --task descriptions --limit 5 --dry-run
 # Live run — apply changes
 npx tsx scripts/refine-data.ts --task types --limit 20
 npx tsx scripts/refine-data.ts --task descriptions --limit 20
+
+# Wire content nodes to their hub (if hub approach adopted)
+# npx tsx scripts/refine-data.ts --task hub-edges --dry-run
+# npx tsx scripts/refine-data.ts --task hub-edges
 
 # All tasks
 npx tsx scripts/refine-data.ts --task types
@@ -283,3 +381,4 @@ After all tasks complete:
 | `organization` | 187 | `organization` (no change) |
 | `topic` | 755 | `topic` (no change) |
 | NULL | 157 | classify from title/metadata |
+| *(TBD)* | 0 → 7? | `hub` — if hub node approach adopted (see open question) |
