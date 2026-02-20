@@ -263,6 +263,19 @@ export class NodeService {
     return updatedNodes;
   }
 
+  async getTypeCounts(): Promise<{ type: string; count: number }[]> {
+    const sqlite = getSQLiteClient();
+    const query = `
+      SELECT node_type, COUNT(*) as count
+      FROM nodes
+      WHERE node_type IS NOT NULL AND node_type != ''
+      GROUP BY node_type
+      ORDER BY count DESC
+    `;
+    const result = await sqlite.query<{ node_type: string; count: number }>(query, []);
+    return result.rows.map(row => ({ type: row.node_type, count: Number(row.count) }));
+  }
+
   async getAllDimensions(): Promise<string[]> {
     const sqlite = getSQLiteClient();
     const query = `

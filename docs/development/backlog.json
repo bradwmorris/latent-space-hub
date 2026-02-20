@@ -1,6 +1,7 @@
 {
   "queue": [
     "content-ingestion",
+    "ux-overhaul",
     "mcp-server-and-skills",
     "discord-bot",
     "storylines"
@@ -32,6 +33,30 @@
         { "done": false, "text": "Phase 3: Create typed edges (appeared_on, covers_topic, affiliated_with)" },
         { "done": false, "text": "Phase 3: AINews entity extraction from frontmatter tags" },
         { "done": false, "text": "Verify: Hybrid search returns results across full corpus" }
+      ]
+    },
+    "ux-overhaul": {
+      "id": "ux-overhaul",
+      "title": "UX Overhaul — collapsible type navigation + simplified main workspace",
+      "status": "review",
+      "type": "feature",
+      "priority": "high",
+      "prd": "docs/development/prd-09-ux-overhaul-type-navigation.md",
+      "notes": "Replace pane-centric shell with simple left type panel + main workspace. Codex-matched neutral styling. Tachyon brand font.",
+      "tasks": [
+        { "done": true, "text": "Add GET /api/types endpoint with type counts" },
+        { "done": true, "text": "Add type alias in /api/nodes route" },
+        { "done": true, "text": "Build LeftTypePanel component (collapsible, type folders)" },
+        { "done": true, "text": "Build MainViewSwitcher (Type/Feed/Map icons)" },
+        { "done": true, "text": "Replace ThreePanelLayout with new simple shell" },
+        { "done": true, "text": "Remove guides from primary navigation" },
+        { "done": true, "text": "Update globals.css to neutral Codex palette" },
+        { "done": true, "text": "Update Settings modal to neutral colors" },
+        { "done": true, "text": "Add Tachyon font-display class" },
+        { "done": true, "text": "Update docs/6_ui.md" },
+        { "done": true, "text": "Update docs/2_schema.md with type naming" },
+        { "done": true, "text": "Type-check passes" },
+        { "done": true, "text": "Build passes" }
       ]
     },
     "mcp-server-and-skills": {
