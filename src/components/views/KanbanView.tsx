@@ -296,8 +296,8 @@ export default function KanbanView({
                 minWidth: '280px',
                 display: 'flex',
                 flexDirection: 'column',
-                background: isDropTarget ? '#1e1b4b' : '#0a0a0a',
-                border: isReorderTarget ? '2px dashed #9333ea' : '1px solid #1a1a1a',
+                background: isDropTarget ? '#1a1a1a' : '#0a0a0a',
+                border: isReorderTarget ? '2px dashed #888' : '1px solid #1a1a1a',
                 borderRadius: '8px',
                 transition: 'all 0.2s'
               }}

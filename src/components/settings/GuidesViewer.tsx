@@ -137,10 +137,10 @@ export default function GuidesViewer() {
             onClick={handleSave}
             style={{
               padding: '8px 16px',
-              background: '#9333ea',
+              background: '#333',
               border: 'none',
               borderRadius: '6px',
-              color: '#000',
+              color: '#fff',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -225,10 +225,10 @@ export default function GuidesViewer() {
           onClick={handleNew}
           style={{
             padding: '8px 16px',
-            background: '#9333ea',
+            background: '#333',
             border: 'none',
             borderRadius: '6px',
-            color: '#000',
+            color: '#fff',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -263,7 +263,7 @@ export default function GuidesViewer() {
                   borderRadius: '8px',
                 }}
               >
-                <FileText size={18} style={{ color: '#9333ea', flexShrink: 0 }} />
+                <FileText size={18} style={{ color: '#888', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: '#ddd', fontSize: '14px', fontWeight: 500 }}>{guide.name}</div>
                   <div style={{ color: '#666', fontSize: '12px', marginTop: '2px' }}>{guide.description}</div>

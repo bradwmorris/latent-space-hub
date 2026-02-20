@@ -38,8 +38,8 @@ function NodeLabelInline({ id, title, onNodeClick }: NodeLabelInlineProps) {
         style={{
           display: 'inline',
           padding: '2px 6px',
-          background: '#9333ea',
-          color: '#000',
+          background: '#333',
+          color: '#e5e5e5',
           borderRadius: '3px',
           fontSize: '11px',
           fontWeight: '600',
@@ -199,7 +199,7 @@ export default function MarkdownWithNodeTokens({ content, onNodeClick }: Markdow
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: '#9333ea', textDecoration: 'underline' }}
+            style={{ color: '#999', textDecoration: 'underline' }}
           >
             {processChildren(children, 'a')}
           </a>

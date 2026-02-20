@@ -236,9 +236,9 @@ export default function DimensionTags({
                 alignItems: 'center',
                 gap: '3px',
                 fontSize: '10px',
-                color: isPriority ? '#9333ea' : '#d1d5db', /* Changed from gold to green */
-                background: isPriority ? '#1e1b4b' : '#1a1a1a', /* Green-tinted background */
-                border: isPriority ? '1px solid #7c3aed' : '1px solid #333', /* Green border */
+                color: isPriority ? '#ccc' : '#d1d5db',
+                background: isPriority ? '#1a1a1a' : '#1a1a1a',
+                border: isPriority ? '1px solid #555' : '1px solid #333',
                 borderRadius: '8px',
                 padding: '2px 6px',
                 cursor: disabled ? 'default' : (onPriorityToggle ? 'pointer' : 'grab'),
@@ -247,11 +247,11 @@ export default function DimensionTags({
               }}
               onMouseEnter={(e) => {
                 if (!disabled) {
-                  e.currentTarget.style.borderColor = isPriority ? '#9333ea' : '#555'; /* Green hover */
+                  e.currentTarget.style.borderColor = isPriority ? '#888' : '#555';
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = isPriority ? '#7c3aed' : '#333'; /* Green default */
+                e.currentTarget.style.borderColor = isPriority ? '#555' : '#333';
               }}
               title={isPriority ? 'Priority dimension (click to unpin)' : 'Click to pin as priority dimension'}
             >
@@ -362,7 +362,7 @@ export default function DimensionTags({
               gap: '8px',
               fontSize: '11px',
               fontWeight: 600,
-              color: '#9333ea',
+              color: '#999',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               borderBottom: '1px solid #1a1a1a',
@@ -388,7 +388,7 @@ export default function DimensionTags({
               width: '16px',
               height: '16px',
               borderRadius: '50%',
-              background: '#9333ea',
+              background: '#555',
               color: '#0a0a0a',
               fontSize: '12px',
               lineHeight: 1,

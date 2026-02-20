@@ -19,13 +19,13 @@
 }
 
 .rah-map-wrapper .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #9333ea;
+  stroke: #888;
   stroke-width: 2;
 }
 
 /* Connection line while dragging */
 .rah-map-wrapper .react-flow__connection-path {
-  stroke: #9333ea;
+  stroke: #888;
   stroke-width: 2;
   stroke-dasharray: 5 3;
 }
@@ -42,8 +42,8 @@
 
 /* Selection box */
 .rah-map-wrapper .react-flow__selection {
-  border: 1px solid rgba(147, 51, 234, 0.4);
-  background: rgba(147, 51, 234, 0.05);
+  border: 1px solid rgba(136, 136, 136, 0.4);
+  background: rgba(136, 136, 136, 0.05);
 }
 
 /* Custom node styles */
@@ -65,13 +65,13 @@
 }
 
 .rah-map-node--selected {
-  border-color: #9333ea !important;
-  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+  border-color: #888 !important;
+  box-shadow: 0 0 0 2px rgba(136, 136, 136, 0.2);
 }
 
 .rah-map-node--top {
-  border-color: #7c3aed;
-  background: #0f0d1a;
+  border-color: #555;
+  background: #141414;
 }
 
 .rah-map-node--expanded {
@@ -104,7 +104,7 @@
 .rah-map-handle {
   width: 8px !important;
   height: 8px !important;
-  background: #9333ea !important;
+  background: #888 !important;
   border: 2px solid #0f0f0f !important;
   opacity: 0;
   transition: opacity 0.15s ease;

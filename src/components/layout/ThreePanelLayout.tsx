@@ -18,6 +18,20 @@ import { NodePane, MapPane, ViewsPane } from '../panes';
 import QuickAddInput from '../agents/QuickAddInput';
 
 // ─── Type View: list of nodes for selected type ──────────────────────────────
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`;
+  return `${Math.floor(diffDays / 365)}y ago`;
+}
+
 function TypeNodeList({
   selectedType,
   onNodeClick,
@@ -35,7 +49,7 @@ function TypeNodeList({
       return;
     }
     setLoading(true);
-    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=100`)
+    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=100&sortBy=updated`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setNodes(data.data);
@@ -48,17 +62,17 @@ function TypeNodeList({
     return (
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#555', fontSize: '13px', flexDirection: 'column', gap: '8px',
+        color: '#444', fontSize: '13px', flexDirection: 'column', gap: '6px',
       }}>
-        <div>Select a type from the left panel</div>
-        <div style={{ fontSize: '12px', color: '#444' }}>or switch to Feed or Map view</div>
+        <div style={{ color: '#555' }}>Select a type from the left panel</div>
+        <div style={{ fontSize: '12px', color: '#3a3a3a' }}>or switch to Feed or Map view</div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '13px' }}>
         Loading...
       </div>
     );
@@ -68,47 +82,141 @@ function TypeNodeList({
     return (
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#555', fontSize: '13px',
+        color: '#444', fontSize: '13px',
       }}>
-        No nodes of type &ldquo;{selectedType}&rdquo;
+        No {selectedType} nodes yet
       </div>
     );
   }
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-      {nodes.map(node => (
-        <button
-          key={node.id}
-          onClick={() => onNodeClick(node.id)}
-          onMouseEnter={() => setHoveredId(node.id)}
-          onMouseLeave={() => setHoveredId(null)}
-          style={{
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '2px',
-            padding: '10px 20px',
-            background: hoveredId === node.id ? '#151515' : 'transparent',
-            border: 'none',
-            borderBottom: '1px solid #141414',
-            color: '#ccc',
-            cursor: 'pointer',
-            textAlign: 'left',
-            transition: 'background 0.1s',
-          }}
-        >
-          <div style={{ fontSize: '13px', fontWeight: 500, color: '#e5e5e5' }}>{node.title}</div>
-          {node.description && (
-            <div style={{
-              fontSize: '12px', color: '#777', overflow: 'hidden',
-              textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
-            }}>
-              {node.description}
-            </div>
-          )}
-        </button>
-      ))}
+    <div style={{ flex: 1, overflowY: 'auto' }}>
+      {/* Header */}
+      <div style={{
+        padding: '16px 24px 12px',
+        display: 'flex',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid #1a1a1a',
+      }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: '#999', textTransform: 'capitalize' }}>
+          {selectedType}
+        </span>
+        <span style={{ fontSize: '11px', color: '#444' }}>
+          {nodes.length} node{nodes.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Node list */}
+      <div style={{ padding: '4px 0' }}>
+        {nodes.map(node => {
+          const isHovered = hoveredId === node.id;
+          const dims = node.dimensions?.slice(0, 3) || [];
+          const edgeCount = node.edge_count ?? 0;
+          const dateStr = node.updated_at || node.created_at;
+
+          return (
+            <button
+              key={node.id}
+              onClick={() => onNodeClick(node.id)}
+              onMouseEnter={() => setHoveredId(node.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                padding: '12px 24px',
+                background: isHovered ? '#161616' : 'transparent',
+                border: 'none',
+                borderBottom: '1px solid #161616',
+                color: '#ccc',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.12s ease',
+              }}
+            >
+              {/* Title */}
+              <div style={{
+                fontSize: '13px',
+                fontWeight: 500,
+                color: isHovered ? '#fff' : '#e0e0e0',
+                lineHeight: 1.4,
+                transition: 'color 0.12s ease',
+              }}>
+                {node.title}
+              </div>
+
+              {/* Description */}
+              {node.description && (
+                <div style={{
+                  fontSize: '12px',
+                  color: '#666',
+                  lineHeight: 1.4,
+                  overflow: 'hidden',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                }}>
+                  {node.description}
+                </div>
+              )}
+
+              {/* Metadata row */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+                marginTop: '2px',
+              }}>
+                {/* Date */}
+                {dateStr && (
+                  <span style={{ fontSize: '11px', color: '#444' }}>
+                    {formatRelativeDate(dateStr)}
+                  </span>
+                )}
+
+                {/* Edge count */}
+                {edgeCount > 0 && (
+                  <span style={{
+                    fontSize: '11px',
+                    color: '#444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                  }}>
+                    <span style={{ fontSize: '9px' }}>&#9679;</span>
+                    {edgeCount} edge{edgeCount !== 1 ? 's' : ''}
+                  </span>
+                )}
+
+                {/* Dimensions */}
+                {dims.length > 0 && (
+                  <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+                    {dims.map(dim => (
+                      <span
+                        key={dim}
+                        style={{
+                          fontSize: '10px',
+                          color: '#555',
+                          background: '#1a1a1a',
+                          padding: '1px 6px',
+                          borderRadius: '3px',
+                          border: '1px solid #222',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {dim}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -119,7 +227,7 @@ export default function ThreePanelLayout() {
 
   // ── New simple state model ──
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = usePersistentState<boolean>('ui.leftPanel.collapsed', false);
-  const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'type');
+  const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'map');
   const [selectedType, setSelectedType] = usePersistentState<string | null>('ui.selectedType', null);
 
   // Node focus state

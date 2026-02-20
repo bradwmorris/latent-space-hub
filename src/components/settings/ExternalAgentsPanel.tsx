@@ -97,8 +97,8 @@ export default function ExternalAgentsPanel() {
             onClick={handleCopy}
             disabled={!connectorUrl}
             style={{
-              background: connectorUrl ? '#9333ea' : '#1f2937',
-              color: connectorUrl ? '#000' : '#475569',
+              background: connectorUrl ? '#333' : '#1f2937',
+              color: connectorUrl ? '#fff' : '#475569',
               border: 'none',
               borderRadius: '6px',
               padding: '10px 16px',

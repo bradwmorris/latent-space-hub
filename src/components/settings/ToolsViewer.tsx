@@ -91,7 +91,7 @@ const toolStyle: CSSProperties = {
 const toolNameStyle: CSSProperties = {
   fontSize: 12,
   fontFamily: 'monospace',
-  color: '#9333ea',
+  color: '#888',
   marginBottom: 4,
 };
 
