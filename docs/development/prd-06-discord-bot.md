@@ -108,7 +108,7 @@ When new content is ingested (new podcast, new ainews):
 ### Completed so far
 
 - Separate bot repo exists and is active: `latent-space-bots`
-- Railway deployment is working from latest `main`
+- Railway deployment is working from latest `main` (`1c38c44`)
 - Runtime implemented as one process with two Discord clients (Sig + Slop)
 - Mention/reply handling implemented
 - Thread-first response behavior implemented
@@ -116,17 +116,19 @@ When new content is ingested (new podcast, new ainews):
 - Turso-backed retrieval implemented with hybrid attempt (vector + FTS) and fallback search
 - Basic debate loop implemented with capped exchanges
 - Basic rate limiting implemented (user + channel)
+- Bot SOUL persona docs implemented and loaded from repo files (`personas/sig.soul.md`, `personas/slop.soul.md`)
+- Shared retrieval layer integration path implemented (prefers `latent-space-hub-mcp/services`, with local fallback)
 
 ### Verified in live test
 
 - Bot receives Discord messages and sends replies in test server
-- Turso connectivity path is live
+- Turso connectivity path is live and validated from Railway runtime (`nodes=4024`, `edges=7293`, `chunks=36443`)
 - LLM call path is live (OpenRouter errors are surfaced in-channel when credits are insufficient)
+- Live env config issue fixed: placeholder Turso hostname replaced with real host and service redeployed
 
 ### Current blockers / gaps
 
-- OpenRouter account must have credits (`402 Insufficient credits` currently observed)
-- KB relevance depends on ingestion/embedding completeness (PRD-05 dependency)
+- OpenRouter account must have sufficient credits for stable runtime
 - Final channel allowlist and permission hardening still needs confirmation
 - Proactive posting on new ingest events is not implemented yet
-- Full go/no-go validation suite still pending
+- Demo to swyx and LS Discord rollout still pending

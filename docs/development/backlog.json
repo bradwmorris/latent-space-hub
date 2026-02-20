@@ -15,23 +15,74 @@
       "prd": "docs/development/prd-05-content-ingestion.md",
       "notes": "COMPLETED 2026-02-20. 4,024 nodes, 36,443 chunks, 7,293 edges, 1,629 dimensions.",
       "tasks": [
-        { "done": true, "text": "Phase 0: Enumerate all @LatentSpacePod episodes (Jan 2025 → today)" },
-        { "done": true, "text": "Phase 0: Enumerate all latent.space Substack articles (Jan 2025 → today)" },
-        { "done": true, "text": "Phase 0: Index smol-ai/ainews repo markdown files (Jan 2025 → today)" },
-        { "done": true, "text": "Phase 0: Enumerate all @LatentSpaceTV videos, classify by series" },
-        { "done": true, "text": "Phase 0: Build complete manifest JSONs for all 4 sources" },
-        { "done": true, "text": "Cleanup: Delete AIE scripts + data" },
-        { "done": true, "text": "Cleanup: Add 'newsletter' to SourceMetadata.source_type" },
-        { "done": true, "text": "Phase 1: Build unified ingest script (replaces 3 broken scripts)" },
-        { "done": true, "text": "Phase 1: Ingest all podcast episodes as nodes with full transcripts" },
-        { "done": true, "text": "Phase 1: Ingest all Substack articles as nodes with full text" },
-        { "done": true, "text": "Phase 1: Ingest all ainews issues as nodes with full markdown" },
-        { "done": true, "text": "Phase 1: Ingest all LatentSpaceTV videos as nodes with transcripts" },
-        { "done": true, "text": "Phase 2: Chunk + embed all content (36K chunks)" },
-        { "done": true, "text": "Phase 3: Entity extraction — create person/org/topic nodes" },
-        { "done": true, "text": "Phase 3: Create typed edges (appeared_on, covers_topic, affiliated_with)" },
-        { "done": true, "text": "Phase 3: AINews entity extraction from frontmatter tags" },
-        { "done": true, "text": "Verify: Vector search returns results across full corpus" }
+        {
+          "done": true,
+          "text": "Phase 0: Enumerate all @LatentSpacePod episodes (Jan 2025 → today)"
+        },
+        {
+          "done": true,
+          "text": "Phase 0: Enumerate all latent.space Substack articles (Jan 2025 → today)"
+        },
+        {
+          "done": true,
+          "text": "Phase 0: Index smol-ai/ainews repo markdown files (Jan 2025 → today)"
+        },
+        {
+          "done": true,
+          "text": "Phase 0: Enumerate all @LatentSpaceTV videos, classify by series"
+        },
+        {
+          "done": true,
+          "text": "Phase 0: Build complete manifest JSONs for all 4 sources"
+        },
+        {
+          "done": true,
+          "text": "Cleanup: Delete AIE scripts + data"
+        },
+        {
+          "done": true,
+          "text": "Cleanup: Add 'newsletter' to SourceMetadata.source_type"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Build unified ingest script (replaces 3 broken scripts)"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Ingest all podcast episodes as nodes with full transcripts"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Ingest all Substack articles as nodes with full text"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Ingest all ainews issues as nodes with full markdown"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Ingest all LatentSpaceTV videos as nodes with transcripts"
+        },
+        {
+          "done": true,
+          "text": "Phase 2: Chunk + embed all content (36K chunks)"
+        },
+        {
+          "done": true,
+          "text": "Phase 3: Entity extraction — create person/org/topic nodes"
+        },
+        {
+          "done": true,
+          "text": "Phase 3: Create typed edges (appeared_on, covers_topic, affiliated_with)"
+        },
+        {
+          "done": true,
+          "text": "Phase 3: AINews entity extraction from frontmatter tags"
+        },
+        {
+          "done": true,
+          "text": "Verify: Vector search returns results across full corpus"
+        }
       ]
     },
     "ux-overhaul": {
@@ -43,63 +94,168 @@
       "prd": "docs/development/prd-09-ux-overhaul-type-navigation.md",
       "notes": "Replace pane-centric shell with simple left type panel + main workspace. Codex-matched neutral styling. Tachyon brand font.",
       "tasks": [
-        { "done": true, "text": "Add GET /api/types endpoint with type counts" },
-        { "done": true, "text": "Add type alias in /api/nodes route" },
-        { "done": true, "text": "Build LeftTypePanel component (collapsible, type folders)" },
-        { "done": true, "text": "Build MainViewSwitcher (Type/Feed/Map icons)" },
-        { "done": true, "text": "Replace ThreePanelLayout with new simple shell" },
-        { "done": true, "text": "Remove guides from primary navigation" },
-        { "done": true, "text": "Update globals.css to neutral Codex palette" },
-        { "done": true, "text": "Update Settings modal to neutral colors" },
-        { "done": true, "text": "Add Tachyon font-display class" },
-        { "done": true, "text": "Update docs/6_ui.md" },
-        { "done": true, "text": "Update docs/2_schema.md with type naming" },
-        { "done": true, "text": "Type-check passes" },
-        { "done": true, "text": "Build passes" }
+        {
+          "done": true,
+          "text": "Add GET /api/types endpoint with type counts"
+        },
+        {
+          "done": true,
+          "text": "Add type alias in /api/nodes route"
+        },
+        {
+          "done": true,
+          "text": "Build LeftTypePanel component (collapsible, type folders)"
+        },
+        {
+          "done": true,
+          "text": "Build MainViewSwitcher (Type/Feed/Map icons)"
+        },
+        {
+          "done": true,
+          "text": "Replace ThreePanelLayout with new simple shell"
+        },
+        {
+          "done": true,
+          "text": "Remove guides from primary navigation"
+        },
+        {
+          "done": true,
+          "text": "Update globals.css to neutral Codex palette"
+        },
+        {
+          "done": true,
+          "text": "Update Settings modal to neutral colors"
+        },
+        {
+          "done": true,
+          "text": "Add Tachyon font-display class"
+        },
+        {
+          "done": true,
+          "text": "Update docs/6_ui.md"
+        },
+        {
+          "done": true,
+          "text": "Update docs/2_schema.md with type naming"
+        },
+        {
+          "done": true,
+          "text": "Type-check passes"
+        },
+        {
+          "done": true,
+          "text": "Build passes"
+        }
       ]
     },
     "mcp-server-and-skills": {
       "id": "mcp-server-and-skills",
       "title": "MCP server (NPX) + skills/guides — publishable package, shared interface for humans and bots",
-      "status": "ready",
+      "status": "review",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-07-mcp-server-and-skills.md",
-      "notes": "Make the MCP server an NPX package (like ra-h-mcp-server). Add skills/guides system that ships with the server. Same interface for humans (Claude Code/Desktop) and Discord bots. Bot imports service layer directly.\n\nDepends on: dev-setup-cleanup (DONE), schema-and-port (DONE), enable-vector-search (DONE), content-ingestion\nBlocks: discord-bot",
+      "notes": "Standalone NPX MCP package implemented and published (`latent-space-hub-mcp`). Guide-first system in place (no LS-specific .claude skills). Core ls_* CRUD/search/guide tools implemented. Shared service layer extracted under `apps/mcp-server-standalone/services` for bot reuse.\n\nDepends on: dev-setup-cleanup (DONE), schema-and-port (DONE), enable-vector-search (DONE), content-ingestion (DONE)\nBlocks: discord-bot (partially unblocked; integration path now implemented)",
       "tasks": [
-        { "done": false, "text": "Create apps/mcp-server-standalone/ structure" },
-        { "done": false, "text": "Implement Turso client service" },
-        { "done": false, "text": "Port node/edge/dimension/chunk services to standalone JS" },
-        { "done": false, "text": "Implement guide service (system + custom guides)" },
-        { "done": false, "text": "Write system guides (start-here, schema, creating-nodes, edges, dimensions, search, content-types)" },
-        { "done": false, "text": "Register all ls_* MCP tools" },
-        { "done": false, "text": "Add config/auth handling (env vars + config file)" },
-        { "done": false, "text": "Test locally with Claude Code" },
-        { "done": false, "text": "Write README" },
-        { "done": false, "text": "Publish to NPM" },
-        { "done": false, "text": "Test npx latent-space-hub-mcp end-to-end" }
+        {
+          "done": true,
+          "text": "Create apps/mcp-server-standalone/ structure"
+        },
+        {
+          "done": true,
+          "text": "Implement Turso client service"
+        },
+        {
+          "done": true,
+          "text": "Port node/edge/dimension/chunk services to standalone JS"
+        },
+        {
+          "done": true,
+          "text": "Implement guide service (system + custom guides)"
+        },
+        {
+          "done": false,
+          "text": "Write system guides (start-here, schema, creating-nodes, edges, dimensions, search, content-types)"
+        },
+        {
+          "done": true,
+          "text": "Register all ls_* MCP tools"
+        },
+        {
+          "done": true,
+          "text": "Add config/auth handling (env vars + config file)"
+        },
+        {
+          "done": true,
+          "text": "Test locally with Claude Code"
+        },
+        {
+          "done": true,
+          "text": "Write README"
+        },
+        {
+          "done": true,
+          "text": "Publish to NPM"
+        },
+        {
+          "done": true,
+          "text": "Test npx latent-space-hub-mcp end-to-end"
+        }
       ]
     },
     "discord-bot": {
       "id": "discord-bot",
       "title": "Discord bots — Sig & Slop, dual-personality bots backed by LS knowledge base",
-      "status": "ready",
+      "status": "in_progress",
       "type": "feature",
       "priority": "medium",
       "prd": "docs/development/prd-06-discord-bot.md",
-      "notes": "Two bots from day one. Sig (precise, factual, cites sources) and Slop (unhinged, hot takes, debate starter). Same KB, different personalities.\n\nArchitecture: OpenClaw-style Discord gateway — single Node.js process, thread-per-conversation. No complex MD workspace files — bots pull everything from the LS knowledge base. System prompt + KB search = their entire world.\n\nBoth react to new content, debate each other, and draw community members into threads.\n\nDepends on: schema-and-port (DONE), enable-vector-search (DONE), content-ingestion, mcp-server-and-skills",
+      "notes": "Repo implemented (`latent-space-bots`) with dual Discord clients, thread-first behavior, slash commands, hybrid KB retrieval, SOUL persona docs, and Railway deployment. Live env issue fixed (Turso URL placeholder replaced with real host) and redeployed successfully.\n\nRemaining: demo to swyx, final LS Discord rollout.\n\nDepends on: schema-and-port (DONE), enable-vector-search (DONE), content-ingestion (DONE), mcp-server-and-skills (REVIEW)",
       "tasks": [
-        { "done": false, "text": "Create new repo" },
-        { "done": false, "text": "Discord.js gateway — single process routing to both bots" },
-        { "done": false, "text": "Register Sig and Slop as separate Discord applications" },
-        { "done": false, "text": "Thread-per-conversation model (OpenClaw pattern)" },
-        { "done": false, "text": "Import LS MCP service layer for KB access" },
-        { "done": false, "text": "Sig system prompt — precise, factual, cites sources" },
-        { "done": false, "text": "Slop system prompt — unhinged, hot takes, confrontational" },
-        { "done": false, "text": "Cross-bot debate: both react to same content in shared threads" },
-        { "done": false, "text": "Deploy to test Discord server" },
-        { "done": false, "text": "Demo to swyx" },
-        { "done": false, "text": "Add to LS Discord" }
+        {
+          "done": true,
+          "text": "Create new repo"
+        },
+        {
+          "done": true,
+          "text": "Discord.js gateway — single process routing to both bots"
+        },
+        {
+          "done": true,
+          "text": "Register Sig and Slop as separate Discord applications"
+        },
+        {
+          "done": true,
+          "text": "Thread-per-conversation model (OpenClaw pattern)"
+        },
+        {
+          "done": true,
+          "text": "Import LS MCP service layer for KB access"
+        },
+        {
+          "done": true,
+          "text": "Sig system prompt — precise, factual, cites sources"
+        },
+        {
+          "done": true,
+          "text": "Slop system prompt — unhinged, hot takes, confrontational"
+        },
+        {
+          "done": true,
+          "text": "Cross-bot debate: both react to same content in shared threads"
+        },
+        {
+          "done": true,
+          "text": "Deploy to test Discord server"
+        },
+        {
+          "done": false,
+          "text": "Demo to swyx"
+        },
+        {
+          "done": false,
+          "text": "Add to LS Discord"
+        }
       ]
     },
     "storylines": {
@@ -111,13 +267,34 @@
       "prd": "docs/development/prd-08-storylines.md",
       "notes": "BBC-inspired narrative layer. A storyline is a node_type='storyline' that tracks arcs like 'the scaling laws debate' or 'open vs closed source AI' across episodes, guests, and claims over time. Enables editorial planning and temporal bot queries.\n\nFuture — revisit after core graph is populated and bot is live.\n\nDepends on: schema-and-port (DONE), content-ingestion, mcp-server-and-skills",
       "tasks": [
-        { "done": false, "text": "Define storyline metadata schema" },
-        { "done": false, "text": "Add storyline edge types (advances, central_to, subsumes)" },
-        { "done": false, "text": "Add temporal edge metadata (valid_from, valid_until)" },
-        { "done": false, "text": "Create initial storylines from existing content" },
-        { "done": false, "text": "Storyline timeline UI component" },
-        { "done": false, "text": "Bot can answer 'trace the arc of X across episodes'" },
-        { "done": false, "text": "Auto-detect emerging storylines from new content" }
+        {
+          "done": false,
+          "text": "Define storyline metadata schema"
+        },
+        {
+          "done": false,
+          "text": "Add storyline edge types (advances, central_to, subsumes)"
+        },
+        {
+          "done": false,
+          "text": "Add temporal edge metadata (valid_from, valid_until)"
+        },
+        {
+          "done": false,
+          "text": "Create initial storylines from existing content"
+        },
+        {
+          "done": false,
+          "text": "Storyline timeline UI component"
+        },
+        {
+          "done": false,
+          "text": "Bot can answer 'trace the arc of X across episodes'"
+        },
+        {
+          "done": false,
+          "text": "Auto-detect emerging storylines from new content"
+        }
       ]
     }
   },

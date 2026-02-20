@@ -210,11 +210,35 @@ This means the service layer needs to be cleanly separated from the MCP transpor
 
 ## Done =
 
-- [ ] `npx latent-space-hub-mcp` starts and connects to Turso
-- [ ] All `ls_*` tools work (CRUD + search + guides)
-- [ ] System guides bundled and accessible via `ls_read_guide`
-- [ ] Custom guides can be created/read/deleted
-- [ ] Service layer importable directly (for bot use)
-- [ ] README documents install, config, and all available tools
-- [ ] Published on NPM
-- [ ] Tested with Claude Code and Claude Desktop
+- [x] `npx latent-space-hub-mcp` starts and connects to Turso
+- [x] All core `ls_*` tools work (CRUD + search + guides)
+- [x] System guides bundled and accessible via `ls_read_guide`
+- [x] Custom guides can be created/read/deleted
+- [x] Service layer extracted for bot use (`apps/mcp-server-standalone/services`)
+- [x] README documents install, config, and available tools
+- [x] Published on NPM (`latent-space-hub-mcp`)
+- [ ] Tested with both Claude Code and Claude Desktop
+
+---
+
+## Status Update (2026-02-20)
+
+### Completed
+
+- Standalone package created: `apps/mcp-server-standalone/`
+- MCP server published and installable via `npx latent-space-hub-mcp`
+- Config/auth flow implemented (`TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` + config file fallback)
+- Guide system implemented with immutable bundled guides + custom guide CRUD
+- Core ls tools implemented for context, nodes, edges, dimensions, content search, and read-only SQL
+- Shared service layer extracted in `apps/mcp-server-standalone/services` to support bot reuse
+- Guide-only direction adopted for LS-specific behavior (LS `.claude/skills/ls-*` removed)
+
+### Remaining
+
+- Add/curate the full target set of system guides (`creating-nodes`, `edges`, `dimensions`, `search`, `content-types`) to match plan completeness
+- Validate end-to-end in Claude Desktop in addition to Claude Code
+
+### Notes
+
+- `latent-space-hub-mcp@0.1.1` is live.
+- Bot integration path is implemented, but package export parity for `./services` should be verified on next publish.
