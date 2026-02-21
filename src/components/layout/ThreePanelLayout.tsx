@@ -6,6 +6,7 @@ import SearchModal from '../nodes/SearchModal';
 import { Node } from '@/types/database';
 import { DatabaseEvent } from '@/services/events';
 import { usePersistentState } from '@/hooks/usePersistentState';
+import { getYouTubeThumbnail } from '@/utils/thumbnails';
 
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 
@@ -115,6 +116,7 @@ function TypeNodeList({
           const dims = node.dimensions?.slice(0, 3) || [];
           const edgeCount = node.edge_count ?? 0;
           const dateStr = node.updated_at || node.created_at;
+          const thumb = getYouTubeThumbnail(node.link);
 
           return (
             <button
@@ -125,8 +127,7 @@ function TypeNodeList({
               style={{
                 width: '100%',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
+                gap: '12px',
                 padding: '12px 24px',
                 background: isHovered ? '#161616' : 'transparent',
                 border: 'none',
@@ -135,8 +136,29 @@ function TypeNodeList({
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'background 0.12s ease',
+                alignItems: 'flex-start',
               }}
             >
+              {/* Thumbnail */}
+              {thumb && (
+                <img
+                  src={thumb}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    width: '96px',
+                    height: '54px',
+                    objectFit: 'cover',
+                    borderRadius: '4px',
+                    flexShrink: 0,
+                    background: '#1a1a1a',
+                    marginTop: '2px',
+                  }}
+                />
+              )}
+
+              {/* Text content */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {/* Title */}
               <div style={{
                 fontSize: '13px',
@@ -214,6 +236,7 @@ function TypeNodeList({
                   </div>
                 )}
               </div>
+              </div>{/* close text content wrapper */}
             </button>
           );
         })}

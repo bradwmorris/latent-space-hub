@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { CATEGORIES, CATEGORY_MAP } from '@/config/categories';
+import { getYouTubeThumbnail } from '@/utils/thumbnails';
 
 interface PreviewItem {
   id: number;
   title: string;
   date?: string;
   edge_count?: number;
+  link?: string;
 }
 
 interface CategoryData {
@@ -213,53 +215,78 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                   No items yet
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {preview.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => onNodeClick(item.id)}
-                      onMouseEnter={() => setHoveredNode(item.id)}
-                      onMouseLeave={() => setHoveredNode(null)}
-                      tabIndex={0}
-                      aria-label={item.title}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '8px',
-                        padding: '5px 4px',
-                        background: hoveredNode === item.id ? '#1f1f1f' : 'transparent',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        transition: 'background 0.1s',
-                        width: '100%',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <span style={{
-                        fontSize: '12px',
-                        color: hoveredNode === item.id ? '#ddd' : '#aaa',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        flex: 1,
-                        transition: 'color 0.1s',
-                      }}>
-                        {item.title}
-                      </span>
-                      <span style={{
-                        fontSize: '11px', color: '#444',
-                        whiteSpace: 'nowrap', flexShrink: 0,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}>
-                        {catConfig?.sortMode === 'connected' && item.edge_count !== undefined
-                          ? `${item.edge_count} edges`
-                          : item.date || ''
-                        }
-                      </span>
-                    </button>
-                  ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {preview.map((item) => {
+                    const thumb = getYouTubeThumbnail(item.link);
+                    const isItemHovered = hoveredNode === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => onNodeClick(item.id)}
+                        onMouseEnter={() => setHoveredNode(item.id)}
+                        onMouseLeave={() => setHoveredNode(null)}
+                        tabIndex={0}
+                        aria-label={item.title}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '4px',
+                          background: isItemHovered ? '#1f1f1f' : 'transparent',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'background 0.1s',
+                          width: '100%',
+                          textAlign: 'left',
+                        }}
+                      >
+                        {/* Thumbnail */}
+                        {thumb && (
+                          <img
+                            src={thumb}
+                            alt=""
+                            loading="lazy"
+                            style={{
+                              width: '64px',
+                              height: '36px',
+                              objectFit: 'cover',
+                              borderRadius: '3px',
+                              flexShrink: 0,
+                              background: '#1a1a1a',
+                            }}
+                          />
+                        )}
+
+                        {/* Text */}
+                        <div style={{
+                          flex: 1, minWidth: 0,
+                          display: 'flex', flexDirection: 'column', gap: '1px',
+                        }}>
+                          <span style={{
+                            fontSize: '12px',
+                            color: isItemHovered ? '#ddd' : '#aaa',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            transition: 'color 0.1s',
+                          }}>
+                            {item.title}
+                          </span>
+                          <span style={{
+                            fontSize: '11px', color: '#444',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}>
+                            {catConfig?.sortMode === 'connected' && item.edge_count !== undefined
+                              ? `${item.edge_count} edges`
+                              : item.date || ''
+                            }
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -9,6 +9,7 @@ interface PreviewItem {
   title: string;
   date?: string;
   edge_count?: number;
+  link?: string;
 }
 
 interface CategoryData {
@@ -56,10 +57,11 @@ export async function GET() {
           const previewResult = await sqlite.query<{
             id: number;
             title: string;
+            link: string | null;
             event_date: string | null;
             updated_at: string;
           }>(
-            `SELECT id, title, event_date, updated_at
+            `SELECT id, title, link, event_date, updated_at
              FROM nodes
              WHERE node_type = ?
              ORDER BY event_date DESC NULLS LAST, updated_at DESC
@@ -69,6 +71,7 @@ export async function GET() {
           preview = previewResult.rows.map(r => ({
             id: Number(r.id),
             title: r.title,
+            link: r.link || undefined,
             date: r.event_date || r.updated_at?.split('T')[0],
           }));
         } else {
