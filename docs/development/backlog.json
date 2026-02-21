@@ -2,6 +2,7 @@
   "queue": [
     "data-refinement",
     "dashboard-and-categories",
+    "documentation-overhaul",
     "discord-bot-v2",
     "storylines"
   ],
@@ -114,6 +115,33 @@
           "done": true,
           "text": "Type-check + build + verify"
         }
+      ]
+    },
+    "documentation-overhaul": {
+      "id": "documentation-overhaul",
+      "title": "Documentation overhaul — rewrite all docs for LS Hub identity, split internal + public-facing",
+      "status": "in_progress",
+      "type": "docs",
+      "priority": "high",
+      "prd": "docs/development/prd-14-documentation-overhaul.md",
+      "notes": "Current docs were copied from RA-H and don't reflect the product. Two layers: (1) internal developer docs covering architecture, categories, bots, MCP, ingestion, search, and contributing, and (2) public-facing guides accessible in the live app.\n\nNo blocking dependencies.",
+      "tasks": [
+        { "done": true, "text": "Archive stale docs to docs/archive/" },
+        { "done": true, "text": "Rename kept files — drop number prefixes" },
+        { "done": true, "text": "Write docs/overview.md" },
+        { "done": true, "text": "Write docs/categories.md" },
+        { "done": true, "text": "Write docs/bots.md" },
+        { "done": true, "text": "Rewrite docs/mcp-server.md" },
+        { "done": true, "text": "Update docs/ingestion.md" },
+        { "done": true, "text": "Write docs/search.md" },
+        { "done": true, "text": "Write docs/architecture.md" },
+        { "done": true, "text": "Write docs/contributing.md" },
+        { "done": true, "text": "Write docs/deployment.md" },
+        { "done": true, "text": "Update docs/schema.md" },
+        { "done": true, "text": "Update TROUBLESHOOTING.md" },
+        { "done": true, "text": "Create public-facing guides (welcome, categories, mcp-quickstart, bots)" },
+        { "done": true, "text": "Rewrite docs/README.md" },
+        { "done": true, "text": "Update CLAUDE.md" }
       ]
     },
     "discord-bot-v2": {

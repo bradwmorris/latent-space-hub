@@ -1,103 +1,76 @@
 ---
 name: Welcome to the Hub
-description: Your guide to exploring the Latent Space knowledge graph and its best entry points.
+description: What is Latent Space Hub, how to explore, and where to start.
 ---
 
 # Welcome to the Latent Space Hub
 
-This knowledge graph contains curated content from the Latent Space podcast, AI Engineer conferences, and community insights. It is updated continuously. Here is how to get the most out of it.
+A knowledge graph for the entire Latent Space universe — every podcast episode, article, AI News digest, conference talk, paper club session, and guest, structured, connected, and searchable.
 
 ## What's Inside
 
-### Content Collections (Dimensions)
+The hub organizes content into **8 categories**:
 
-The hub organizes content into themed dimensions:
-
-**AIE Videos**
-Talks, workshops, and presentations from AI Engineer conferences including the Code Summit 2025 and World's Fair 2025.
-
-**LS Pod**
-Episodes from the Latent Space podcast — deep dives with industry leaders and practitioners.
-
-**LS Guest**
-Profiles of notable guests who've appeared on Latent Space.
-
-**AI News**
-Curated news and developments in AI.
-
-**AIE Code Summit 2025**
-Focused content from the coding-centric AI Engineer summit.
-
-**Insights**
-Key takeaways and quotable insights extracted from episodes.
-
-**AIE World's Fair 2025**
-Content from the flagship AI Engineer conference.
-
-**LS Articles**
-Written essays and analysis from Latent Space.
+- **Podcast** — Latent Space podcast episodes: deep dives with industry leaders
+- **Guest** — People who appear on or create Latent Space content
+- **Article** — Blog posts from the latent.space Substack
+- **Entity** — Organizations (OpenAI, Anthropic) and technical topics (RAG, agents)
+- **Builders Club** — Meetup recordings and community builds
+- **Paper Club** — Deep-dive paper discussions
+- **Workshop** — Conference talks, tutorials, AI Engineer events
+- **AI News** — Daily AINews digests from smol.ai
 
 ## How to Explore
 
-### The Map View
+### Dashboard
 
-The central visualization shows nodes as circles, with connections (edges) showing relationships between content. Larger nodes have more connections and may be more central to topics.
-
-### Dimension Filtering
-
-Use the Dimensions pane to filter by content type. Click a dimension to see only nodes in that category.
-
-### Focus Mode
-
-Click any node to see its full details:
-- Title and description
-- Full content/notes
-- Connected nodes
-- Source links (YouTube, articles, etc.)
+The landing page shows all 8 categories with preview items. Click any category to browse.
 
 ### Search
 
-Use the search to find specific topics, speakers, or concepts.
+Use the search bar (Cmd+K) to find specific topics, guests, or episodes.
 
-### Ask via MCP (Agents)
+### Map View
 
-You can connect an external agent (Claude Code, Cursor, OpenCode) and ask questions directly. The MCP tools are read-only, so you cannot modify the hub.
+Switch to Map view to see the knowledge graph visually — nodes as circles, edges as connections. Larger nodes have more connections.
+
+### Focus Panel
+
+Click any node to see its full details: description, notes, connections to other nodes, source links, and dimensions.
+
+### MCP (for AI Agents)
+
+Connect an AI agent (Claude Code, Cursor) via MCP to search and explore the graph programmatically. See the **MCP Quickstart** guide for setup.
 
 ## Recommended Starting Points
 
-### If you want to understand agents:
-Start with the **Agent Engineering** guide — a curated path through 15+ talks and articles.
+**Understand AI agents:** Browse the **Agent Engineering** guide — a curated path through 15+ talks and articles.
 
-### If you want to understand context management:
-Start with the **Context Engineering** guide — master the art of information flow to AI systems.
+**Understand context/RAG:** Browse the **Context Engineering** guide — master information flow to AI systems.
 
-### If you want conference highlights:
-Browse the **AIE Code Summit 2025** or **AIE World's Fair 2025** dimensions for recent talks.
+**Latest episodes:** Click the **Podcast** category on the dashboard for recent episodes.
 
-### If you want podcast deep-dives:
-The **LS Pod** dimension contains full episodes with industry leaders.
+**Conference highlights:** Browse **Workshop** for AI Engineer talks and tutorials.
 
-## Key Topics Covered
+## The Bots
+
+Two AI personalities powered by this knowledge base live on Discord:
+
+- **Sig (Signal)** — Precise, factual, cites specific episodes and dates
+- **Slop (Entropy)** — Opinionated, provocative, connects unexpected dots
+
+See the **Meet the Bots** guide for more.
+
+## Key Topics
 
 - Agent Engineering & Architecture
 - Context Engineering & RAG
 - Model Context Protocol (MCP)
 - Coding Agents & AI-Assisted Development
-- Research Agents & Deep Research
 - Multi-Agent Systems
-- Developer Experience
 - AI Infrastructure & Scaling
-
-## Tips for Effective Exploration
-
-1. **Follow the connections** — Related content is linked. Click through to discover new nodes.
-
-2. **Check the insights** — The insight dimension contains distilled wisdom from longer content.
-
-3. **Use the guides** — Each guide provides a structured learning path through a topic.
-
-4. **Explore dimensions** — Each dimension has a coherent theme worth exploring fully.
+- Research Agents & Deep Research
 
 ---
 
-*Happy exploring! This hub represents hundreds of hours of curated AI engineering knowledge.*
+*This hub represents hundreds of hours of curated AI engineering knowledge. Happy exploring.*
