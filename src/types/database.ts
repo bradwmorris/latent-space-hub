@@ -1,14 +1,15 @@
 // ─── Node Types ──────────────────────────────────────────────────────────────
 
 export type NodeType =
-  | 'episode'
-  | 'person'
-  | 'organization'
-  | 'topic'
-  | 'source'
-  | 'event'
-  | 'concept'
-  | 'subscriber';
+  | 'podcast'
+  | 'guest'
+  | 'article'
+  | 'entity'
+  | 'builders-club'
+  | 'paper-club'
+  | 'workshop'
+  | 'ainews'
+  | 'hub';        // Structural anchor — not user-facing
 
 export interface Node {
   id: number;
@@ -34,73 +35,66 @@ export interface Node {
 
 // ─── Node Metadata Schemas (application-layer validation) ────────────────────
 
-export interface EpisodeMetadata {
-  publish_date: string;
-  duration?: string;
-  series: string;
-  audio_url?: string;
-  video_url?: string;
-  episode_number?: number;
-  season?: number;
+export interface ContentMetadata {
+  source?: string;
+  video_id?: string;
+  channel_name?: string;
+  publish_date?: string;
+  duration_seconds?: number;
+  guests?: string[];
+  series?: string;
+  hostname?: string;
+  author?: string;
+  story_count?: number;
+  session_number?: number;
+  paper_title?: string;
+  paper_authors?: string[];
+  paper_url?: string;
+  session_date?: string;
+  format?: string;
+  topic?: string;
+  tools?: string[];
 }
 
-export interface PersonMetadata {
-  role: string;
+export interface GuestMetadata {
+  role?: string;
   affiliations?: string[];
   expertise?: string[];
   twitter?: string;
   website?: string;
-  contact?: string;
+  appearances?: number;
 }
 
-export interface OrganizationMetadata {
-  org_type: 'startup' | 'lab' | 'bigco' | 'institution';
+export interface EntityMetadata {
+  entity_type?: 'organization' | 'topic' | 'tool' | 'person' | 'concept';
+  org_type?: string;
   website?: string;
   founded?: string;
   hq?: string;
-}
-
-export interface TopicMetadata {
   parent_topic?: string;
   aliases?: string[];
+  github?: string;
+  language?: string;
+  role?: string;
+  reason?: string;
 }
 
-export interface SourceMetadata {
-  source_type: 'paper' | 'article' | 'blog' | 'doc' | 'newsletter';
-  authors?: string[];
-  publish_date?: string;
-  doi?: string;
-}
-
-export interface EventMetadata {
-  event_date: string;
-  event_type: 'conference' | 'launch' | 'release';
-  location?: string;
-  url?: string;
-}
-
-export interface ConceptMetadata {
-  definition?: string;
-  related_terms?: string[];
-}
-
-export interface SubscriberMetadata {
-  platform: 'discord' | 'web';
-  platform_id: string;
-  display_name?: string;
-  joined_date?: string;
-  tier?: string;
+export interface HubMetadata {
+  hub_type: 'master' | 'series';
+  anchors_type?: string;
+  anchors_types?: string[];
 }
 
 export type NodeMetadataMap = {
-  episode: EpisodeMetadata;
-  person: PersonMetadata;
-  organization: OrganizationMetadata;
-  topic: TopicMetadata;
-  source: SourceMetadata;
-  event: EventMetadata;
-  concept: ConceptMetadata;
-  subscriber: SubscriberMetadata;
+  podcast: ContentMetadata;
+  ainews: ContentMetadata;
+  article: ContentMetadata;
+  'builders-club': ContentMetadata;
+  'paper-club': ContentMetadata;
+  workshop: ContentMetadata;
+  guest: GuestMetadata;
+  entity: EntityMetadata;
+  hub: HubMetadata;
 };
 
 // ─── Chunks ──────────────────────────────────────────────────────────────────

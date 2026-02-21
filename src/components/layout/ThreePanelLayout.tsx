@@ -6,6 +6,7 @@ import SearchModal from '../nodes/SearchModal';
 import { Node } from '@/types/database';
 import { DatabaseEvent } from '@/services/events';
 import { usePersistentState } from '@/hooks/usePersistentState';
+import { getYouTubeThumbnail } from '@/utils/thumbnails';
 
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 
@@ -15,6 +16,7 @@ import MainViewSwitcher, { MainView } from './MainViewSwitcher';
 
 // Content pane components
 import { NodePane, MapPane, ViewsPane } from '../panes';
+import Dashboard from '../dashboard/Dashboard';
 import QuickAddInput from '../agents/QuickAddInput';
 
 // ─── Type View: list of nodes for selected type ──────────────────────────────
@@ -114,6 +116,7 @@ function TypeNodeList({
           const dims = node.dimensions?.slice(0, 3) || [];
           const edgeCount = node.edge_count ?? 0;
           const dateStr = node.updated_at || node.created_at;
+          const thumb = getYouTubeThumbnail(node.link);
 
           return (
             <button
@@ -124,8 +127,7 @@ function TypeNodeList({
               style={{
                 width: '100%',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
+                gap: '12px',
                 padding: '12px 24px',
                 background: isHovered ? '#161616' : 'transparent',
                 border: 'none',
@@ -134,8 +136,29 @@ function TypeNodeList({
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'background 0.12s ease',
+                alignItems: 'flex-start',
               }}
             >
+              {/* Thumbnail */}
+              {thumb && (
+                <img
+                  src={thumb}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    width: '96px',
+                    height: '54px',
+                    objectFit: 'cover',
+                    borderRadius: '4px',
+                    flexShrink: 0,
+                    background: '#1a1a1a',
+                    marginTop: '2px',
+                  }}
+                />
+              )}
+
+              {/* Text content */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {/* Title */}
               <div style={{
                 fontSize: '13px',
@@ -213,6 +236,7 @@ function TypeNodeList({
                   </div>
                 )}
               </div>
+              </div>{/* close text content wrapper */}
             </button>
           );
         })}
@@ -227,7 +251,7 @@ export default function ThreePanelLayout() {
 
   // ── New simple state model ──
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = usePersistentState<boolean>('ui.leftPanel.collapsed', false);
-  const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'map');
+  const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'dashboard');
   const [selectedType, setSelectedType] = usePersistentState<string | null>('ui.selectedType', null);
 
   // Node focus state
@@ -445,6 +469,17 @@ export default function ThreePanelLayout() {
 
     // Otherwise render the active view
     switch (activeView) {
+      case 'dashboard':
+        return (
+          <Dashboard
+            onCategoryClick={(categoryKey) => {
+              setSelectedType(categoryKey);
+              setActiveView('type');
+            }}
+            onNodeClick={handleNodeSelect}
+          />
+        );
+
       case 'type':
         return (
           <TypeNodeList

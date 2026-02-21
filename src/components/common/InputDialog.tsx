@@ -99,7 +99,7 @@ export default function InputDialog({
           color: '#e5e5e5', 
           marginBottom: '12px',
           letterSpacing: '0.01em',
-          fontFamily: "'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          fontFamily: 'inherit'
         }}>
           {title}
         </div>
@@ -131,7 +131,7 @@ export default function InputDialog({
             marginBottom: '24px',
             outline: 'none',
             transition: 'border-color 0.2s',
-            fontFamily: "'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+            fontFamily: 'inherit'
           }}
           onFocus={(e) => {
             e.target.style.borderColor = '#3a3a3a';

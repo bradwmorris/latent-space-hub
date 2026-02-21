@@ -40,7 +40,7 @@ export default function MarkdownFormatter({ content, onTextSelect }: MarkdownFor
         maxWidth: '680px',
         margin: '0 auto',
         padding: '24px 16px',
-        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontFamily: 'inherit',
         fontSize: '16px',
         lineHeight: '1.75',
         color: '#d4d4d4',

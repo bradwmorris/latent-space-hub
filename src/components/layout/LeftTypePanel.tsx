@@ -10,7 +10,8 @@ import {
   Plus,
   Settings,
 } from 'lucide-react';
-import { Node, NodeType } from '@/types/database';
+import { Node } from '@/types/database';
+import { CATEGORIES } from '@/config/categories';
 
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 
@@ -64,6 +65,12 @@ export default function LeftTypePanel({
     };
     fetchTypes();
   }, []);
+
+  // Build a lookup map from API data
+  const countMap: Record<string, number> = {};
+  for (const tc of typeCounts) {
+    countMap[tc.type] = tc.count;
+  }
 
   // Fetch nodes for a type when expanded
   const fetchNodesForType = useCallback(async (type: string) => {
@@ -316,7 +323,7 @@ export default function LeftTypePanel({
         )}
       </div>
 
-      {/* Type folders */}
+      {/* Category list — fixed 8 categories in canonical order */}
       <div
         style={{
           flex: 1,
@@ -324,53 +331,52 @@ export default function LeftTypePanel({
           padding: '4px 0',
         }}
       >
-        {typeCounts.length === 0 && (
-          <div style={{ padding: '24px 16px', color: '#555', fontSize: '12px', textAlign: 'center' }}>
-            No types found
-          </div>
-        )}
-        {typeCounts.map(({ type, count }) => {
-          const isExpanded = expandedTypes.has(type);
-          const isSelected = selectedType === type;
-          const isHovered = hoveredType === type;
-          const isLoading = loadingTypes.has(type);
-          const nodes = typeNodes[type] || [];
+        {CATEGORIES.map(({ key, label, icon: Icon }) => {
+          const count = countMap[key] || 0;
+          const isExpanded = expandedTypes.has(key);
+          const isSelected = selectedType === key;
+          const isHovered = hoveredType === key;
+          const isLoading = loadingTypes.has(key);
+          const nodes = typeNodes[key] || [];
+          const isDimmed = count === 0;
 
           return (
-            <div key={type}>
-              {/* Type folder header */}
+            <div key={key}>
+              {/* Category header */}
               <button
-                onClick={() => handleTypeClick(type)}
-                onMouseEnter={() => setHoveredType(type)}
+                onClick={() => handleTypeClick(key)}
+                onMouseEnter={() => setHoveredType(key)}
                 onMouseLeave={() => setHoveredType(null)}
                 style={{
                   width: '100%',
                   padding: '6px 12px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   background: isSelected ? '#151515' : (isHovered ? '#0f0f0f' : 'transparent'),
                   border: 'none',
                   borderLeft: isSelected ? '2px solid #666' : '2px solid transparent',
-                  color: isSelected ? '#e5e5e5' : '#999',
+                  color: isDimmed ? '#444' : (isSelected ? '#e5e5e5' : '#999'),
                   cursor: 'pointer',
                   fontSize: '13px',
                   textAlign: 'left',
                   transition: 'background 0.1s, color 0.1s',
+                  opacity: isDimmed ? 0.5 : 1,
                 }}
                 aria-expanded={isExpanded}
-                aria-label={`${type} - ${count} nodes`}
+                aria-label={`${label}, ${count} nodes`}
               >
                 {isExpanded ? (
                   <ChevronDown size={14} style={{ flexShrink: 0, color: '#555' }} />
                 ) : (
                   <ChevronRight size={14} style={{ flexShrink: 0, color: '#555' }} />
                 )}
-                <span style={{ flex: 1, textTransform: 'capitalize' }}>{type}</span>
+                <Icon size={14} style={{ flexShrink: 0 }} aria-hidden="true" />
+                <span style={{ flex: 1 }}>{label}</span>
                 <span
                   style={{
                     fontSize: '11px',
-                    color: '#555',
+                    color: isDimmed ? '#333' : '#555',
                     fontVariantNumeric: 'tabular-nums',
                   }}
                 >

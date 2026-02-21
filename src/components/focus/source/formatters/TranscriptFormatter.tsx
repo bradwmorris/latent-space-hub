@@ -213,7 +213,7 @@ export default function TranscriptFormatter({ content, onTextSelect, highlighted
 
           {/* Text content */}
           <div style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: 'inherit',
             fontSize: '16px',
             lineHeight: '1.75',
             color: '#d4d4d4',

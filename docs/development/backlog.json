@@ -1,6 +1,7 @@
 {
   "queue": [
     "data-refinement",
+    "dashboard-and-categories",
     "discord-bot-v2",
     "storylines"
   ],
@@ -8,51 +9,110 @@
     "data-refinement": {
       "id": "data-refinement",
       "title": "Data refinement & hygiene — fix NULL descriptions, notes, types, edges, and chunk gaps across the entire graph",
-      "status": "ready",
+      "status": "in_progress",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-10-data-refinement.md",
-      "notes": "Critical prerequisite for bot quality. The KB has 4K nodes but most have NULL descriptions, NULL notes, wrong node_types, and junk edges. Bots can only be as good as the data they retrieve.\n\nDepends on: content-ingestion (DONE), schema-and-port (DONE)\nBlocks: discord-bot-v2 (bot quality depends on clean data)",
+      "notes": "Critical prerequisite for bot quality. Script built, ready for execution.\n\nPhase 0 (audit) and Phase 0.5 (graph structure decision: Option C hybrid hubs) DONE.\nPhase 1 (script) DONE — scripts/refine-data.ts with all subcommands.\nPhase 2 (execution) needs human review loops — run task-by-task.\n\nDepends on: content-ingestion (DONE), schema-and-port (DONE)\nBlocks: discord-bot-v2 (bot quality depends on clean data)",
       "tasks": [
         {
-          "done": false,
+          "done": true,
           "text": "Phase 0: Audit — sample nodes by type, check edges, chunk coverage, duplicates"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Phase 0.5: Evaluate graph structure — hub nodes vs flat types vs hybrid (see PRD open question)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Phase 0.5: Decide and implement graph structure (if hubs: create nodes + edges)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Phase 1: Build scripts/refine-data.ts with --audit, --dry-run, --task, --limit"
         },
         {
           "done": false,
-          "text": "Task: Fix node_types — migrate episode→podcast/meetup/paper-club, source→article/newsletter"
+          "text": "Task: Fix node_types — npx tsx scripts/refine-data.ts --task types"
         },
         {
           "done": false,
-          "text": "Task: Generate descriptions for all 1,736 NULL-description nodes"
+          "text": "Task: Create hub nodes — npx tsx scripts/refine-data.ts --task hubs"
         },
         {
           "done": false,
-          "text": "Task: Generate notes for all 1,670 NULL-notes nodes"
+          "text": "Task: Populate event dates — npx tsx scripts/refine-data.ts --task event-dates"
         },
         {
           "done": false,
-          "text": "Task: Clean edges — rewrite 2,619 ai_similarity JSON blobs to human-readable, fix 100 NULL contexts"
+          "text": "Task: Generate descriptions — npx tsx scripts/refine-data.ts --task descriptions"
         },
         {
           "done": false,
-          "text": "Task: Fill chunk gaps — chunk+embed 1,532 nodes missing from chunks table"
+          "text": "Task: Generate notes — npx tsx scripts/refine-data.ts --task notes"
+        },
+        {
+          "done": false,
+          "text": "Task: Clean edges — npx tsx scripts/refine-data.ts --task edges"
+        },
+        {
+          "done": false,
+          "text": "Task: Fill chunk gaps — npx tsx scripts/refine-data.ts --task chunks"
         },
         {
           "done": false,
           "text": "Verify: Re-run --audit, confirm zero NULLs, spot-check quality"
+        }
+      ]
+    },
+    "dashboard-and-categories": {
+      "id": "dashboard-and-categories",
+      "title": "Dashboard + Category Taxonomy — 8 canonical categories, dashboard overview, sidebar overhaul",
+      "status": "review",
+      "type": "feature",
+      "priority": "high",
+      "prd": "docs/development/prd-12-dashboard-and-categories.md",
+      "notes": "Two things: (1) a dashboard view as the default landing page showing stats + 8 category cards with previews, and (2) replace generic node_type values with 8 branded categories (podcast, guest, article, entity, builders-club, paper-club, workshop, ainews). Updates sidebar to fixed category list with icons.\n\nDepends on: data-refinement (type migration uses new taxonomy)\nBlocks: discord-bot-v2 (bots need to understand the 8 categories)",
+      "tasks": [
+        {
+          "done": true,
+          "text": "Create src/config/categories.ts — canonical 8-category config with icons and sort modes"
+        },
+        {
+          "done": true,
+          "text": "Update NodeType in src/types/database.ts to new 8 categories + hub"
+        },
+        {
+          "done": true,
+          "text": "Update LeftTypePanel.tsx — fixed category list, icons, branded labels, fixed order"
+        },
+        {
+          "done": true,
+          "text": "Build GET /api/dashboard endpoint — stats + category previews in single call"
+        },
+        {
+          "done": true,
+          "text": "Build Dashboard.tsx component — stats bar + 8 category cards with preview items"
+        },
+        {
+          "done": true,
+          "text": "Update MainViewSwitcher.tsx — add dashboard view, set as default"
+        },
+        {
+          "done": true,
+          "text": "Update ThreePanelLayout.tsx — render dashboard, default activeView = dashboard"
+        },
+        {
+          "done": true,
+          "text": "Update scripts/refine-data.ts --task types for new taxonomy — already done in PRD-10"
+        },
+        {
+          "done": true,
+          "text": "Clean up metadata interfaces in database.ts"
+        },
+        {
+          "done": true,
+          "text": "Type-check + build + verify"
         }
       ]
     },

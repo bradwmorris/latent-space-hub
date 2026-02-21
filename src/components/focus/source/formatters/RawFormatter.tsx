@@ -131,7 +131,7 @@ export default function RawFormatter({ content, onTextSelect, highlightedText, h
         <p
           key={index}
           style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: 'inherit',
             fontSize: '15px',
             lineHeight: '1.7',
             color: '#d4d4d4',

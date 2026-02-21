@@ -57,7 +57,7 @@ export default function ConfirmDialog({
           color: '#e5e5e5', 
           marginBottom: '12px',
           letterSpacing: '0.01em',
-          fontFamily: "'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          fontFamily: 'inherit'
         }}>
           {title}
         </div>
