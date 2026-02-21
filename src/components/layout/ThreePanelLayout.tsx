@@ -15,6 +15,7 @@ import MainViewSwitcher, { MainView } from './MainViewSwitcher';
 
 // Content pane components
 import { NodePane, MapPane, ViewsPane } from '../panes';
+import Dashboard from '../dashboard/Dashboard';
 import QuickAddInput from '../agents/QuickAddInput';
 
 // ─── Type View: list of nodes for selected type ──────────────────────────────
@@ -227,7 +228,7 @@ export default function ThreePanelLayout() {
 
   // ── New simple state model ──
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = usePersistentState<boolean>('ui.leftPanel.collapsed', false);
-  const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'map');
+  const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'dashboard');
   const [selectedType, setSelectedType] = usePersistentState<string | null>('ui.selectedType', null);
 
   // Node focus state
@@ -445,6 +446,17 @@ export default function ThreePanelLayout() {
 
     // Otherwise render the active view
     switch (activeView) {
+      case 'dashboard':
+        return (
+          <Dashboard
+            onCategoryClick={(categoryKey) => {
+              setSelectedType(categoryKey);
+              setActiveView('type');
+            }}
+            onNodeClick={handleNodeSelect}
+          />
+        );
+
       case 'type':
         return (
           <TypeNodeList
