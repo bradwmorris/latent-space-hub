@@ -78,6 +78,9 @@ Thumbs.db
 # Backup files
 backups/
 
+# Script output (migration artifacts)
+scripts/output/
+
 # Temporary files
 tmp/
 apps/mac/src-tauri/target/

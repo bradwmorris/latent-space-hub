@@ -51,7 +51,7 @@ function TypeNodeList({
       return;
     }
     setLoading(true);
-    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=100&sortBy=updated`)
+    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=100&sortBy=event_date`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setNodes(data.data);
@@ -115,7 +115,7 @@ function TypeNodeList({
           const isHovered = hoveredId === node.id;
           const dims = node.dimensions?.slice(0, 3) || [];
           const edgeCount = node.edge_count ?? 0;
-          const dateStr = node.updated_at || node.created_at;
+          const dateStr = node.event_date || node.updated_at || node.created_at;
           const thumb = getYouTubeThumbnail(node.link);
 
           return (

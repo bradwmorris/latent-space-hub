@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     // Handle sortBy parameter
     const sortByParam = searchParams.get('sortBy');
-    if (sortByParam === 'edges' || sortByParam === 'updated') {
+    if (sortByParam === 'edges' || sortByParam === 'updated' || sortByParam === 'event_date') {
       filters.sortBy = sortByParam;
     }
 

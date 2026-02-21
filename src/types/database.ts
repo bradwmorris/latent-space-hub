@@ -169,7 +169,7 @@ export interface NodeFilters {
   search?: string;          // Text search in title/notes
   limit?: number;
   offset?: number;
-  sortBy?: 'updated' | 'edges';
+  sortBy?: 'updated' | 'edges' | 'event_date';
 }
 
 export interface ChunkData {
