@@ -10,11 +10,12 @@ Knowledge base for the Latent Space community. Built on the RA-H foundation, dep
 
 - **Framework:** Next.js 15 + TypeScript + Tailwind CSS
 - **Database:** Turso (cloud SQLite via `@libsql/client`) — NOT local SQLite, NOT better-sqlite3
-- **Search:** Turso native vector search (F32_BLOB + vector_top_k) + FTS5 (being wired up)
+- **Search:** Turso native vector search (F32_BLOB + vector_top_k) + FTS5
 - **AI:** Anthropic (Claude) + OpenAI (GPT) models via Vercel AI SDK — BYO keys
 - **MCP:** Model Context Protocol server in `apps/mcp-server/` (HTTP + stdio)
 - **Deployment:** Vercel (readonly mode for public)
-- **UI:** 2-panel layout (Nodes list | Focus panel)
+- **Bots:** Discord bots (Sig & Slop) in separate repo (`latent-space-bots`)
+- **UI:** Dashboard + 8-category sidebar + focus panel
 
 ## Database
 
@@ -22,7 +23,7 @@ Knowledge base for the Latent Space community. Built on the RA-H foundation, dep
 
 - URL: `latentspace-bradwmorris.aws-us-east-2.turso.io`
 - Client: `@libsql/client` (NOT better-sqlite3)
-- Schema: `docs/2_schema.md`
+- Schema: `docs/schema.md`
 - Vector search: Turso supports native vector via F32_BLOB + `libsql_vector_idx` + `vector_top_k()`
 
 **Do NOT reference:**
@@ -36,18 +37,27 @@ Knowledge base for the Latent Space community. Built on the RA-H foundation, dep
 app/                    — Next.js App Router (pages + API routes)
 src/
   components/           — React UI components
+    layout/             — ThreePanelLayout, LeftTypePanel, MainViewSwitcher
+    dashboard/          — Dashboard with stats + category cards
+    panes/              — MapPane, NodePane, GuidesPane, DimensionsPane
+    focus/              — FocusPanel (tabbed node editor), SourceReader
   services/
     database/           — Turso client, node/edge/chunk services
-    agents/             — Agent logic
-    embedding/          — Embedding generation
-    extractors/         — YouTube, website, PDF extraction
+    agents/             — QuickAdd orchestrator, autoEdge, transcript summarizer
+    embedding/          — Chunking + embedding pipeline
+    typescript/extractors/ — YouTube, website, PDF extractors
   tools/                — MCP tools + database CRUD tools
   config/
+    categories.ts       — 8-category taxonomy config
     prompts/            — Agent system prompts
-    guides/             — Built-in markdown guides
+    guides/             — Built-in markdown guides (public-facing)
+  types/
+    database.ts         — Core TypeScript definitions
 apps/
-  mcp-server/           — MCP server (HTTP + stdio)
-docs/                   — System documentation
+  mcp-server/           — In-app MCP server (HTTP + stdio)
+  mcp-server-standalone/ — NPX-installable MCP server (npm package)
+scripts/                — Ingestion + data refinement scripts
+docs/                   — System documentation (see docs/README.md)
 docs/development/       — Dev workflow, backlog, PRDs
 ```
 

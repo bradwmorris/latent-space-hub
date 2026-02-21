@@ -1,47 +1,72 @@
 # Latent Space Hub — Documentation
 
-## Quick Links
+## What is this?
+
+A knowledge graph for the Latent Space universe — podcasts, articles, AI News, conference talks, paper clubs, and more. Searchable via semantic vector search, connected in a graph, accessible via web UI, MCP tools, and Discord bots.
+
+## Documentation
+
+### Core
 
 | Doc | Description |
 |-----|-------------|
-| [Overview](./0_overview.md) | What is Latent Space Hub, design philosophy |
-| [Schema](./2_schema.md) | Database schema, node/edge structure |
-| [Tools & Workflows](./4_tools-and-workflows.md) | MCP tools, workflow system |
-| [Logging & Evals](./5_logging-and-evals.md) | Debugging, evaluation framework |
-| [UI](./6_ui.md) | 2-panel layout, components, views |
-| [MCP](./8_mcp.md) | Connect Claude Code and external agents |
-| [About](./9_open-source.md) | Origin, contributing |
+| [Overview](./overview.md) | What LS Hub is, how it works, three interfaces, tech stack |
+| [Categories](./categories.md) | The 8 content categories and how they map to the database |
+| [Schema](./schema.md) | Database tables, relationships, edge model, example queries |
+
+### Systems
+
+| Doc | Description |
+|-----|-------------|
+| [MCP Server](./mcp-server.md) | External agent setup, all tools, example workflows |
+| [Bots](./bots.md) | Sig & Slop — Discord bot architecture and commands |
+| [Ingestion](./ingestion.md) | Content pipeline, sources, extractors, Quick Add |
+| [Search](./search.md) | Vector, FTS5, hybrid search, fallback chain |
+
+### Developer
+
+| Doc | Description |
+|-----|-------------|
+| [Architecture](./architecture.md) | Codebase map, key directories, patterns |
+| [Contributing](./contributing.md) | Dev setup, git workflow, backlog, env vars |
+| [Deployment](./deployment.md) | Vercel, environments, readonly mode |
 | [Troubleshooting](./TROUBLESHOOTING.md) | Common issues and fixes |
 
-## Getting Started
+### Development Workflow
+
+| Doc | Description |
+|-----|-------------|
+| [Backlog](./development/backlog.json) | Priority queue of projects |
+| [Process](./development/process.md) | How work gets done |
+| PRDs | `docs/development/prd-*.md` — feature specs |
+
+## Quick Start
 
 ```bash
 git clone https://github.com/bradwmorris/latent-space-hub.git
 cd latent-space-hub
-cp .env.example .env.local
+cp .env.example .env.local    # Add Turso URL + token, API keys
 npm install
-npm run dev
+npm run dev                   # localhost:3000
 ```
-
-Open http://localhost:3000
 
 ## MCP Integration
 
-Add to your Claude Code config:
+Connect your AI agent to the knowledge graph:
 
 ```json
 {
   "mcpServers": {
-    "latent-space": {
-      "command": "node",
-      "args": ["/path/to/latent-space-hub/apps/mcp-server/stdio-server.js"]
+    "latent-space-hub": {
+      "command": "npx",
+      "args": ["-y", "latent-space-hub-mcp"],
+      "env": {
+        "TURSO_DATABASE_URL": "your-turso-url",
+        "TURSO_AUTH_TOKEN": "your-turso-token"
+      }
     }
   }
 }
 ```
 
-See [MCP docs](./8_mcp.md) for full setup.
-
-## Questions?
-
-Open an issue on [GitHub](https://github.com/bradwmorris/latent-space-hub).
+See [MCP Server docs](./mcp-server.md) for full setup and tool reference.
