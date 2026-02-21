@@ -168,6 +168,8 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                 border: '1px solid #1a1a1a',
                 padding: '16px',
                 transition: 'background 0.12s ease',
+                overflow: 'hidden',
+                minWidth: 0,
               }}
             >
               {/* Card header */}
@@ -186,11 +188,11 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                 }}
                 aria-label={`${cat.label}, ${count} items`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Icon size={16} style={{ color: '#777' }} aria-hidden="true" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                  <Icon size={16} style={{ color: '#777', flexShrink: 0 }} aria-hidden="true" />
                   <h2 style={{
                     fontSize: '14px', fontWeight: 600, color: '#ccc',
-                    margin: 0,
+                    margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {cat.label}
                   </h2>
