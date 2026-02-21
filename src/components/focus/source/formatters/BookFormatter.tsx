@@ -135,7 +135,7 @@ export default function BookFormatter({ content, onTextSelect, highlightedText, 
           <p
             key={idx}
             style={{
-              fontFamily: "Georgia, 'Times New Roman', serif",
+              fontFamily: 'inherit',
               fontSize: '16px',
               lineHeight: '1.75',
               color: '#d4d4d4',
