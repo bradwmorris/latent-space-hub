@@ -90,6 +90,11 @@ async function discoverRss(source: IngestionSourceConfig): Promise<DiscoveredIte
     const description = readTag(block, 'description');
     if (!title || !link) continue;
 
+    const normalizedTitle = title.trim().toLowerCase();
+    const isAinews = normalizedTitle.startsWith('[ainews]');
+    if (source.key === 'articles' && isAinews) continue;
+    if (source.key === 'ainews' && !isAinews) continue;
+
     results.push({
       source: source.key,
       id: link,
@@ -97,77 +102,6 @@ async function discoverRss(source: IngestionSourceConfig): Promise<DiscoveredIte
       url: link,
       publishedAt: parseIsoDate(pubDate),
       excerpt: description,
-    });
-  }
-
-  return results;
-}
-
-interface GitHubContentFile {
-  name: string;
-  path: string;
-  download_url?: string;
-  html_url?: string;
-  type: string;
-}
-
-async function discoverGitHub(source: IngestionSourceConfig): Promise<DiscoveredItem[]> {
-  if (!source.apiUrl) return discoverGitHubAtomFallback(source);
-
-  try {
-    const response = await fetch(source.apiUrl, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'User-Agent': 'latent-space-hub-ingestion/1.0',
-      },
-      signal: AbortSignal.timeout(20000),
-    });
-
-    if (!response.ok) {
-      throw new Error(`GitHub API failed (${response.status})`);
-    }
-
-    const files = (await response.json()) as GitHubContentFile[];
-    return files
-      .filter((file) => file.type === 'file' && file.name.endsWith('.md'))
-      .sort((a, b) => b.name.localeCompare(a.name))
-      .map((file) => {
-        const slug = file.name.replace(/\.md$/, '');
-        return {
-          source: source.key,
-          id: slug,
-          slug,
-          title: slug,
-          url: file.html_url || `https://github.com/smol-ai/ainews-web-2025/blob/main/${file.path}`,
-          publishedAt: parseIsoDate(slug.slice(0, 10)),
-        } satisfies DiscoveredItem;
-      });
-  } catch (error) {
-    console.warn('[ingestion] GitHub contents API failed, falling back to atom feed', error);
-    return discoverGitHubAtomFallback(source);
-  }
-}
-
-async function discoverGitHubAtomFallback(source: IngestionSourceConfig): Promise<DiscoveredItem[]> {
-  if (!source.feedUrl) return [];
-  const xml = await fetchText(source.feedUrl);
-  const entries = Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/gi));
-  const results: DiscoveredItem[] = [];
-
-  for (const entry of entries) {
-    const block = entry[1];
-    const id = readTag(block, 'id');
-    const title = readTag(block, 'title');
-    const published = readTag(block, 'updated') || readTag(block, 'published');
-    const href = readAttr(block, 'link', 'href');
-    if (!id || !title || !href) continue;
-
-    results.push({
-      source: source.key,
-      id,
-      title,
-      url: href,
-      publishedAt: parseIsoDate(published),
     });
   }
 
@@ -183,10 +117,6 @@ export async function discoverSource(key: IngestionSourceKey): Promise<Discovere
       return discoverYouTube(source);
     case 'substack_rss':
       return discoverRss(source);
-    case 'github_api':
-      return discoverGitHub(source);
-    case 'github_rss':
-      return discoverGitHubAtomFallback(source);
     default:
       return [];
   }

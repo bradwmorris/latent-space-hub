@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import matter from 'gray-matter';
 import { edgeService, nodeService } from '@/services/database';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
 import { embedNodeContent } from '@/services/embedding/ingestion';
@@ -90,10 +89,6 @@ function parseDate(input?: string): string | undefined {
   const date = new Date(input);
   if (Number.isNaN(date.getTime())) return undefined;
   return date.toISOString();
-}
-
-function rawAinewsUrl(slug: string): string {
-  return `https://raw.githubusercontent.com/smol-ai/ainews-web-2025/main/src/content/issues/${slug}.md`;
 }
 
 async function findExistingNodeByLink(link: string): Promise<number | null> {
@@ -247,38 +242,18 @@ async function extractForSource(source: IngestionSourceKey, item: DiscoveredItem
   }
 
   if (source === 'ainews') {
-    const slug = item.slug || item.id.replace(/\.md$/, '').split('/').pop() || item.id;
-    const response = await withRetry(async () =>
-      fetch(rawAinewsUrl(slug), {
-        headers: { 'User-Agent': 'latent-space-hub-ingestion/1.0' },
-        signal: AbortSignal.timeout(20000),
-      })
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch AI News markdown (${response.status})`);
-    }
-
-    const raw = await response.text();
-    const parsed = matter(raw);
-    const markdownBody = parsed.content.trim();
-    if (markdownBody.length < 50) {
-      throw new Error('AINews content too short');
+    const extracted = await withRetry(async () => extractWebsite(item.url));
+    if (!extracted.chunk || extracted.chunk.trim().length < 100) {
+      throw new Error('AINews body too short (possible parse failure)');
     }
 
     return {
-      title: (typeof parsed.data.title === 'string' ? parsed.data.title : item.title) || slug,
-      chunk: markdownBody,
-      publishedAt: parseDate(item.publishedAt || String(parsed.data.date || '')),
+      title: extracted.metadata.title || item.title,
+      chunk: extracted.chunk,
+      publishedAt: parseDate(item.publishedAt || extracted.metadata.date),
       metadata: {
         ...SOURCES[source].metadata,
-        slug,
-        frontmatter_entities: {
-          companies: Array.isArray(parsed.data.companies) ? parsed.data.companies : [],
-          models: Array.isArray(parsed.data.models) ? parsed.data.models : [],
-          topics: Array.isArray(parsed.data.topics) ? parsed.data.topics : [],
-          people: Array.isArray(parsed.data.people) ? parsed.data.people : [],
-        },
+        author: extracted.metadata.author,
         extraction_method: 'auto-ingestion-v1',
       },
     };
@@ -303,11 +278,20 @@ async function extractEntitiesForNode(params: {
     const frontmatter = metadata.frontmatter_entities as
       | { companies?: string[]; models?: string[]; topics?: string[]; people?: string[] }
       | undefined;
-    entities = {
-      people: (frontmatter?.people || []).map(cleanEntity),
-      organizations: (frontmatter?.companies || []).map(cleanEntity),
-      topics: [...(frontmatter?.topics || []), ...(frontmatter?.models || [])].map(cleanEntity),
-    };
+    const hasFrontmatter =
+      Boolean(frontmatter?.people?.length) ||
+      Boolean(frontmatter?.companies?.length) ||
+      Boolean(frontmatter?.topics?.length) ||
+      Boolean(frontmatter?.models?.length);
+    if (hasFrontmatter) {
+      entities = {
+        people: (frontmatter?.people || []).map(cleanEntity),
+        organizations: (frontmatter?.companies || []).map(cleanEntity),
+        topics: [...(frontmatter?.topics || []), ...(frontmatter?.models || [])].map(cleanEntity),
+      };
+    } else {
+      entities = await extractEntitiesWithClaude(title, description, chunk);
+    }
   } else {
     entities = await extractEntitiesWithClaude(title, description, chunk);
   }

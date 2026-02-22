@@ -70,7 +70,21 @@ export async function checkAndIngest(options: CheckAndIngestOptions = {}): Promi
     const sourceKeys: IngestionSourceKey[] = options.source ? [options.source] : SOURCE_KEYS;
 
     for (const sourceKey of sourceKeys) {
-      const discoveredItems = await discoverSource(sourceKey);
+      let discoveredItems: Awaited<ReturnType<typeof discoverSource>> = [];
+      try {
+        discoveredItems = await discoverSource(sourceKey);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown source discovery error';
+        details.push({
+          source: sourceKey,
+          itemId: `source:${sourceKey}`,
+          title: `Source discovery failed (${sourceKey})`,
+          status: 'failed',
+          message,
+        });
+        itemsFailed += 1;
+        continue;
+      }
       const candidates = discoveredItems.slice(0, maxItemsPerSource);
       itemsFound += candidates.length;
 

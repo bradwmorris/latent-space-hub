@@ -1,6 +1,6 @@
 export type IngestionSourceKey = 'podcasts' | 'latentspacetv' | 'articles' | 'ainews';
 
-type SourceType = 'youtube_rss' | 'substack_rss' | 'github_rss' | 'github_api';
+type SourceType = 'youtube_rss' | 'substack_rss';
 
 export interface IngestionSourceConfig {
   key: IngestionSourceKey;
@@ -25,7 +25,7 @@ export interface DiscoveredItem {
 }
 
 const LATENT_SPACE_PODCAST_CHANNEL_ID =
-  process.env.LATENTSPACE_PODCAST_CHANNEL_ID || 'UCxBcwypKK-W3GHd_RZ9FZrQ';
+  process.env.LATENTSPACE_PODCAST_CHANNEL_ID || 'UCQMbwBMmIRCCRDB2AlrO6bA';
 const LATENT_SPACE_TV_CHANNEL_ID =
   process.env.LATENTSPACETV_CHANNEL_ID || process.env.LATENT_SPACE_TV_CHANNEL_ID || '';
 
@@ -63,9 +63,8 @@ export const SOURCES: Record<IngestionSourceKey, IngestionSourceConfig> = {
   ainews: {
     key: 'ainews',
     name: 'AI News',
-    type: 'github_api',
-    feedUrl: 'https://github.com/smol-ai/ainews-web-2025/commits/main.atom',
-    apiUrl: 'https://api.github.com/repos/smol-ai/ainews-web-2025/contents/src/content/issues',
+    type: 'substack_rss',
+    feedUrl: 'https://www.latent.space/feed',
     nodeType: 'ainews',
     dimensions: ['ainews'],
     metadata: { source_type: 'newsletter' },
