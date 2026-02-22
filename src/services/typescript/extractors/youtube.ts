@@ -128,6 +128,79 @@ async function fetchTranscriptDirect(videoId: string, lang?: string): Promise<{
   throw lastError ?? new Error('All innertube client contexts failed');
 }
 
+/**
+ * Last-resort fallback: try the legacy timedtext API directly.
+ * This endpoint predates innertube and may not be blocked on the same IP lists.
+ */
+async function fetchTranscriptTimedText(videoId: string): Promise<{
+  segments: Array<{ text: string; start: number; duration: number }>;
+  language: string;
+}> {
+  // Try auto-generated captions (kind=asr) and manual captions
+  const urls = [
+    `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}&kind=asr&fmt=json3`,
+    `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}&fmt=json3`,
+    `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}`,
+  ];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': BROWSER_USER_AGENT, 'Accept-Language': 'en-US,en;q=0.9' },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) continue;
+
+      const body = await res.text();
+      if (!body || body.length < 50) continue;
+
+      // Try JSON3 format first
+      try {
+        const json = JSON.parse(body);
+        const events = json.events;
+        if (Array.isArray(events) && events.length > 0) {
+          const segments: Array<{ text: string; start: number; duration: number }> = [];
+          for (const event of events) {
+            if (!event.segs) continue;
+            const text = event.segs.map((s: { utf8: string }) => s.utf8 || '').join('');
+            if (text.trim()) {
+              segments.push({
+                text: text.trim(),
+                start: (event.tStartMs || 0) / 1000,
+                duration: (event.dDurationMs || 0) / 1000,
+              });
+            }
+          }
+          if (segments.length > 0) {
+            console.log(`[youtube] timedtext JSON3 succeeded for ${videoId}`);
+            return { segments, language: 'en' };
+          }
+        }
+      } catch {
+        // Not JSON, try XML
+        const segments: Array<{ text: string; start: number; duration: number }> = [];
+        let match: RegExpExecArray | null;
+        const re = new RegExp(RE_XML_TRANSCRIPT.source, 'g');
+        while ((match = re.exec(body)) !== null) {
+          segments.push({
+            text: match[3],
+            start: parseFloat(match[1]),
+            duration: parseFloat(match[2]),
+          });
+        }
+        if (segments.length > 0) {
+          console.log(`[youtube] timedtext XML succeeded for ${videoId}`);
+          return { segments, language: 'en' };
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  throw new Error('timedtext API returned no usable transcript');
+}
+
 interface TranscriptSegment {
   text: string;
   start: number;
@@ -399,6 +472,49 @@ export class YouTubeExtractor {
         }
       } catch (directError: unknown) {
         console.warn('[youtube] Direct innertube fallback failed:', this.formatErrorMessage(directError));
+      }
+
+      // Fallback 3: legacy timedtext API (different URL path, may bypass IP blocks)
+      try {
+        console.warn('[youtube] Attempting timedtext API fallback');
+        const videoId = this.extractVideoId(url);
+        if (videoId) {
+          const { segments: rawSegments, language } = await fetchTranscriptTimedText(videoId);
+          const segments = rawSegments
+            .map((s) => ({
+              text: this.decodeHtmlEntities(s.text).trim(),
+              start: s.start,
+              duration: s.duration,
+            }))
+            .filter((s) => s.text.length > 0);
+
+          if (segments.length > 0) {
+            const transcript = this.formatSegments(segments);
+            const videoMetadata = await this.getVideoMetadata(url);
+            return {
+              success: true,
+              content: transcript,
+              chunk: transcript,
+              metadata: {
+                video_id: videoId,
+                video_url: url,
+                video_title: videoMetadata.title,
+                channel_name: videoMetadata.author_name,
+                channel_url: videoMetadata.author_url,
+                thumbnail_url: videoMetadata.thumbnail_url,
+                source_type: 'youtube_transcript',
+                transcript_length: transcript.length,
+                total_segments: segments.length,
+                content_format: 'timestamped_transcript',
+                language,
+                provider: 'YouTube',
+                extraction_method: 'typescript_timedtext_api',
+              },
+            };
+          }
+        }
+      } catch (timedtextError: unknown) {
+        console.warn('[youtube] timedtext API fallback failed:', this.formatErrorMessage(timedtextError));
       }
 
       return {
