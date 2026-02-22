@@ -44,6 +44,15 @@ const ENTITY_BLOCKLIST = new Set([
   'week',
 ]);
 
+const HOST_ALIAS_REPLACEMENTS: Array<{ pattern: RegExp; replacement: string }> = [
+  { pattern: /\bswixs\b/gi, replacement: 'swyx' },
+  { pattern: /\bswix\b/gi, replacement: 'swyx' },
+  { pattern: /\bswitz\b/gi, replacement: 'swyx' },
+  { pattern: /\balesio\b/gi, replacement: 'Alessio' },
+  { pattern: /\ballesio\b/gi, replacement: 'Alessio' },
+  { pattern: /\ballesop\b/gi, replacement: 'Alessio' },
+];
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -64,11 +73,15 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
 }
 
 function cleanEntity(name: string): string {
-  return name.replace(/\s+/g, ' ').trim();
+  let value = name;
+  for (const rule of HOST_ALIAS_REPLACEMENTS) {
+    value = value.replace(rule.pattern, rule.replacement);
+  }
+  return value.replace(/\s+/g, ' ').trim();
 }
 
 function buildDescription(title: string, chunk: string): string {
-  const preview = chunk.replace(/\s+/g, ' ').trim().slice(0, 500);
+  const preview = cleanEntity(chunk).replace(/\s+/g, ' ').trim().slice(0, 500);
   return `${title}${preview ? `\n\n${preview}` : ''}`;
 }
 
@@ -145,6 +158,10 @@ async function extractEntitiesWithClaude(title: string, description: string, chu
   }
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const normalizedTitle = cleanEntity(title);
+  const normalizedDescription = cleanEntity(description);
+  const normalizedChunk = cleanEntity(chunk);
+
   const prompt = [
     'Extract prominent entities from this content. Return strict JSON only.',
     'Schema: {"people": string[], "organizations": string[], "topics": string[]}',
@@ -152,10 +169,11 @@ async function extractEntitiesWithClaude(title: string, description: string, chu
     '- Only include entities that are clearly central, not incidental mentions.',
     '- Keep names in normal capitalization.',
     '- Keep topics short (1-4 words).',
+    '- Canonicalize host aliases to: swyx, Alessio.',
     '',
-    `Title: ${title}`,
-    `Description: ${description}`,
-    `Content sample: ${chunk.slice(0, 2500)}`,
+    `Title: ${normalizedTitle}`,
+    `Description: ${normalizedDescription}`,
+    `Content sample: ${normalizedChunk.slice(0, 2500)}`,
   ].join('\n');
 
   const response = await withRetry(async () => {

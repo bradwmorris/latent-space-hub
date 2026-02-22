@@ -33,11 +33,13 @@
       "type": "data",
       "priority": "high",
       "prd": "docs/development/prd-15-hub-nodes.md",
-      "notes": "Creates anchor nodes for the core Latent Space properties and links content to them. Storylines scope from PRD-08 is merged here as a focused narrative-link layer (timeline edges and evolving-arc metadata on hub-linked content).",
+      "notes": "Creates anchor nodes for the core Latent Space properties and links content to them. Storylines scope from PRD-08 is merged here as a focused narrative-link layer (timeline edges and evolving-arc metadata on hub-linked content). Includes canonical-name hygiene pass for host aliases and common extraction misspellings.",
       "tasks": [
         { "done": false, "text": "Create/update core hub nodes and remove duplicate Latent Space entities" },
         { "done": false, "text": "Connect hubs to all relevant content nodes with explicit edge explanations" },
         { "done": false, "text": "Add storyline carryover: timeline-oriented edges and arc notes on hub-linked clusters" },
+        { "done": false, "text": "Run canonical-name cleanup for host/entity typos (e.g., swix/swyx, alesio/Alessio) and merge duplicates" },
+        { "done": false, "text": "Install ongoing alias guardrail in ingestion/refinement prompts + scheduled typo audit report" },
         { "done": false, "text": "Validate graph quality: counts, no orphans, and top-connected hub placement" }
       ]
     },

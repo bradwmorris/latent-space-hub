@@ -273,6 +273,20 @@ Expected post-execution rankings:
 
 ---
 
+### Phase 4.5: Canonical Name Hygiene (Hosts + Critical Entities)
+
+Before final verification, run a focused canonicalization pass on high-value people names and known alias typos.
+
+Primary targets:
+- `swyx` variants: `swix`, `swixs`, `switz`
+- `Alessio` variants: `alesio`, `allesio`, `allesop`
+
+Execution:
+1. Search nodes + chunks for typo variants.
+2. Rewrite text fields where safe (`title`, `description`, `notes`) to canonical form.
+3. If typo-created duplicate entities exist, merge edges into canonical node and remove duplicates.
+4. Keep a versioned alias map in ingestion/refinement code so new content is normalized on ingest.
+
 ### Phase 5: Storyline Carryover (from PRD-08)
 
 Absorb the useful storyline scope directly into hub-node execution so narrative arcs are not a separate backlog track.
@@ -300,6 +314,7 @@ This keeps execution grounded and avoids launching a separate storyline schema/U
 - [ ] 4 cross-hub edges connecting the ecosystem
 - [ ] 1 edge: Writers Club → "is a sub-program of" → Builders Club
 - [ ] Empty dimensions (`Builders Club`, `AI News`) deleted
+- [ ] Host/entity canonical-name cleanup completed and duplicates merged
 - [ ] Hub metadata includes timeline summary fields for narrative carryover
 - [ ] Seeded narrative edges added for high-signal arcs on hub-linked content
 - [ ] Verification: all hub nodes appear in top-20 most-connected nodes
