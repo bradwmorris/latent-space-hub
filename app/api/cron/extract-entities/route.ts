@@ -63,7 +63,7 @@ async function extractEntitiesWithClaude(title: string, description: string, chu
   ].join('\n');
 
   const response = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
+    model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
     max_tokens: 500,
     temperature: 0,
     messages: [{ role: 'user', content: prompt }],
