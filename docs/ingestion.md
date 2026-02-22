@@ -78,8 +78,8 @@ Automated hourly ingestion with zero manual intervention:
 
 - **Vercel cron** (hourly) → `GET /api/cron/ingest`
 - Per-source RSS polling
-- Discord webhook announces new content to `#yap` channel
-- Sig bot responds with analysis, Slop responds with hot take
+- Discord webhook announces new content to announcements
+- Preferred: deterministic bot kickoff API starts Sig/Slop thread in bot-talk channel
 
 ## Extractors
 

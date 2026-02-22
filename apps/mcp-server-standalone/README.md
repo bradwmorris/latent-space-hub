@@ -63,3 +63,5 @@ Or create `~/.latent-space-hub/config.json`:
 - `ls_read_guide`
 - `ls_write_guide`
 - `ls_delete_guide`
+
+`ls_search_nodes` supports optional filters: `node_type`, `event_after` (`YYYY-MM-DD`), `event_before` (`YYYY-MM-DD`), and `sortBy` (`updated` or `event_date`).

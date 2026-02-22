@@ -8,6 +8,16 @@ interface NotifyPayload {
   url?: string;
 }
 
+interface KickoffPayload {
+  channelId?: string;
+  title: string;
+  url?: string;
+  contentType: NodeType;
+  eventDate?: string;
+  summary?: string;
+  exchanges?: number;
+}
+
 function formatDate(iso?: string): string {
   if (!iso) return 'unknown';
   const date = new Date(iso);
@@ -101,15 +111,56 @@ async function sendWebhook(webhookUrl: string, content: string): Promise<void> {
   }
 }
 
+async function triggerDeterministicKickoff(payload: KickoffPayload): Promise<void> {
+  const kickoffUrl = process.env.DISCORD_BOT_KICKOFF_URL;
+  const kickoffSecret = process.env.DISCORD_BOT_KICKOFF_SECRET;
+  if (!kickoffUrl || !kickoffSecret) return;
+
+  const response = await fetch(kickoffUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${kickoffSecret}`,
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10000),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`Deterministic kickoff failed (${response.status}): ${text.slice(0, 300)}`);
+  }
+}
+
 export async function notifyAnnouncementsThenYap(payload: NotifyPayload): Promise<void> {
   const announcementsWebhook = process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK_URL;
   const yapWebhook = process.env.DISCORD_YAP_WEBHOOK_URL;
+  const kickoffUrl = process.env.DISCORD_BOT_KICKOFF_URL;
+  const kickoffSecret = process.env.DISCORD_BOT_KICKOFF_SECRET;
+  const deterministicKickoffEnabled = Boolean(kickoffUrl && kickoffSecret);
+  const enableLegacyYapWebhook =
+    String(process.env.DISCORD_ENABLE_LEGACY_YAP_WEBHOOK || 'false').toLowerCase() === 'true';
 
   if (announcementsWebhook) {
     await sendWebhook(announcementsWebhook, buildAnnouncementContent(payload));
   }
 
-  if (yapWebhook) {
+  if (deterministicKickoffEnabled) {
+    await triggerDeterministicKickoff({
+      channelId: process.env.DISCORD_BOT_TALK_CHANNEL_ID,
+      title: payload.title,
+      url: payload.url,
+      contentType: payload.nodeType,
+      eventDate: formatDate(payload.publishedAt),
+      summary:
+        payload.chunksCreated !== undefined
+          ? `${payload.chunksCreated} chunks indexed`
+          : undefined,
+      exchanges: Number(process.env.DISCORD_BOT_KICKOFF_EXCHANGES || '2'),
+    });
+  }
+
+  if (yapWebhook && (!deterministicKickoffEnabled || enableLegacyYapWebhook)) {
     await sendWebhook(yapWebhook, buildYapContent(payload));
   }
 }

@@ -305,12 +305,25 @@ async function main() {
       inputSchema: {
         query: z.string().min(1),
         limit: z.number().min(1).max(25).optional(),
-        dimensions: z.array(z.string()).max(5).optional()
+        dimensions: z.array(z.string()).max(5).optional(),
+        node_type: z.string().optional(),
+        event_after: z.string().optional(),
+        event_before: z.string().optional(),
+        sortBy: z.enum(['updated', 'event_date']).optional()
       }
     },
-    async ({ query, limit = 10, dimensions = [] }) => {
+    async ({ query, limit = 10, dimensions = [], node_type, event_after, event_before, sortBy = 'updated' }) => {
       const safeLimit = Math.min(Math.max(limit, 1), 25);
       const like = `%${query.trim()}%`;
+      const normalizedNodeType = typeof node_type === 'string' && node_type.trim() ? node_type.trim() : null;
+      const normalizedEventAfter =
+        typeof event_after === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(event_after.trim())
+          ? event_after.trim()
+          : null;
+      const normalizedEventBefore =
+        typeof event_before === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(event_before.trim())
+          ? event_before.trim()
+          : null;
 
       const args = [like, like, like];
       let where = '(n.title LIKE ? OR n.description LIKE ? OR n.notes LIKE ?)';
@@ -321,14 +334,34 @@ async function main() {
         args.push(...dimensions);
       }
 
+      if (normalizedNodeType) {
+        where += ' AND n.node_type = ?';
+        args.push(normalizedNodeType);
+      }
+
+      if (normalizedEventAfter) {
+        where += ' AND n.event_date IS NOT NULL AND n.event_date >= ?';
+        args.push(normalizedEventAfter);
+      }
+
+      if (normalizedEventBefore) {
+        where += ' AND n.event_date IS NOT NULL AND n.event_date <= ?';
+        args.push(normalizedEventBefore);
+      }
+
+      const orderBy =
+        sortBy === 'event_date' || normalizedEventAfter || normalizedEventBefore
+          ? 'n.event_date DESC NULLS LAST, n.updated_at DESC'
+          : 'n.updated_at DESC';
+
       args.push(safeLimit);
 
       const result = await runQuery(
         db,
-        `SELECT n.id, n.title, n.notes, n.description, n.link, n.node_type, n.updated_at
+        `SELECT n.id, n.title, n.notes, n.description, n.link, n.node_type, n.event_date, n.updated_at
            FROM nodes n
           WHERE ${where}
-          ORDER BY n.updated_at DESC
+          ORDER BY ${orderBy}
           LIMIT ?`,
         args
       );
@@ -344,6 +377,7 @@ async function main() {
         description: row.description == null ? null : String(row.description),
         link: row.link == null ? null : String(row.link),
         node_type: row.node_type == null ? null : String(row.node_type),
+        event_date: row.event_date == null ? null : String(row.event_date),
         dimensions: dimMap.get(Number(row.id)) || [],
         updated_at: String(row.updated_at || '')
       }));

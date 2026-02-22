@@ -98,7 +98,11 @@ const addNodeOutputSchema = {
 const searchNodesInputSchema = {
   query: z.string().min(1).max(400),
   limit: z.number().min(1).max(25).optional(),
-  dimensions: z.array(z.string()).max(5).optional()
+  dimensions: z.array(z.string()).max(5).optional(),
+  node_type: z.string().optional(),
+  event_after: z.string().optional(),
+  event_before: z.string().optional(),
+  sortBy: z.enum(['updated', 'event_date']).optional()
 };
 
 const searchNodesOutputSchema = {
@@ -351,7 +355,7 @@ mcpServer.registerTool(
     inputSchema: searchNodesInputSchema,
     outputSchema: searchNodesOutputSchema
   },
-  async ({ query, limit = 10, dimensions }) => {
+  async ({ query, limit = 10, dimensions, node_type, event_after, event_before, sortBy }) => {
     const params = new URLSearchParams();
     params.set('search', query.trim());
     params.set('limit', String(Math.min(Math.max(limit, 1), 25)));
@@ -359,6 +363,18 @@ mcpServer.registerTool(
     const dimensionList = sanitizeDimensions(dimensions || []);
     if (dimensionList.length > 0) {
       params.set('dimensions', dimensionList.join(','));
+    }
+    if (typeof node_type === 'string' && node_type.trim()) {
+      params.set('node_type', node_type.trim());
+    }
+    if (typeof event_after === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(event_after.trim())) {
+      params.set('event_after', event_after.trim());
+    }
+    if (typeof event_before === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(event_before.trim())) {
+      params.set('event_before', event_before.trim());
+    }
+    if (sortBy === 'updated' || sortBy === 'event_date') {
+      params.set('sortBy', sortBy);
     }
 
     const result = await callApi(`/api/nodes?${params.toString()}`, {

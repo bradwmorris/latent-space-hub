@@ -4,7 +4,7 @@ import { eventBroadcaster } from '../events';
 
 export class NodeService {
   async getNodes(filters: NodeFilters = {}): Promise<Node[]> {
-    const { dimensions, node_type, search, limit = 100, offset = 0, sortBy } = filters;
+    const { dimensions, node_type, search, event_after, event_before, limit = 100, offset = 0, sortBy } = filters;
     const sqlite = getSQLiteClient();
 
     let query = `
@@ -39,6 +39,16 @@ export class NodeService {
     if (search) {
       query += ` AND (n.title LIKE ? COLLATE NOCASE OR n.description LIKE ? COLLATE NOCASE OR n.notes LIKE ? COLLATE NOCASE)`;
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    if (event_after) {
+      query += ` AND n.event_date IS NOT NULL AND n.event_date >= ?`;
+      params.push(event_after);
+    }
+
+    if (event_before) {
+      query += ` AND n.event_date IS NOT NULL AND n.event_date <= ?`;
+      params.push(event_before);
     }
 
     // Sorting
