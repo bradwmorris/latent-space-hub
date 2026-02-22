@@ -5,6 +5,7 @@ import { embedNodeContent } from '@/services/embedding/ingestion';
 import { extractWebsite } from '@/services/typescript/extractors/website';
 import { extractYouTube } from '@/services/typescript/extractors/youtube';
 import { NodeType } from '@/types/database';
+import { discoverSource } from './discovery';
 import { DiscoveredItem, IngestionSourceKey, SOURCES, classifyLatentSpaceTV } from './sources';
 
 interface ExtractedContent {
@@ -256,25 +257,103 @@ async function extractEntitiesWithClaude(title: string, description: string, chu
   };
 }
 
-async function extractForSource(source: IngestionSourceKey, item: DiscoveredItem): Promise<ExtractedContent> {
-  if (source === 'podcasts' || source === 'latentspacetv') {
-    const extracted = await withRetry(async () => extractYouTube(item.url));
-    if (!extracted.success) {
-      throw new Error(extracted.error || 'YouTube extraction failed');
+/**
+ * Extract guest/topic portion from a podcast title.
+ * Latent Space titles follow the pattern: "Topic — Guest Name(s)"
+ * Returns normalized lowercase tokens for fuzzy matching.
+ */
+function extractGuestTokens(title: string): string[] {
+  const afterDash = title.split(/\s[—–-]\s/).slice(1).join(' ');
+  const text = (afterDash || title).toLowerCase();
+  return text
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter((t) => t.length > 2);
+}
+
+/**
+ * Find a matching Substack article for a podcast episode by comparing
+ * guest names / key terms from the title.
+ */
+async function findMatchingSubstackArticle(podcastTitle: string): Promise<string | null> {
+  try {
+    const articles = await discoverSource('articles');
+    const podcastTokens = extractGuestTokens(podcastTitle);
+    if (podcastTokens.length === 0) return null;
+
+    let bestMatch: { url: string; score: number } | null = null;
+
+    for (const article of articles) {
+      const articleTokens = extractGuestTokens(article.title);
+      const overlap = podcastTokens.filter((t) => articleTokens.includes(t)).length;
+      const score = overlap / Math.max(podcastTokens.length, 1);
+      if (score > 0.5 && (!bestMatch || score > bestMatch.score)) {
+        bestMatch = { url: article.url, score };
+      }
     }
 
-    return {
-      title: extracted.metadata.video_title || item.title,
-      chunk: extracted.chunk,
-      publishedAt: parseDate(item.publishedAt),
-      metadata: {
-        ...SOURCES[source].metadata,
-        video_id: extracted.metadata.video_id,
-        channel_name: extracted.metadata.channel_name,
-        channel_url: extracted.metadata.channel_url,
-        extraction_method: 'auto-ingestion-v1',
-      },
-    };
+    return bestMatch?.url ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function extractForSource(source: IngestionSourceKey, item: DiscoveredItem): Promise<ExtractedContent> {
+  if (source === 'podcasts' || source === 'latentspacetv') {
+    // Try YouTube transcript first
+    const extracted = await withRetry(async () => extractYouTube(item.url));
+    if (extracted.success) {
+      return {
+        title: extracted.metadata.video_title || item.title,
+        chunk: extracted.chunk,
+        publishedAt: parseDate(item.publishedAt),
+        metadata: {
+          ...SOURCES[source].metadata,
+          video_id: extracted.metadata.video_id,
+          channel_name: extracted.metadata.channel_name,
+          channel_url: extracted.metadata.channel_url,
+          extraction_method: 'auto-ingestion-v1',
+        },
+      };
+    }
+
+    // YouTube failed — fall back to matching Substack article for transcript
+    console.warn(`[ingestion] YouTube extraction failed for "${item.title}", trying Substack article fallback`);
+    const articleUrl = await findMatchingSubstackArticle(item.title);
+    if (articleUrl) {
+      const articleExtracted = await withRetry(async () => extractWebsite(articleUrl));
+      if (articleExtracted.chunk && articleExtracted.chunk.trim().length >= 100) {
+        // Get YouTube metadata (thumbnail, channel) via oEmbed even though transcript failed
+        let videoMetadata: Record<string, unknown> = {};
+        try {
+          const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(item.url)}&format=json`;
+          const oembedRes = await fetch(oembedUrl, { signal: AbortSignal.timeout(5000) });
+          if (oembedRes.ok) {
+            const oembedData = await oembedRes.json();
+            videoMetadata = {
+              channel_name: oembedData.author_name,
+              channel_url: oembedData.author_url,
+            };
+          }
+        } catch { /* non-fatal */ }
+
+        console.log(`[ingestion] Substack fallback succeeded for "${item.title}" from ${articleUrl}`);
+        return {
+          title: item.title,
+          chunk: articleExtracted.chunk,
+          publishedAt: parseDate(item.publishedAt),
+          metadata: {
+            ...SOURCES[source].metadata,
+            ...videoMetadata,
+            video_id: item.id,
+            substack_url: articleUrl,
+            extraction_method: 'auto-ingestion-substack-fallback',
+          },
+        };
+      }
+    }
+
+    throw new Error(extracted.error || 'YouTube extraction failed and no matching Substack article found');
   }
 
   if (source === 'articles') {
