@@ -31,6 +31,16 @@ export async function GET(request: NextRequest) {
       filters.node_type = nodeTypeParam as any;
     }
 
+    const eventAfterParam = searchParams.get('event_after');
+    if (eventAfterParam && /^\d{4}-\d{2}-\d{2}$/.test(eventAfterParam)) {
+      filters.event_after = eventAfterParam;
+    }
+
+    const eventBeforeParam = searchParams.get('event_before');
+    if (eventBeforeParam && /^\d{4}-\d{2}-\d{2}$/.test(eventBeforeParam)) {
+      filters.event_before = eventBeforeParam;
+    }
+
     // Handle sortBy parameter
     const sortByParam = searchParams.get('sortBy');
     if (sortByParam === 'edges' || sortByParam === 'updated' || sortByParam === 'event_date') {

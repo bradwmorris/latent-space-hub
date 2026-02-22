@@ -12,6 +12,23 @@ function normalizeLimit(limit, min, max, fallback) {
   return Math.min(max, Math.max(min, Math.floor(parsed)));
 }
 
+function normalizeIsoDate(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
+  return trimmed;
+}
+
+function normalizeNodeType(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+function normalizeSortBy(value) {
+  return value === 'event_date' || value === 'updated' ? value : null;
+}
+
 async function maybeGetQueryEmbedding(query, openAiApiKey, model = 'text-embedding-3-small') {
   if (!openAiApiKey) return null;
 
@@ -78,6 +95,10 @@ function createLsHubServices(options = {}) {
     const dimensions = Array.isArray(options.dimensions)
       ? options.dimensions.map((d) => String(d).trim()).filter(Boolean).slice(0, 5)
       : [];
+    const nodeType = normalizeNodeType(options.node_type);
+    const eventAfter = normalizeIsoDate(options.event_after);
+    const eventBefore = normalizeIsoDate(options.event_before);
+    const sortBy = normalizeSortBy(options.sortBy);
 
     const like = `%${String(query).trim()}%`;
     const args = [like, like, like];
@@ -89,13 +110,33 @@ function createLsHubServices(options = {}) {
       args.push(...dimensions);
     }
 
+    if (nodeType) {
+      where += ' AND n.node_type = ?';
+      args.push(nodeType);
+    }
+
+    if (eventAfter) {
+      where += ' AND n.event_date IS NOT NULL AND n.event_date >= ?';
+      args.push(eventAfter);
+    }
+
+    if (eventBefore) {
+      where += ' AND n.event_date IS NOT NULL AND n.event_date <= ?';
+      args.push(eventBefore);
+    }
+
+    const orderBy =
+      sortBy === 'event_date' || eventAfter || eventBefore
+        ? 'n.event_date DESC NULLS LAST, n.updated_at DESC'
+        : 'n.updated_at DESC';
+
     args.push(safeLimit);
 
     const result = await execute(
-      `SELECT n.id, n.title, n.notes, n.description, n.link, n.node_type, n.updated_at
+      `SELECT n.id, n.title, n.notes, n.description, n.link, n.node_type, n.event_date, n.updated_at
          FROM nodes n
         WHERE ${where}
-        ORDER BY n.updated_at DESC
+        ORDER BY ${orderBy}
         LIMIT ?`,
       args
     );
@@ -110,6 +151,7 @@ function createLsHubServices(options = {}) {
       description: row.description == null ? null : String(row.description),
       link: row.link == null ? null : String(row.link),
       node_type: row.node_type == null ? null : String(row.node_type),
+      event_date: row.event_date == null ? null : String(row.event_date),
       dimensions: dimMap.get(Number(row.id)) || [],
       updated_at: String(row.updated_at || '')
     }));
@@ -182,7 +224,7 @@ function createLsHubServices(options = {}) {
     const vecJson = vectorToJsonString(queryEmbedding);
     const result = await execute(
       "SELECT n.id AS node_id, n.title, coalesce(n.description, '') AS description, " +
-        "substr(c.text, 1, 700) AS excerpt, coalesce(n.link, '') AS link, coalesce(n.event_date, '') AS event_date, " +
+        "substr(c.text, 1, 700) AS excerpt, coalesce(n.link, '') AS link, coalesce(n.event_date, '') AS event_date, coalesce(n.node_type, '') AS node_type, " +
         "(1.0 - vector_distance_cos(c.embedding, vector(?))) AS score " +
         "FROM vector_top_k('chunks_embedding_idx', vector(?), ?) AS vt " +
         "JOIN chunks c ON c.rowid = vt.id " +
@@ -199,7 +241,8 @@ function createLsHubServices(options = {}) {
       description: String(row.description || ''),
       excerpt: String(row.excerpt || ''),
       link: String(row.link || ''),
-      eventDate: String(row.event_date || '')
+      eventDate: String(row.event_date || ''),
+      nodeType: String(row.node_type || '')
     }));
   }
 
@@ -215,7 +258,7 @@ function createLsHubServices(options = {}) {
 
     const result = await execute(
       "SELECT n.id AS node_id, n.title, coalesce(n.description, '') AS description, " +
-        "substr(c.text, 1, 700) AS excerpt, coalesce(n.link, '') AS link, coalesce(n.event_date, '') AS event_date, " +
+        "substr(c.text, 1, 700) AS excerpt, coalesce(n.link, '') AS link, coalesce(n.event_date, '') AS event_date, coalesce(n.node_type, '') AS node_type, " +
         'bm25(chunks_fts) AS rank_score ' +
         'FROM chunks_fts ' +
         'JOIN chunks c ON c.rowid = chunks_fts.rowid ' +
@@ -237,7 +280,8 @@ function createLsHubServices(options = {}) {
       description: String(row.description || ''),
       excerpt: String(row.excerpt || ''),
       link: String(row.link || ''),
-      eventDate: String(row.event_date || '')
+      eventDate: String(row.event_date || ''),
+      nodeType: String(row.node_type || '')
     }));
   }
 
@@ -245,7 +289,7 @@ function createLsHubServices(options = {}) {
     const like = `%${String(query).toLowerCase()}%`;
     const result = await execute(
       "SELECT id AS node_id, title, coalesce(description, '') AS description, " +
-        "substr(coalesce(notes, ''), 1, 700) AS excerpt, coalesce(link, '') AS link, coalesce(event_date, '') AS event_date " +
+        "substr(coalesce(notes, ''), 1, 700) AS excerpt, coalesce(link, '') AS link, coalesce(event_date, '') AS event_date, coalesce(node_type, '') AS node_type " +
         'FROM nodes ' +
         "WHERE lower(title) LIKE ? OR lower(coalesce(description, '')) LIKE ? " +
         "OR lower(coalesce(notes, '')) LIKE ? OR lower(coalesce(chunk, '')) LIKE ? " +
@@ -262,7 +306,8 @@ function createLsHubServices(options = {}) {
       description: String(row.description || ''),
       excerpt: String(row.excerpt || ''),
       link: String(row.link || ''),
-      eventDate: String(row.event_date || '')
+      eventDate: String(row.event_date || ''),
+      nodeType: String(row.node_type || '')
     }));
   }
 
@@ -295,6 +340,10 @@ function createLsHubServices(options = {}) {
 
   async function queryKnowledgeContext(query, options = {}) {
     const limit = normalizeLimit(options.limit, 1, 25, 6);
+    const nodeType = normalizeNodeType(options.node_type);
+    const eventAfter = normalizeIsoDate(options.event_after);
+    const eventBefore = normalizeIsoDate(options.event_before);
+    const sortBy = normalizeSortBy(options.sortBy);
     const embedding = await maybeGetQueryEmbedding(query, options.openAiApiKey, options.embeddingModel);
     const vectorHits = embedding ? await vectorSearch(embedding, limit * 2).catch(() => []) : [];
     const ftsHits = await ftsSearch(query, limit * 2).catch(() => []);
@@ -306,6 +355,24 @@ function createLsHubServices(options = {}) {
       hits = await nodeTextFallback(query, limit).catch(() => []);
       method = 'nodes_fallback';
     }
+
+    if (nodeType) {
+      hits = hits.filter((hit) => hit.nodeType === nodeType);
+    }
+
+    if (eventAfter) {
+      hits = hits.filter((hit) => hit.eventDate && hit.eventDate >= eventAfter);
+    }
+
+    if (eventBefore) {
+      hits = hits.filter((hit) => hit.eventDate && hit.eventDate <= eventBefore);
+    }
+
+    if (sortBy === 'event_date') {
+      hits = hits.sort((a, b) => (b.eventDate || '').localeCompare(a.eventDate || ''));
+    }
+
+    hits = hits.slice(0, limit);
 
     if (!hits.length) {
       return {

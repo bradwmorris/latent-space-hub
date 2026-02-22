@@ -62,7 +62,7 @@ For assistants that support HTTP:
 |------|-------------|
 | `ls_get_context` | Get graph overview — stats, hub nodes, dimensions, recent activity |
 | `ls_list_dimensions` | List all dimensions with node counts |
-| `ls_search_nodes` | Keyword search across titles, descriptions, and notes |
+| `ls_search_nodes` | Keyword search with optional `node_type`, `event_after`, `event_before`, and `sortBy` filters |
 | `ls_search_content` | Full-text search through source material (transcripts, articles, papers) |
 
 ### Read
@@ -99,7 +99,7 @@ For assistants that support HTTP:
 ### Find podcast episodes about a topic
 
 ```
-1. ls_search_nodes({ query: "RAG retrieval augmented generation" })
+1. ls_search_nodes({ query: "RAG retrieval augmented generation", node_type: "podcast", sortBy: "event_date" })
 2. ls_get_nodes({ nodeIds: [123, 456, 789] })     # Get full details
 3. ls_search_content({ query: "RAG", node_id: 123 })  # Read what was said
 ```
@@ -135,6 +135,17 @@ ls_sqlite_query({
 1. ls_search_nodes({ query: "Andrej Karpathy" })
 2. ls_query_edges({ nodeId: 42 })                  # See all connections
 3. ls_get_nodes({ nodeIds: [connected_ids...] })    # Load connected nodes
+```
+
+### Temporal search ("since")
+
+```
+ls_search_nodes({
+  query: "agents",
+  node_type: "podcast",
+  event_after: "2025-06-01",
+  sortBy: "event_date"
+})
 ```
 
 ## Configuration

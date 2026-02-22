@@ -167,6 +167,8 @@ export interface NodeFilters {
   dimensions?: string[];
   node_type?: NodeType;     // Filter by entity type
   search?: string;          // Text search in title/notes
+  event_after?: string;     // Inclusive event_date lower bound (YYYY-MM-DD)
+  event_before?: string;    // Inclusive event_date upper bound (YYYY-MM-DD)
   limit?: number;
   offset?: number;
   sortBy?: 'updated' | 'edges' | 'event_date';
