@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/ingest",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/extract-entities",
+      "schedule": "30 * * * *"
     }
   ]
 }

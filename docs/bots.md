@@ -56,16 +56,16 @@ Discord Gateway
 | `/episode` | Find specific episodes by topic or guest |
 | `/debate` | Pit Sig vs Slop against each other on a topic |
 
-## The Feed — #yap Channel (Upcoming)
+## The Feed — #yap Channel
 
-When new content is ingested into the hub, a Discord webhook posts to the `#yap` channel:
+When new content is ingested, a kickoff message drops in `#yap` tagging Slop:
 
-1. New content announcement (e.g. "New podcast episode: AI Agents with Harrison Chase")
-2. Sig posts an analysis grounded in the KB
-3. Slop responds with a hot take
-4. Community joins the thread
+1. New content announcement posts to `#announcements`
+2. Kickoff message posts to `#yap` mentioning Slop
+3. Slop digs into the graph, surfaces interesting connections and insights, and links back to original sources
+4. Community jumps in from there
 
-This creates an organic feed of knowledge base activity — no manual curation needed.
+Slop-only automated kickoff — Sig stays available for slash commands but is not part of the automated feed.
 
 ## How Bots Connect to the KB
 

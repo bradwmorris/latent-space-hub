@@ -51,4 +51,6 @@ The bots search the same knowledge graph that powers this hub. When you ask a qu
 
 ## The Feed
 
-When new content is ingested into the hub, it gets announced in the Discord channel. Sig posts an analysis, Slop responds with a hot take, and the community joins the conversation.
+When new content is ingested, a kickoff message drops in #yap tagging Slop.
+Slop digs into the graph, surfaces the most interesting connections and insights,
+and links back to the original sources. Community jumps in from there.

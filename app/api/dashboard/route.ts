@@ -33,7 +33,7 @@ export async function GET() {
       ),
     ]);
 
-    const stats = {
+    const baseStats = {
       total_nodes: Number(nodesResult.rows[0]?.cnt ?? 0),
       total_edges: Number(edgesResult.rows[0]?.cnt ?? 0),
       total_chunks: Number(chunksResult.rows[0]?.cnt ?? 0),
@@ -104,6 +104,11 @@ export async function GET() {
         };
       })
     );
+
+    const stats = {
+      ...baseStats,
+      type_counts: categories.map(c => ({ key: c.key, label: c.label, count: c.count })),
+    };
 
     return NextResponse.json({
       success: true,

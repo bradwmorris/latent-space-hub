@@ -34,17 +34,8 @@ function typeHeader(nodeType: NodeType): string {
   }
 }
 
-function typePrompt(nodeType: NodeType): string {
-  switch (nodeType) {
-    case 'podcast':
-      return 'drop your 1-2 hottest takes on this episode';
-    case 'article':
-      return 'give your sharpest summary + one contrarian angle';
-    case 'ainews':
-      return "what's the real signal in this update?";
-    default:
-      return 'what stands out most here?';
-  }
+function typePrompt(_nodeType: NodeType): string {
+  return 'what are the most interesting insights from this? find and reference the most interesting connections from the graph';
 }
 
 function buildAnnouncementContent(payload: NotifyPayload): string {
@@ -63,9 +54,8 @@ function buildAnnouncementContent(payload: NotifyPayload): string {
 }
 
 function buildYapContent(payload: NotifyPayload): string {
-  const sigId = process.env.DISCORD_SIG_USER_ID;
   const slopId = process.env.DISCORD_SLOP_USER_ID;
-  const mentions = [sigId ? `<@${sigId}>` : '@Sig', slopId ? `<@${slopId}>` : '@Slop'].join(' ');
+  const mention = slopId ? `<@${slopId}>` : '@Slop';
 
   const lines = [
     '🧠 Discussion Kickoff',
@@ -78,7 +68,7 @@ function buildYapContent(payload: NotifyPayload): string {
     lines.push(payload.url);
   }
 
-  lines.push('', `${mentions} ${typePrompt(payload.nodeType)}. keep it brief so people can jump in.`);
+  lines.push('', `${mention} ${typePrompt(payload.nodeType)}. keep it short.`);
   return lines.join('\n');
 }
 
@@ -102,14 +92,15 @@ async function sendWebhook(webhookUrl: string, content: string): Promise<void> {
   }
 }
 
-export async function notifyAnnouncementsThenYap(payload: NotifyPayload): Promise<void> {
+export async function notifyAnnouncement(payload: NotifyPayload): Promise<void> {
   const announcementsWebhook = process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK_URL;
-  const yapWebhook = process.env.DISCORD_YAP_WEBHOOK_URL;
-
   if (announcementsWebhook) {
     await sendWebhook(announcementsWebhook, buildAnnouncementContent(payload));
   }
+}
 
+export async function notifyYapKickoff(payload: NotifyPayload): Promise<void> {
+  const yapWebhook = process.env.DISCORD_YAP_WEBHOOK_URL;
   if (yapWebhook) {
     await sendWebhook(yapWebhook, buildYapContent(payload));
   }

@@ -11,6 +11,8 @@ export interface IngestionRunDetails {
   nodeId?: number;
   message?: string;
   chunksCreated?: number;
+  entityExtractionStatus?: 'success' | 'failed' | 'skipped';
+  entityExtractionError?: string;
 }
 
 export interface IngestionRunRow {

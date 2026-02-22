@@ -26,6 +26,9 @@ export interface ProcessItemResult {
   nodeType?: NodeType;
   url: string;
   publishedAt?: string;
+  hasCompanion?: boolean;
+  entityExtractionStatus?: 'success' | 'failed' | 'skipped';
+  entityExtractionError?: string;
 }
 
 interface EntityExtractionResult {
@@ -105,6 +108,57 @@ async function findExistingAinewsByTitle(title: string): Promise<number | null> 
     [title]
   );
   return result.rows[0]?.id || null;
+}
+
+function stripTitlePrefixes(title: string): string {
+  return title
+    .replace(/^(ep\.?\s*\d+[:\s]*|episode\s*\d+[:\s]*)/i, '')
+    .replace(/\s*[—–-]\s*with\s+.*$/i, '')
+    .trim();
+}
+
+function titleWords(title: string): Set<string> {
+  return new Set(
+    stripTitlePrefixes(title)
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 2)
+  );
+}
+
+function titleOverlapScore(a: string, b: string): number {
+  const wordsA = titleWords(a);
+  const wordsB = titleWords(b);
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let overlap = 0;
+  for (const w of wordsA) {
+    if (wordsB.has(w)) overlap++;
+  }
+  return overlap / Math.min(wordsA.size, wordsB.size);
+}
+
+async function findCompanionNode(params: {
+  nodeType: 'podcast' | 'article';
+  title: string;
+}): Promise<number | null> {
+  const { nodeType, title } = params;
+  const companionType = nodeType === 'article' ? 'podcast' : 'article';
+
+  const sqlite = getSQLiteClient();
+  const result = await sqlite.query<{ id: number; title: string }>(
+    'SELECT id, title FROM nodes WHERE node_type = ? ORDER BY created_at DESC LIMIT 50',
+    [companionType]
+  );
+
+  for (const row of result.rows) {
+    const score = titleOverlapScore(title, row.title);
+    if (score >= 0.5) {
+      return Number(row.id);
+    }
+  }
+
+  return null;
 }
 
 async function findOrCreateEntity(title: string, entityType: 'person' | 'organization' | 'topic'): Promise<number> {
@@ -491,7 +545,26 @@ export async function processDiscoveredItem(params: {
     const embeddingResult = await embedNodeContent(node.id);
     const chunksCreated = embeddingResult.chunk_embeddings.chunks_created || 0;
 
+    // Companion detection for podcast/article pairs
+    let hasCompanion = false;
+    if (nodeType === 'podcast' || nodeType === 'article') {
+      try {
+        const companionId = await findCompanionNode({ nodeType, title: node.title });
+        if (companionId) {
+          hasCompanion = true;
+          const fromId = nodeType === 'article' ? node.id : companionId;
+          const toId = nodeType === 'article' ? companionId : node.id;
+          await ensureEdge(fromId, toId, 'companion article for podcast episode');
+          console.log(`[ingestion] Linked companion: node ${node.id} (${nodeType}) ↔ node ${companionId}`);
+        }
+      } catch (error) {
+        console.warn('[ingestion] Companion detection failed; continuing', error);
+      }
+    }
+
     // Entity extraction should not fail the entire ingestion run.
+    let entityExtractionStatus: 'success' | 'failed' | 'skipped' = 'skipped';
+    let entityExtractionError: string | undefined;
     try {
       await extractEntitiesForNode({
         nodeId: node.id,
@@ -501,8 +574,11 @@ export async function processDiscoveredItem(params: {
         chunk: extracted.chunk,
         metadata: (node.metadata || {}) as Record<string, unknown>,
       });
+      entityExtractionStatus = 'success';
     } catch (error) {
-      console.warn('[ingestion] Entity extraction failed; continuing without entities', error);
+      entityExtractionStatus = 'failed';
+      entityExtractionError = error instanceof Error ? error.message : 'Unknown entity extraction error';
+      console.error('[ingestion] Entity extraction FAILED for node', node.id, ':', entityExtractionError, error);
     }
 
     return {
@@ -515,6 +591,9 @@ export async function processDiscoveredItem(params: {
       nodeType,
       url: item.url,
       publishedAt: extracted.publishedAt,
+      hasCompanion,
+      entityExtractionStatus,
+      entityExtractionError,
     };
   } catch (error) {
     return {
