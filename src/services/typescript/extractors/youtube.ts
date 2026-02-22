@@ -9,6 +9,22 @@ import {
 } from 'youtube-transcript-plus';
 import { extractYouTube as extractYouTubeNpm } from './youtube-npm';
 
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+function browserFetch(params: { url: string; method?: string; body?: string; headers?: Record<string, string> }): Promise<Response> {
+  return fetch(params.url, {
+    method: params.method || 'GET',
+    body: params.body,
+    headers: {
+      ...params.headers,
+      'User-Agent': BROWSER_USER_AGENT,
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+    signal: AbortSignal.timeout(20000),
+  });
+}
+
 interface TranscriptSegment {
   text: string;
   start: number;
@@ -136,7 +152,14 @@ export class YouTubeExtractor {
 
     for (const attempt of attempts) {
       try {
-        const entries = await fetchTranscriptPlus(url, attempt.lang ? { lang: attempt.lang } : undefined);
+        const config = {
+          ...(attempt.lang ? { lang: attempt.lang } : {}),
+          userAgent: BROWSER_USER_AGENT,
+          videoFetch: browserFetch,
+          playerFetch: browserFetch,
+          transcriptFetch: browserFetch,
+        };
+        const entries = await fetchTranscriptPlus(url, config);
         const language = entries.find((entry) => entry.lang)?.lang;
 
         const segments = entries
