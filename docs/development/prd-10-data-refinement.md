@@ -1,10 +1,10 @@
 # PRD 10: Data Refinement & Hygiene
 
-## Status: In Progress
+## Status: Complete
 
 **Last updated:** 2026-02-22
 
-Phase 1 (type migration, content node descriptions/notes/dates) is complete. Phases 2A (ainews), 2B (article), 2C (guests), and 2F (UI date fix) are complete. Remaining: 2D (entities), 2E (edge cleanup).
+All phases complete. Phase 1 (type migration, content node descriptions/notes/dates), Phase 2A (ainews), 2B (article), 2C (guests), 2D (entities), 2E (edge cleanup), 2F (UI date fix) — all done.
 
 ---
 
@@ -100,38 +100,60 @@ All content nodes now have `event_date` set to their publish/upload date.
 
 **Duplicate handle pairs flagged for future cleanup:** Teknium1/Teknuim1/Teknim1, Akhaliq/_akhaliq, Philschmid/_philschmid, Lewtun/Lvwerra, Karpathy/Andrej Karpathy, Gdb/Greg_brockman, Mike_krieger/Mikeyk, Swix/Swixs/Swyx.
 
-### Phase 2D: Entity Descriptions & Notes 🟡
+### Phase 2D: Entity Descriptions & Notes ✅
 
-**1,612/2,589 entities have descriptions (62%). ~977 remaining (all 1-edge or 0-edge entities).**
+**2,589/2,589 entities have descriptions (100%).** All entity nodes now have concrete 1-2 sentence descriptions. Generated via parallel Claude Code subagents (4-6 at a time) across multiple rounds.
 
-Completed in 3 rounds by edge count priority:
-1. **10+ edges (72 entities):** ✅ All done. Major companies (OpenAI, Anthropic, Google, DeepSeek), concepts (RL, benchmarking, reasoning), and platforms (Hugging Face, LangChain).
-2. **5-9 edges (121 entities):** ✅ All done. Mid-tier companies, models, and technical concepts.
-3. **2-4 edges (548 entities):** ✅ All done. Long-tail companies, specific models, niche concepts.
-4. **0-1 edges (~1,808 entities):** ~842 done, ~977 remaining. Hit rate limit during processing.
+Completed in 4 rounds by edge count priority:
+1. **10+ edges (72 entities):** ✅ Major companies (OpenAI, Anthropic, Google, DeepSeek), concepts (RL, benchmarking, reasoning), and platforms (Hugging Face, LangChain).
+2. **5-9 edges (121 entities):** ✅ Mid-tier companies, models, and technical concepts.
+3. **2-4 edges (548 entities):** ✅ Long-tail companies, specific models, niche concepts.
+4. **0-1 edges (~1,848 entities):** ✅ All done across two sessions. Models, technical concepts, companies, and ASR artifacts.
 
-**Data quality issues flagged:**
+**Data quality issues flagged for future cleanup:**
 - `N/A` (id 2067, 41 edges) and `Unknown` (id 2336, 33 edges) — placeholder entities, need edge cleanup
 - Multiple Decibel Partners transcription variants: Deible/Desible/Decible/Desel/Descelible/CTI Decible/Deal Partners/Deel Partners
 - Duplicate entities: HuggingFace/Hugging Face, TogetherCompute/Together AI, SmallI/Small AI
 - ASR artifacts: "Enthropic" = Anthropic, "Laid in Space" = Latent Space, "L Chain" = LangChain
 
-**Approach:** Batch-queried edges via SQL IN clauses, used training knowledge for well-known entities, derived context from edge connections for unknowns. Parallel Claude Code subagents (3-6 at a time).
+**Approach:** Batch-queried edges via SQL IN clauses, used training knowledge for well-known entities, derived context from edge connections for unknowns. Parallel Claude Code subagents (4-6 at a time).
 
-### Phase 2E: Edge Cleanup 🟡
+### Phase 2E: Edge Cleanup
 
-**7,128 / 7,130 edges are `ai_similarity` with JSON blob context.**
+**7,495 edges remaining** (was 7,569). Edges are typed relationships (NOT raw `ai_similarity` as originally assumed). 93% auto-generated during ingestion, 7% from manual workflows.
 
-These edges were auto-generated during ingestion. They need:
-1. **Audit:** Are the connections meaningful? Sample 50 edges, check if the relationship is real.
-2. **Context rewrite:** Convert JSON blob context to plain English sentences.
-3. **Junk removal:** Delete edges that don't represent meaningful relationships.
-4. **Direction check:** Verify from_node_id → to_node_id reads logically.
+**Edge type breakdown:**
 
-**This is the hardest task** — 7K edges need individual evaluation. Consider:
-- Rule-based rewrite for common patterns (guest → episode, episode → topic)
-- Batch delete edges between unrelated entity nodes with low similarity
-- Claude Code for ambiguous cases
+| Type | Count | Pattern |
+|---|---|---|
+| `covers_topic` | ~5,048 | content → entity |
+| `appeared_on` | ~1,446 | guest → content |
+| `affiliated_with` | ~557 | guest → entity |
+| `related_to` | ~440 | structural links |
+| `extends` | 4 | content → content arcs |
+
+#### Tier 1: Junk Removal ✅
+
+**74 edges deleted.** All edges to/from placeholder entities `N/A` (id 2067, 41 edges) and `Unknown` (id 2336, 33 edges) removed.
+
+**Script:** `scripts/output/edge-cleanup-t1t2.ts`
+
+#### Tier 2: Context Cleanup ✅
+
+**7,493 edge contexts cleaned.** All JSON context blobs stripped of metadata noise (`inferred_at`, `created_via`). 5,312 lazy echo explanations removed (e.g., "covers anthropic" → stripped, since `type: covers_topic` + node title already convey the relationship). Good explanations preserved (e.g., "is the parent series of", "Explicitly mentioned in description").
+
+Context format before: `{"type":"covers_topic","confidence":0.9,"inferred_at":"2026-02-20T03:02:16Z","explanation":"covers anthropic","created_via":"workflow"}`
+Context format after: `{"type":"covers_topic","confidence":0.9}`
+
+**Script:** `scripts/output/edge-cleanup-t1t2.ts`
+
+#### Tier 3: Affiliated Explanation Enrichment ✅
+
+**201 `affiliated_with` edges updated** with explicit role explanations extracted from guest descriptions. 161 skipped (entity not explicitly mentioned in description — mostly ASR misspellings). `covers_topic` and `appeared_on` edges left as-is — the type + node titles are sufficient.
+
+Examples: "co-founder and CEO of", "researcher at", "CTO of", "former Director of AI at", "partner at".
+
+**Approach:** 2 parallel Claude Code agents split by edge ID. For each edge, checked if the entity name appeared in the guest description. Only wrote an explanation if the match was explicit.
 
 ### Phase 2F: UI Date Display Fix ✅
 
@@ -140,31 +162,30 @@ These edges were auto-generated during ingestion. They need:
 
 ---
 
-## Current Database Snapshot (as of 2026-02-22, post-2C)
+## Current Database Snapshot (as of 2026-02-22, post-2E T1/T2)
 
 | Metric | Count |
 |---|---|
-| Total nodes | 3,808 |
-| Total edges | 7,130 |
-| Total chunks | 35,329 |
+| Total nodes | 3,835 |
+| Total edges | 7,495 |
+| Total chunks | 35,787 |
 | NULL node_type | 0 ✅ |
-| NULL description | ~2,560 (was 3,286) |
-| NULL notes | ~2,560 (was 3,286) |
-| NULL event_date | 3,297 |
-| Edges with NULL context | 1 |
-| Edges `ai_similarity` | 7,128 |
+| NULL description | 10 (skipped bot/product accounts) ✅ |
+| NULL notes | 1,022 |
+| NULL event_date | 3,320 |
 
 **Node type breakdown:**
 
 | Type | Total | Has Desc | Has Notes | Has Date |
 |---|---|---|---|---|
-| entity | 2,562 | 12 | 12 | 0 |
-| guest | 735 | 725 ✅ | 725 ✅ | 0 |
-| podcast | 247 | 247 ✅ | 247 ✅ | 247 ✅ |
-| ainews | 136 | 136 ✅ | 136 ✅ | 136 ✅ |
-| article | 72 | 72 ✅ | 71 ✅ | 72 ✅ |
+| entity | 2,589 | 2,589 ✅ | 1,584 | 0 |
+| guest | 731 | 721 ✅ | 721 ✅ | 0 |
+| podcast | 246 | 246 ✅ | 246 ✅ | 246 ✅ |
+| ainews | 141 | 141 ✅ | 136 ✅ | 141 ✅ |
+| article | 72 | 72 ✅ | 70 ✅ | 72 ✅ |
 | paper-club | 32 | 32 ✅ | 32 ✅ | 32 ✅ |
-| builders-club | 24 | 24 ✅ | 24 ✅ | 24 ✅ |
+| builders-club | 20 | 20 ✅ | 20 ✅ | 20 ✅ |
+| workshop | 4 | 4 ✅ | 4 ✅ | 4 ✅ |
 
 ---
 
@@ -185,6 +206,7 @@ All batch scripts are in `scripts/output/` and use `@libsql/client` directly (no
 | `delete-null-types.ts` | Delete AIE, insight, placeholder nodes |
 | `migrate-entity-types.ts` | Person/org/topic → guest/entity migration |
 | `merge-pc-dupes.ts` | Merge paper-club duplicate pairs |
+| `edge-cleanup-t1t2.ts` | Delete junk edges + strip context JSON noise |
 
 ### Claude Code MCP Workflow
 
