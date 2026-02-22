@@ -19,12 +19,19 @@ interface CategoryData {
   preview: PreviewItem[];
 }
 
+interface TypeCount {
+  key: string;
+  label: string;
+  count: number;
+}
+
 interface DashboardData {
   stats: {
     total_nodes: number;
     total_edges: number;
     total_chunks: number;
     total_content: number;
+    type_counts: TypeCount[];
   };
   categories: CategoryData[];
 }
@@ -39,6 +46,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
   const [loading, setLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
+  const [hoveredPill, setHoveredPill] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/dashboard')
@@ -56,11 +64,11 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
         flex: 1, display: 'flex', flexDirection: 'column', padding: '32px',
         gap: '24px', overflowY: 'auto',
       }}>
-        {/* Skeleton stats */}
-        <div style={{ display: 'flex', gap: '16px' }}>
-          {[0, 1, 2, 3].map(i => (
+        {/* Skeleton type cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
             <div key={i} style={{
-              flex: 1, height: '72px', background: '#151515',
+              height: '72px', background: '#151515',
               borderRadius: '8px', border: '1px solid #1a1a1a',
             }} />
           ))}
@@ -97,13 +105,6 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
     categoryDataMap[c.key] = c;
   }
 
-  const statItems = [
-    { value: stats.total_nodes, label: 'Nodes' },
-    { value: stats.total_edges, label: 'Edges' },
-    { value: stats.total_chunks, label: 'Chunks' },
-    { value: stats.total_content, label: 'Content' },
-  ];
-
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column',
@@ -117,30 +118,69 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
         Dashboard
       </h1>
 
-      {/* Stats bar */}
-      <div style={{ display: 'flex', gap: '16px' }}>
-        {statItems.map(({ value, label }) => (
-          <div
-            key={label}
-            style={{
-              flex: 1,
-              padding: '16px',
-              background: '#151515',
-              borderRadius: '8px',
-              border: '1px solid #1a1a1a',
-            }}
-          >
-            <div style={{
-              fontSize: '24px', fontWeight: 600, color: '#e5e5e5',
-              fontVariantNumeric: 'tabular-nums', lineHeight: 1.2,
-            }}>
-              {value.toLocaleString()}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-              {label}
-            </div>
-          </div>
-        ))}
+      {/* Type breakdown — card grid */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '12px',
+        }}>
+          {(stats.type_counts || []).map((tc) => {
+            const catConfig = CATEGORY_MAP[tc.key];
+            const Icon = catConfig?.icon;
+            const isActive = hoveredPill === tc.key;
+            return (
+              <button
+                key={tc.key}
+                onClick={() => onCategoryClick(tc.key)}
+                onMouseEnter={() => setHoveredPill(tc.key)}
+                onMouseLeave={() => setHoveredPill(null)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '14px 16px',
+                  background: isActive ? '#1c1c1c' : '#151515',
+                  border: '1px solid #1a1a1a',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'background 0.12s ease',
+                  color: 'inherit',
+                  textAlign: 'left',
+                }}
+                aria-label={`${tc.label}: ${tc.count}`}
+              >
+                {Icon && <Icon size={16} style={{ color: '#666', flexShrink: 0 }} aria-hidden="true" />}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                  <span style={{
+                    fontSize: '18px', fontWeight: 600, color: isActive ? '#e5e5e5' : '#ccc',
+                    fontVariantNumeric: 'tabular-nums', lineHeight: 1.2,
+                  }}>
+                    {tc.count.toLocaleString()}
+                  </span>
+                  <span style={{
+                    fontSize: '11px', color: isActive ? '#888' : '#666',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {tc.label}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Aggregate totals — compact line */}
+        <div style={{
+          fontSize: '11px', color: '#555',
+          fontVariantNumeric: 'tabular-nums',
+          paddingLeft: '4px',
+        }}>
+          {stats.total_nodes.toLocaleString()} nodes{' · '}
+          {stats.total_edges.toLocaleString()} edges{' · '}
+          {stats.total_chunks.toLocaleString()} chunks{' · '}
+          {stats.total_content.toLocaleString()} content
+        </div>
       </div>
 
       {/* Category cards — 2-column grid */}

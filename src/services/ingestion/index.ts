@@ -1,6 +1,6 @@
 import { discoverSource } from './discovery';
 import { completeIngestionRun, hasActiveRun, IngestionRunDetails, startIngestionRun } from './log';
-import { notifyAnnouncementsThenYap } from './notify';
+import { notifyAnnouncement, notifyYapKickoff } from './notify';
 import { ProcessItemResult, processDiscoveredItem } from './processing';
 import { IngestionSourceKey, SOURCE_KEYS } from './sources';
 
@@ -33,6 +33,8 @@ function toRunDetail(item: ProcessItemResult): IngestionRunDetails {
     nodeId: item.nodeId,
     message: item.message,
     chunksCreated: item.chunksCreated,
+    entityExtractionStatus: item.entityExtractionStatus,
+    entityExtractionError: item.entityExtractionError,
   };
 }
 
@@ -108,13 +110,19 @@ export async function checkAndIngest(options: CheckAndIngestOptions = {}): Promi
           itemsIngested += 1;
           if (!dryRun && result.nodeType) {
             try {
-              await notifyAnnouncementsThenYap({
+              const payload = {
                 title: result.title,
                 nodeType: result.nodeType,
                 chunksCreated: result.chunksCreated,
                 publishedAt: result.publishedAt,
                 url: result.url,
-              });
+              };
+              // Always announce
+              await notifyAnnouncement(payload);
+              // Only kick off yap discussion if this isn't a companion to something already discussed
+              if (!result.hasCompanion) {
+                await notifyYapKickoff(payload);
+              }
             } catch (error) {
               console.warn('[ingestion] Failed to send Discord notifications', error);
             }
