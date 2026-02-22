@@ -1,5 +1,62 @@
 # Architecture
 
+## System Architecture
+
+Four cloud services work together. No self-hosted infrastructure.
+
+```
+              ┌──────────────┐       ┌──────────────┐
+              │    Turso     │       │  OpenRouter   │
+              │  (database)  │       │  (LLM API)   │
+              └──────┬───────┘       └──────┬───────┘
+                     │                      │
+        reads & writes │  reads only         │ model queries
+                  ┌────┴──────┐             │
+                  │           │             │
+           ┌──────┴──────┐   ┌──────┴───────┴──┐
+           │   Vercel    │   │     Railway      │
+           │             │   │                  │
+           │ • Web app   │   │ • Slop bot       │
+           │ • Cron jobs │   │ • Always on      │
+           │ • Webhooks  │   │ • Model-agnostic │
+           └──────┬──────┘   └─────────────────┘
+                  │
+         webhook posts
+                  │
+           ┌──────┴──────┐
+           │   Discord   │
+           │             │
+           │ • Announces │
+           │ • Kickoffs  │
+           │ • Slop yaps │
+           └─────────────┘
+```
+
+| Service | Role | Details |
+|---------|------|---------|
+| **Vercel** | Web app + ingestion engine | Hosts the Next.js app (read-only for public) and the hourly cron jobs that discover, ingest, and announce new content. Also sends Discord webhook messages. |
+| **Railway** | Discord bot (Slop) | Always-on process connected to Discord via gateway WebSocket. Read-only access to the database. Uses OpenRouter for LLM calls. |
+| **Turso** | Cloud SQLite database | Single shared database for all services. Stores nodes, edges, chunks, embeddings. Both Vercel and Railway connect to the same instance. |
+| **OpenRouter** | LLM routing | Slop uses OpenRouter for model-agnostic LLM access. The model can be swapped via environment variable (Claude, GPT, Gemini, etc.) without code changes. |
+
+### Why this split?
+
+- **Vercel** handles request/response workloads (web app, API, cron) but can't maintain persistent connections
+- **Railway** runs always-on processes (Discord bot needs a permanent WebSocket connection)
+- **Turso** is the shared source of truth — both services read from the same database
+- **OpenRouter** decouples the bot from any specific LLM provider
+
+### Discord integration: webhooks vs bot
+
+Two different things post in Discord:
+
+| Component | Type | What it does |
+|-----------|------|-------------|
+| **Latent Space Hub** | Webhook (not a bot) | Posts content announcements and yap kickoffs. Just a name + avatar on webhook messages. Sent by Vercel. |
+| **Slop** | Real Discord bot | Responds to @mentions, creates threads, discusses content. Always-on process on Railway. |
+
+Webhooks are one-way (Vercel posts a message, done). The bot is interactive (receives messages, searches the graph, responds in threads).
+
 ## Project Structure
 
 ```

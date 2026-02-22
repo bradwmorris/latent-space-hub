@@ -43,7 +43,7 @@ Discord Gateway
 - **Runtime:** Single Discord.js process running both bots as separate bot users
 - **KB access:** Read-only Turso connection (same database as the web app)
 - **Search:** Hybrid vector + FTS for content retrieval
-- **LLM:** OpenRouter for model routing
+- **LLM:** OpenRouter for model-agnostic LLM access — the model (Claude, GPT, Gemini, etc.) can be swapped via environment variable without code changes
 - **Personas:** Defined in `personas/sig.soul.md` and `personas/slop.soul.md`
 - **Pattern:** Thread-per-conversation — each user question creates a thread
 

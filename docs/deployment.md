@@ -66,12 +66,30 @@ Local dev has full write access — no readonly restriction.
 
 ## Discord Bots (Railway)
 
-The bots run on Railway as a single process from the `latent-space-bots` repo.
+The bot runs on Railway as an always-on process from the `latent-space-bots` repo. It connects to Discord via the gateway WebSocket and stays logged in 24/7.
 
-Environment variables for Railway:
-- `DISCORD_TOKEN` — Discord bot token
-- `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` — read-only Turso access
-- `OPENROUTER_API_KEY` — LLM API access
+Railway is separate from Vercel because Discord bots need persistent connections. Vercel handles short-lived request/response — Railway handles always-on.
+
+The bot uses **OpenRouter** for LLM calls — a single API that routes to many models (Claude, GPT, Gemini, etc.). The model can be swapped via environment variable without code changes.
+
+### Environment variables (Railway)
+
+| Variable | Purpose |
+|----------|---------|
+| `DISCORD_TOKEN` | Discord bot token (tied to the bot application, not the server) |
+| `TURSO_DATABASE_URL` | Turso database URL (read-only access) |
+| `TURSO_AUTH_TOKEN` | Turso auth token |
+| `OPENROUTER_API_KEY` | LLM API access (model-agnostic) |
+| `ALLOWED_CHANNEL_IDS` | Comma-separated Discord channel IDs where the bot can respond |
+
+### Webhook vs bot
+
+Two different things post in Discord — they are different:
+
+| Component | Type | How it works |
+|-----------|------|-------------|
+| **Latent Space Hub** | Webhook (not a bot) | Posts content announcements. Just a name + avatar on webhook messages. Sent by Vercel via webhook URL. No invite needed. |
+| **Slop** | Real Discord bot | Responds to @mentions, creates threads, discusses content from the knowledge base. Needs a bot invite with appropriate permissions. |
 
 ## MCP Server (NPM)
 

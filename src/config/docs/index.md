@@ -144,3 +144,48 @@ Restart your agent. The `ls_*` tools are now available.
 | `ls_query_edges` | Find connections between nodes |
 | `ls_sqlite_query` | Custom SQL for advanced queries |
 | `ls_read_guide` | Read built-in navigation guides |
+
+---
+
+# How It Works
+
+The hub is open source. Here's what's under the hood.
+
+### The Pipeline
+
+Every hour, the system checks for new content from four sources: the Latent Space podcast (YouTube), the latent.space Substack, AINews digests (GitHub), and LatentSpaceTV. When something new is found:
+
+1. **Pull the content** — grab the transcript or article text
+2. **Break it into chunks** — split into searchable pieces (~2,000 characters each)
+3. **Generate embeddings** — create vector representations for semantic search
+4. **Extract entities** — use Claude to identify people, companies, and topics mentioned
+5. **Connect everything** — link the new content to related episodes, guests, and concepts already in the graph
+6. **Announce it** — post to Discord so the community knows
+
+If there's no new content, nothing happens. No spam.
+
+### The Architecture
+
+Four cloud services, no self-hosted infrastructure:
+
+| Service | What it does |
+|---------|-------------|
+| **Vercel** | Hosts the web app and runs the hourly ingestion cron jobs. Also sends Discord webhook messages when new content is ingested. |
+| **Turso** | Cloud-hosted SQLite database. Stores all nodes, edges, chunks, and embeddings. Single shared database — the web app, the bot, and MCP all read from the same source of truth. |
+| **Railway** | Runs the Slop bot as an always-on process. Connected to Discord 24/7 via WebSocket. Read-only access to the database. |
+| **OpenRouter** | LLM routing for Slop. Model-agnostic — the underlying model (Claude, GPT, etc.) can be swapped via config without code changes. |
+
+### The Database
+
+Everything lives in a single Turso (cloud SQLite) database:
+
+- **Nodes** — every episode, article, person, company, topic (~3,800)
+- **Edges** — connections between nodes ("appeared on", "mentioned in", "related to") (~7,500)
+- **Chunks** — the actual text content, broken into searchable pieces (~35,000)
+- **Embeddings** — 1536-dimensional vectors for AI-powered semantic search
+
+### Open Source
+
+The web app, ingestion pipeline, and MCP server are all in the [latent-space-hub](https://github.com/bradwmorris/latent-space-hub) repo. The Discord bots live in a separate [latent-space-bots](https://github.com/bradwmorris/latent-space-bots) repo.
+
+Built with Next.js 15, TypeScript, Turso, and the Vercel AI SDK. Forked from [RA-H](https://github.com/bradwmorris/ra-h_os), a local-first personal knowledge graph.
