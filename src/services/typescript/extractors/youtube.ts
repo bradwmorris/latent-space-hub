@@ -25,6 +25,86 @@ function browserFetch(params: { url: string; method?: string; body?: string; hea
   });
 }
 
+const RE_XML_TRANSCRIPT = /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g;
+
+/**
+ * Direct innertube transcript fetcher — bypasses watch page entirely.
+ * Uses a known innertube API key and ANDROID client context to avoid
+ * IP-based blocking on cloud/serverless environments.
+ */
+async function fetchTranscriptDirect(videoId: string, lang?: string): Promise<{
+  segments: Array<{ text: string; start: number; duration: number }>;
+  language: string;
+}> {
+  const playerRes = await fetch(
+    'https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': BROWSER_USER_AGENT,
+      },
+      body: JSON.stringify({
+        context: {
+          client: { clientName: 'ANDROID', clientVersion: '20.10.38' },
+        },
+        videoId,
+      }),
+      signal: AbortSignal.timeout(15000),
+    }
+  );
+
+  if (!playerRes.ok) {
+    throw new Error(`Innertube player request failed (${playerRes.status})`);
+  }
+
+  const playerJson = await playerRes.json();
+  const tracklist =
+    playerJson?.captions?.playerCaptionsTracklistRenderer ??
+    playerJson?.playerCaptionsTracklistRenderer;
+  const tracks = tracklist?.captionTracks;
+
+  if (!Array.isArray(tracks) || tracks.length === 0) {
+    throw new Error('No caption tracks returned from innertube player');
+  }
+
+  const selectedTrack = lang
+    ? tracks.find((t: { languageCode: string }) => t.languageCode === lang) ?? tracks[0]
+    : tracks[0];
+
+  const transcriptUrl: string = selectedTrack.baseUrl || selectedTrack.url;
+  if (!transcriptUrl) {
+    throw new Error('No transcript URL in caption track');
+  }
+
+  const transcriptRes = await fetch(transcriptUrl, {
+    headers: { 'User-Agent': BROWSER_USER_AGENT },
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!transcriptRes.ok) {
+    throw new Error(`Transcript XML fetch failed (${transcriptRes.status})`);
+  }
+
+  const xml = await transcriptRes.text();
+  const segments: Array<{ text: string; start: number; duration: number }> = [];
+  let match: RegExpExecArray | null;
+  const re = new RegExp(RE_XML_TRANSCRIPT.source, 'g');
+  while ((match = re.exec(xml)) !== null) {
+    segments.push({
+      text: match[3],
+      start: parseFloat(match[1]),
+      duration: parseFloat(match[2]),
+    });
+  }
+
+  if (segments.length === 0) {
+    throw new Error('Transcript XML parsed but contained no segments');
+  }
+
+  return { segments, language: selectedTrack.languageCode || lang || 'en' };
+}
+
 interface TranscriptSegment {
   text: string;
   start: number;
@@ -244,31 +324,68 @@ export class YouTubeExtractor {
         chunk: transcript,
         metadata,
       };
-    } catch (error: unknown) {
-      try {
-        return await this.runNpmFallback(url);
-      } catch (fallbackError: unknown) {
-        return {
-          success: false,
-          content: '',
-          chunk: '',
-          metadata: {} as YouTubeMetadata,
-          error: `${this.formatErrorMessage(error)}; fallback error: ${this.formatErrorMessage(fallbackError)}`,
-        };
-      }
-    }
-  }
+    } catch (primaryError: unknown) {
+      console.warn('[youtube] Primary extraction failed:', this.formatErrorMessage(primaryError));
 
-  private async runNpmFallback(url: string): Promise<ExtractionResult> {
-    console.warn('Primary transcript extraction failed; falling back to legacy youtube-transcript package');
-    const fallback = await extractYouTubeNpm(url);
-    return {
-      success: fallback.success,
-      content: fallback.content,
-      chunk: fallback.chunk,
-      metadata: fallback.metadata as YouTubeMetadata,
-      error: fallback.error,
-    };
+      // Fallback 1: legacy npm package
+      try {
+        const fallback = await extractYouTubeNpm(url);
+        if (fallback.success) return fallback as ExtractionResult;
+      } catch (npmError: unknown) {
+        console.warn('[youtube] npm fallback failed:', this.formatErrorMessage(npmError));
+      }
+
+      // Fallback 2: direct innertube call (bypasses watch page, works from cloud IPs)
+      try {
+        console.warn('[youtube] Attempting direct innertube fallback');
+        const videoId = this.extractVideoId(url);
+        if (videoId) {
+          const { segments: rawSegments, language } = await fetchTranscriptDirect(videoId, 'en');
+          const segments = rawSegments
+            .map((s) => ({
+              text: this.decodeHtmlEntities(s.text).trim(),
+              start: s.start,
+              duration: s.duration,
+            }))
+            .filter((s) => s.text.length > 0);
+
+          if (segments.length > 0) {
+            const transcript = this.formatSegments(segments);
+            const videoMetadata = await this.getVideoMetadata(url);
+            return {
+              success: true,
+              content: transcript,
+              chunk: transcript,
+              metadata: {
+                video_id: videoId,
+                video_url: url,
+                video_title: videoMetadata.title,
+                channel_name: videoMetadata.author_name,
+                channel_url: videoMetadata.author_url,
+                thumbnail_url: videoMetadata.thumbnail_url,
+                source_type: 'youtube_transcript',
+                transcript_length: transcript.length,
+                total_segments: segments.length,
+                content_format: 'timestamped_transcript',
+                language,
+                provider: 'YouTube',
+                extraction_method: 'typescript_innertube_direct',
+              },
+            };
+          }
+        }
+      } catch (directError: unknown) {
+        console.warn('[youtube] Direct innertube fallback failed:', this.formatErrorMessage(directError));
+      }
+
+      return {
+        success: false,
+        content: '',
+        chunk: '',
+        metadata: {} as YouTubeMetadata,
+        error: `All extraction methods failed. Primary: ${this.formatErrorMessage(primaryError)}`,
+      };
+    }
   }
 }
 
