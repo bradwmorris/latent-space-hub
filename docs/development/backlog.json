@@ -1,280 +1,74 @@
 {
   "queue": [
     "data-refinement",
-    "auto-ingestion",
-    "dashboard-and-categories",
-    "documentation-overhaul",
+    "hub-nodes",
     "discord-bot-v2",
-    "storylines"
+    "documentation-overhaul-v2"
   ],
   "projects": {
     "data-refinement": {
       "id": "data-refinement",
-      "title": "Data refinement & hygiene — fix NULL descriptions, notes, types, edges, and chunk gaps across the entire graph",
+      "title": "Data refinement & hygiene — finish descriptions/notes quality pass and edge cleanup",
       "status": "in_progress",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-10-data-refinement.md",
-      "notes": "Phase 1 DONE: all node types migrated to 8-type system (0 NULLs), all content nodes have dates, podcast/paper-club/builders-club fully populated (desc + notes). 216 junk nodes deleted, duplicates merged.\n\nPhase 2 remaining: ainews desc/notes (136), article desc/notes (60), guest desc/notes (732), entity desc/notes (2554), edge cleanup (7128 ai_similarity edges), UI date display fix.\n\nDepends on: content-ingestion (DONE), schema-and-port (DONE)\nBlocks: discord-bot-v2 (bot quality depends on clean data)",
+      "notes": "Core type migration and date population are complete. Remaining work is quality completion for ainews/article/guest/entity notes and edge-context cleanup.",
       "tasks": [
-        {
-          "done": true,
-          "text": "Phase 0: Audit + graph structure decision (flat types, no hubs)"
-        },
-        {
-          "done": true,
-          "text": "Phase 1A: Node type migration — episode/source/person/org/topic → 8-type system (0 NULLs)"
-        },
-        {
-          "done": true,
-          "text": "Phase 1A: Delete junk nodes — 58 AIE talks, 65 insights, 31 placeholders, 7 promo posts"
-        },
-        {
-          "done": true,
-          "text": "Phase 1A: Merge duplicates — 52 source-podcast pairs, 2 paper-club pairs"
-        },
-        {
-          "done": true,
-          "text": "Phase 1B: Publish dates — all 510 content nodes have event_date (yt-dlp + Substack scraping)"
-        },
-        {
-          "done": true,
-          "text": "Phase 1C: Podcast descriptions + notes — 247/247 complete"
-        },
-        {
-          "done": true,
-          "text": "Phase 1C: Paper-club descriptions + notes — 32/32 complete"
-        },
-        {
-          "done": true,
-          "text": "Phase 1C: Builders-club descriptions + notes — 24/24 complete"
-        },
-        {
-          "done": false,
-          "text": "Phase 2A: AINews descriptions + notes — 136 nodes, 0 done"
-        },
-        {
-          "done": false,
-          "text": "Phase 2B: Article descriptions + notes — 71 nodes, 11 done, 60 remaining"
-        },
-        {
-          "done": false,
-          "text": "Phase 2C: Guest descriptions + notes — 735 nodes, 3 done, 732 remaining"
-        },
-        {
-          "done": false,
-          "text": "Phase 2D: Entity descriptions + notes — 2562 nodes, 8 done, 2554 remaining"
-        },
-        {
-          "done": false,
-          "text": "Phase 2E: Edge cleanup — 7128 ai_similarity edges need audit + context rewrite"
-        },
-        {
-          "done": false,
-          "text": "Phase 2F: UI date display fix — sort by event_date, show publish date instead of updated_at"
-        },
-        {
-          "done": false,
-          "text": "Verify: confirm zero NULLs across all types, spot-check quality"
-        }
+        { "done": true, "text": "Phase 0: Audit + graph structure decision (flat types, no hubs)" },
+        { "done": true, "text": "Phase 1: Node type migration + junk cleanup + duplicate merges" },
+        { "done": true, "text": "Phase 1: Publish dates for all content nodes" },
+        { "done": true, "text": "Phase 1: Podcast, paper-club, and builders-club descriptions + notes" },
+        { "done": false, "text": "Phase 2: AINews descriptions + notes" },
+        { "done": false, "text": "Phase 2: Article descriptions + notes" },
+        { "done": false, "text": "Phase 2: Guest descriptions + notes" },
+        { "done": false, "text": "Phase 2: Entity descriptions + notes" },
+        { "done": false, "text": "Phase 2: Edge context cleanup + verification pass" }
       ]
     },
-    "dashboard-and-categories": {
-      "id": "dashboard-and-categories",
-      "title": "Dashboard + Category Taxonomy — 8 canonical categories, dashboard overview, sidebar overhaul",
-      "status": "review",
-      "type": "feature",
+    "hub-nodes": {
+      "id": "hub-nodes",
+      "title": "Hub node architecture — anchor LS properties and absorb storyline-ready narrative links",
+      "status": "ready",
+      "type": "data",
       "priority": "high",
-      "prd": "docs/development/prd-12-dashboard-and-categories.md",
-      "notes": "Two things: (1) a dashboard view as the default landing page showing stats + 8 category cards with previews, and (2) replace generic node_type values with 8 branded categories (podcast, guest, article, entity, builders-club, paper-club, workshop, ainews). Updates sidebar to fixed category list with icons.\n\nDepends on: data-refinement (type migration uses new taxonomy)\nBlocks: discord-bot-v2 (bots need to understand the 8 categories)",
+      "prd": "docs/development/prd-15-hub-nodes.md",
+      "notes": "Creates anchor nodes for the core Latent Space properties and links content to them. Storylines scope from PRD-08 is merged here as a focused narrative-link layer (timeline edges and evolving-arc metadata on hub-linked content).",
       "tasks": [
-        {
-          "done": true,
-          "text": "Create src/config/categories.ts — canonical 8-category config with icons and sort modes"
-        },
-        {
-          "done": true,
-          "text": "Update NodeType in src/types/database.ts to new 8 categories + hub"
-        },
-        {
-          "done": true,
-          "text": "Update LeftTypePanel.tsx — fixed category list, icons, branded labels, fixed order"
-        },
-        {
-          "done": true,
-          "text": "Build GET /api/dashboard endpoint — stats + category previews in single call"
-        },
-        {
-          "done": true,
-          "text": "Build Dashboard.tsx component — stats bar + 8 category cards with preview items"
-        },
-        {
-          "done": true,
-          "text": "Update MainViewSwitcher.tsx — add dashboard view, set as default"
-        },
-        {
-          "done": true,
-          "text": "Update ThreePanelLayout.tsx — render dashboard, default activeView = dashboard"
-        },
-        {
-          "done": true,
-          "text": "Update scripts/refine-data.ts --task types for new taxonomy — already done in PRD-10"
-        },
-        {
-          "done": true,
-          "text": "Clean up metadata interfaces in database.ts"
-        },
-        {
-          "done": true,
-          "text": "Type-check + build + verify"
-        }
-      ]
-    },
-    "documentation-overhaul": {
-      "id": "documentation-overhaul",
-      "title": "Documentation overhaul — rewrite all docs for LS Hub identity, split internal + public-facing",
-      "status": "in_progress",
-      "type": "docs",
-      "priority": "high",
-      "prd": "docs/development/prd-14-documentation-overhaul.md",
-      "notes": "Current docs were copied from RA-H and don't reflect the product. Two layers: (1) internal developer docs covering architecture, categories, bots, MCP, ingestion, search, and contributing, and (2) public-facing guides accessible in the live app.\n\nNo blocking dependencies.",
-      "tasks": [
-        { "done": true, "text": "Archive stale docs to docs/archive/" },
-        { "done": true, "text": "Rename kept files — drop number prefixes" },
-        { "done": true, "text": "Write docs/overview.md" },
-        { "done": true, "text": "Write docs/categories.md" },
-        { "done": true, "text": "Write docs/bots.md" },
-        { "done": true, "text": "Rewrite docs/mcp-server.md" },
-        { "done": true, "text": "Update docs/ingestion.md" },
-        { "done": true, "text": "Write docs/search.md" },
-        { "done": true, "text": "Write docs/architecture.md" },
-        { "done": true, "text": "Write docs/contributing.md" },
-        { "done": true, "text": "Write docs/deployment.md" },
-        { "done": true, "text": "Update docs/schema.md" },
-        { "done": true, "text": "Update TROUBLESHOOTING.md" },
-        { "done": true, "text": "Create public-facing guides (welcome, categories, mcp-quickstart, bots)" },
-        { "done": true, "text": "Rewrite docs/README.md" },
-        { "done": true, "text": "Update CLAUDE.md" }
-      ]
-    },
-    "auto-ingestion": {
-      "id": "auto-ingestion",
-      "title": "Auto-ingestion pipeline — hourly RSS/API discovery, graph ingest, and #yap bot trigger",
-      "status": "in_progress",
-      "type": "feature",
-      "priority": "high",
-      "prd": "docs/development/prd-13-auto-ingestion.md",
-      "notes": "Hub-side foundation implemented: shared ingestion service, cron endpoints, ingestion run log table + admin API, and Discord webhook notifications with Sig mentions. Remaining work includes bot-repo changes for Slop auto-response and admin UI surface.",
-      "tasks": [
-        { "done": true, "text": "Create ingestion source config + discovery modules (YouTube RSS, Substack RSS, GitHub API/Atom fallback)" },
-        { "done": true, "text": "Create shared processing pipeline (extract → node → chunk/embed → entity edges)" },
-        { "done": true, "text": "Create ingestion_runs logging module with overlap guard and run summaries" },
-        { "done": true, "text": "Build GET /api/cron/ingest with auth + source/dry-run support" },
-        { "done": true, "text": "Build POST /api/cron/ingest/trigger for manual admin-triggered runs" },
-        { "done": true, "text": "Build GET /api/admin/ingestion-log for run history + health windows" },
-        { "done": true, "text": "Add hourly cron schedule in vercel.json" },
-        { "done": true, "text": "Add Discord #yap webhook notifications with Sig mention" },
-        { "done": false, "text": "Bot repo: add #yap to ALLOWED_CHANNEL_IDS and Slop auto-response to Sig in #yap" },
-        { "done": false, "text": "Dashboard UI: add ingestion section or /admin/ingestion page" },
-        { "done": false, "text": "Hardening: retry policy tuning, per-source failure alerts, and carry-over queue when nearing runtime budget" }
+        { "done": false, "text": "Create/update core hub nodes and remove duplicate Latent Space entities" },
+        { "done": false, "text": "Connect hubs to all relevant content nodes with explicit edge explanations" },
+        { "done": false, "text": "Add storyline carryover: timeline-oriented edges and arc notes on hub-linked clusters" },
+        { "done": false, "text": "Validate graph quality: counts, no orphans, and top-connected hub placement" }
       ]
     },
     "discord-bot-v2": {
       "id": "discord-bot-v2",
-      "title": "Discord bot refinement — contextual grounding, content-type awareness, temporal intelligence, channel architecture",
+      "title": "Discord bot v2 — grounded guides, temporal context, and deterministic channel triggers",
       "status": "ready",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-11-discord-bot-v2.md",
-      "notes": "Bots are live and working but need deeper grounding. They need to understand WHAT Latent Space is, navigate content by type and time, and operate in a proper channel architecture (bot-talk channel + user thread model).\n\nDepends on: data-refinement (clean data = better retrieval), discord-bot v1 (DONE)\nBlocks: LS Discord rollout",
+      "notes": "Focuses on better grounding/citations plus reliable kickoff behavior for announcement-driven discussion in yap.",
       "tasks": [
-        {
-          "done": false,
-          "text": "Rewrite start-here guide with full LS identity, content types, and temporal context"
-        },
-        {
-          "done": false,
-          "text": "Write content-types guide covering podcast/article/newsletter/meetup/paper-club with query patterns"
-        },
-        {
-          "done": false,
-          "text": "Add temporal awareness — bots understand dates, can answer 'recent', 'last month', 'timeline of X'"
-        },
-        {
-          "done": false,
-          "text": "Update Sig persona — grounded in LS identity, cites with type+date context"
-        },
-        {
-          "done": false,
-          "text": "Update Slop persona — grounded in LS identity, hot takes reference specific content"
-        },
-        {
-          "done": false,
-          "text": "Implement bot-talk channel — dedicated channel where Sig & Slop engage each other on new material"
-        },
-        {
-          "done": false,
-          "text": "Implement user thread model — user question creates thread, ongoing conversation lives in thread"
-        },
-        {
-          "done": false,
-          "text": "Test end-to-end in test Discord server"
-        },
-        {
-          "done": false,
-          "text": "Demo to swyx"
-        },
-        {
-          "done": false,
-          "text": "Add to LS Discord"
-        },
-        {
-          "done": false,
-          "text": "Stretch: Build daily audio recap pipeline (collate → script → TTS → mix → publish to YouTube)"
-        },
-        {
-          "done": false,
-          "text": "Stretch: Publish first Sig vs Slop daily recap episode"
-        }
+        { "done": false, "text": "Rewrite guides (start-here, content-types, search) with LS-specific grounding" },
+        { "done": false, "text": "Add deterministic kickoff path for announcement -> yap debate" },
+        { "done": false, "text": "Implement thread model and end-to-end channel behavior" },
+        { "done": false, "text": "Validate in test Discord, then promote to production server" }
       ]
     },
-    "storylines": {
-      "id": "storylines",
-      "title": "Storylines / narrative arcs — temporal narrative layer connecting content, entities, and claims over time",
+    "documentation-overhaul-v2": {
+      "id": "documentation-overhaul-v2",
+      "title": "Documentation overhaul v2 — second pass after data and bot refinements are complete",
       "status": "ready",
-      "type": "feature",
-      "priority": "low",
-      "prd": "docs/development/prd-08-storylines.md",
-      "notes": "BBC-inspired narrative layer. A storyline is a node_type='storyline' that tracks arcs like 'the scaling laws debate' or 'open vs closed source AI' across episodes, guests, and claims over time. Enables editorial planning and temporal bot queries.\n\nFuture — revisit after core graph is populated and bot is live.\n\nDepends on: schema-and-port (DONE), content-ingestion (DONE), data-refinement",
+      "type": "docs",
+      "priority": "medium",
+      "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
+      "notes": "V1 shipped. V2 is a focused refresh to align docs with final post-refinement schema, hub-node architecture, ingestion automation, and bot v2 behavior.",
       "tasks": [
-        {
-          "done": false,
-          "text": "Define storyline metadata schema"
-        },
-        {
-          "done": false,
-          "text": "Add storyline edge types (advances, central_to, subsumes)"
-        },
-        {
-          "done": false,
-          "text": "Add temporal edge metadata (valid_from, valid_until)"
-        },
-        {
-          "done": false,
-          "text": "Create initial storylines from existing content"
-        },
-        {
-          "done": false,
-          "text": "Storyline timeline UI component"
-        },
-        {
-          "done": false,
-          "text": "Bot can answer 'trace the arc of X across episodes'"
-        },
-        {
-          "done": false,
-          "text": "Auto-detect emerging storylines from new content"
-        }
+        { "done": false, "text": "Audit docs for drift after PRD-10/11/15 completion" },
+        { "done": false, "text": "Update architecture, ingestion, and bot runtime docs with final flows" },
+        { "done": false, "text": "Refresh user-facing guides to match the finalized product" },
+        { "done": false, "text": "Run docs consistency pass and update onboarding/index pages" }
       ]
     }
   },
@@ -334,6 +128,27 @@
       "prd": "docs/development/completed-prds/prd-09-ux-overhaul-type-navigation.md",
       "completed_date": "2026-02-20",
       "branch": "feature/prd-09-ux-overhaul"
+    },
+    {
+      "id": "dashboard-and-categories",
+      "title": "Dashboard + Category Taxonomy — 8 canonical categories, dashboard overview, sidebar overhaul",
+      "prd": "docs/development/completed-prds/prd-12-dashboard-and-categories.md",
+      "completed_date": "2026-02-22",
+      "branch": "feature/dashboard-and-categories"
+    },
+    {
+      "id": "documentation-overhaul-v1",
+      "title": "Documentation overhaul v1 — initial full replacement of inherited RA-H docs",
+      "prd": "docs/development/completed-prds/prd-14-documentation-overhaul-v1.md",
+      "completed_date": "2026-02-22",
+      "branch": "feature/documentation-overhaul"
+    },
+    {
+      "id": "auto-ingestion",
+      "title": "Auto-ingestion pipeline — hourly discovery, ingestion runs, and Discord fanout notifications",
+      "prd": "docs/development/completed-prds/prd-13-auto-ingestion.md",
+      "completed_date": "2026-02-22",
+      "branch": "codex/prd-13-auto-ingestion"
     }
   ]
 }

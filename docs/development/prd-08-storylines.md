@@ -1,5 +1,9 @@
 # PRD 08: Storylines / Narrative Arcs
 
+## Status
+
+Merged into PRD-15 (`docs/development/prd-15-hub-nodes.md`) as storyline carryover work for hub-linked narrative arcs. Keep this file as reference material only.
+
 ## Background
 
 The BBC's knowledge graph architecture separates three layers: **content** (what you publish), **domain entities** (people, orgs, topics), and **storylines** (temporal narrative arcs that evolve over time). The storyline layer is what makes their system powerful for editorial workflows — it connects content to real-world developments and enables questions like "what have we covered about X over time?"
