@@ -29,80 +29,103 @@ const RE_XML_TRANSCRIPT = /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g
 
 /**
  * Direct innertube transcript fetcher — bypasses watch page entirely.
- * Uses a known innertube API key and ANDROID client context to avoid
- * IP-based blocking on cloud/serverless environments.
+ * Tries multiple client contexts (WEB, ANDROID, IOS) with known API keys
+ * to maximize success from cloud/serverless environments.
  */
 async function fetchTranscriptDirect(videoId: string, lang?: string): Promise<{
   segments: Array<{ text: string; start: number; duration: number }>;
   language: string;
 }> {
-  const playerRes = await fetch(
-    'https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+  const clients = [
     {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': BROWSER_USER_AGENT,
-      },
-      body: JSON.stringify({
-        context: {
-          client: { clientName: 'ANDROID', clientVersion: '20.10.38' },
-        },
-        videoId,
-      }),
-      signal: AbortSignal.timeout(15000),
+      key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+      name: 'WEB',
+      version: '2.20241120.01.00',
+      ua: BROWSER_USER_AGENT,
+    },
+    {
+      key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+      name: 'ANDROID',
+      version: '20.10.38',
+      ua: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14)',
+    },
+    {
+      key: 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj7m9Y18',
+      name: 'IOS',
+      version: '20.10.4',
+      ua: 'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_2_1 like Mac OS X)',
+    },
+  ];
+
+  let lastError: Error | null = null;
+
+  for (const client of clients) {
+    try {
+      const playerRes = await fetch(
+        `https://www.youtube.com/youtubei/v1/player?key=${client.key}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': client.ua,
+          },
+          body: JSON.stringify({
+            context: {
+              client: { clientName: client.name, clientVersion: client.version },
+            },
+            videoId,
+          }),
+          signal: AbortSignal.timeout(15000),
+        }
+      );
+
+      if (!playerRes.ok) continue;
+
+      const playerJson = await playerRes.json();
+      const tracklist =
+        playerJson?.captions?.playerCaptionsTracklistRenderer ??
+        playerJson?.playerCaptionsTracklistRenderer;
+      const tracks = tracklist?.captionTracks;
+
+      if (!Array.isArray(tracks) || tracks.length === 0) continue;
+
+      const selectedTrack = lang
+        ? tracks.find((t: { languageCode: string }) => t.languageCode === lang) ?? tracks[0]
+        : tracks[0];
+
+      const transcriptUrl: string = selectedTrack.baseUrl || selectedTrack.url;
+      if (!transcriptUrl) continue;
+
+      const transcriptRes = await fetch(transcriptUrl, {
+        headers: { 'User-Agent': client.ua },
+        signal: AbortSignal.timeout(15000),
+      });
+
+      if (!transcriptRes.ok) continue;
+
+      const xml = await transcriptRes.text();
+      const segments: Array<{ text: string; start: number; duration: number }> = [];
+      let match: RegExpExecArray | null;
+      const re = new RegExp(RE_XML_TRANSCRIPT.source, 'g');
+      while ((match = re.exec(xml)) !== null) {
+        segments.push({
+          text: match[3],
+          start: parseFloat(match[1]),
+          duration: parseFloat(match[2]),
+        });
+      }
+
+      if (segments.length > 0) {
+        console.log(`[youtube] Direct innertube succeeded with ${client.name} client`);
+        return { segments, language: selectedTrack.languageCode || lang || 'en' };
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`[youtube] Direct innertube ${client.name} client failed:`, lastError.message);
     }
-  );
-
-  if (!playerRes.ok) {
-    throw new Error(`Innertube player request failed (${playerRes.status})`);
   }
 
-  const playerJson = await playerRes.json();
-  const tracklist =
-    playerJson?.captions?.playerCaptionsTracklistRenderer ??
-    playerJson?.playerCaptionsTracklistRenderer;
-  const tracks = tracklist?.captionTracks;
-
-  if (!Array.isArray(tracks) || tracks.length === 0) {
-    throw new Error('No caption tracks returned from innertube player');
-  }
-
-  const selectedTrack = lang
-    ? tracks.find((t: { languageCode: string }) => t.languageCode === lang) ?? tracks[0]
-    : tracks[0];
-
-  const transcriptUrl: string = selectedTrack.baseUrl || selectedTrack.url;
-  if (!transcriptUrl) {
-    throw new Error('No transcript URL in caption track');
-  }
-
-  const transcriptRes = await fetch(transcriptUrl, {
-    headers: { 'User-Agent': BROWSER_USER_AGENT },
-    signal: AbortSignal.timeout(15000),
-  });
-
-  if (!transcriptRes.ok) {
-    throw new Error(`Transcript XML fetch failed (${transcriptRes.status})`);
-  }
-
-  const xml = await transcriptRes.text();
-  const segments: Array<{ text: string; start: number; duration: number }> = [];
-  let match: RegExpExecArray | null;
-  const re = new RegExp(RE_XML_TRANSCRIPT.source, 'g');
-  while ((match = re.exec(xml)) !== null) {
-    segments.push({
-      text: match[3],
-      start: parseFloat(match[1]),
-      duration: parseFloat(match[2]),
-    });
-  }
-
-  if (segments.length === 0) {
-    throw new Error('Transcript XML parsed but contained no segments');
-  }
-
-  return { segments, language: selectedTrack.languageCode || lang || 'en' };
+  throw lastError ?? new Error('All innertube client contexts failed');
 }
 
 interface TranscriptSegment {
