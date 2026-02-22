@@ -117,6 +117,21 @@ Bots must understand and use dates in their responses.
 - **PRD-10 (Data Refinement)** — bots are only as good as the data. Fix NULL descriptions, wrong types, and junk edges FIRST. Then the bots' retrieval quality improves automatically.
 - **PRD-06 (Discord Bot v1)** — DONE. Foundation exists.
 - **PRD-07 (MCP Server)** — DONE. Guide system exists, needs content.
+- **PRD-13 (Auto-Ingestion)** — PARTIAL (as of February 22, 2026). Ingestion now posts successfully to Discord announcements + yap channels via webhooks, but webhook-originated posts are not a reliable trigger source for autonomous Sig/Slop debate replies in all server setups.
+
+## PRD-13 Integration Note (February 22, 2026)
+
+Current state:
+- New ingestion items are being posted to Discord through webhook endpoints.
+- Announcement + yap fan-out works after wiring separate webhook URLs.
+- Branding is configurable via webhook sender fields (`username` and `avatar_url`) and now works with a public image URL.
+
+Known limitation:
+- "Post in announcements, then have Sig and Slop start debating in yap" is not guaranteed when the initial message is webhook-authored. Depending on channel permissions and bot event handling, mention-based wakeup can be skipped or ignored.
+
+Required follow-up for deterministic debate kickoff:
+- Preferred: move kickoff to a bot-authored message path (Discord bot token + channel send API), then tag Sig/Slop in that bot-authored message.
+- Alternative: keep webhook posts for announcements, but add an explicit app-level kickoff trigger (separate from mention events) that calls the Sig/Slop reply pipeline in yap.
 
 ### 5. Daily audio recap — "Sig vs Slop"
 

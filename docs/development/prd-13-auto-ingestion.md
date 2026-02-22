@@ -564,3 +564,9 @@ This is ~10 lines of code. Slop already has all the infrastructure to respond �
 - **User-submitted content** — different workflow, different PRD
 - **Real-time webhooks from YouTube/Substack** — not available to regular users; RSS polling is the right approach
 - **Multi-round bot debates** — Sig responds once, Slop responds once. Extended debates are a future feature (the `/debate` command already handles that)
+
+---
+
+## COMPLETED
+**Date:** 2026-02-21
+**What was delivered:** Hub-side foundation for auto-ingestion is implemented in this repo. Added shared ingestion services for source config/discovery/processing/logging/Discord notify, new cron endpoints (`GET /api/cron/ingest`, `POST /api/cron/ingest/trigger`) with `CRON_SECRET` auth, `vercel.json` hourly cron schedule, and admin ingestion log API (`GET /api/admin/ingestion-log`) with run history and health windows. Processing now supports YouTube + Substack + AINews discovery, dedupe by link/title, extraction, node creation, chunking/embedding, and entity edge creation.

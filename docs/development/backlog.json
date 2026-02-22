@@ -1,6 +1,7 @@
 {
   "queue": [
     "data-refinement",
+    "auto-ingestion",
     "dashboard-and-categories",
     "documentation-overhaul",
     "discord-bot-v2",
@@ -14,55 +15,67 @@
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-10-data-refinement.md",
-      "notes": "Critical prerequisite for bot quality. Script built, ready for execution.\n\nPhase 0 (audit) and Phase 0.5 (graph structure decision: Option C hybrid hubs) DONE.\nPhase 1 (script) DONE — scripts/refine-data.ts with all subcommands.\nPhase 2 (execution) needs human review loops — run task-by-task.\n\nDepends on: content-ingestion (DONE), schema-and-port (DONE)\nBlocks: discord-bot-v2 (bot quality depends on clean data)",
+      "notes": "Phase 1 DONE: all node types migrated to 8-type system (0 NULLs), all content nodes have dates, podcast/paper-club/builders-club fully populated (desc + notes). 216 junk nodes deleted, duplicates merged.\n\nPhase 2 remaining: ainews desc/notes (136), article desc/notes (60), guest desc/notes (732), entity desc/notes (2554), edge cleanup (7128 ai_similarity edges), UI date display fix.\n\nDepends on: content-ingestion (DONE), schema-and-port (DONE)\nBlocks: discord-bot-v2 (bot quality depends on clean data)",
       "tasks": [
         {
           "done": true,
-          "text": "Phase 0: Audit — sample nodes by type, check edges, chunk coverage, duplicates"
+          "text": "Phase 0: Audit + graph structure decision (flat types, no hubs)"
         },
         {
           "done": true,
-          "text": "Phase 0.5: Evaluate graph structure — hub nodes vs flat types vs hybrid (see PRD open question)"
+          "text": "Phase 1A: Node type migration — episode/source/person/org/topic → 8-type system (0 NULLs)"
         },
         {
           "done": true,
-          "text": "Phase 0.5: Decide and implement graph structure (if hubs: create nodes + edges)"
+          "text": "Phase 1A: Delete junk nodes — 58 AIE talks, 65 insights, 31 placeholders, 7 promo posts"
         },
         {
           "done": true,
-          "text": "Phase 1: Build scripts/refine-data.ts with --audit, --dry-run, --task, --limit"
+          "text": "Phase 1A: Merge duplicates — 52 source-podcast pairs, 2 paper-club pairs"
+        },
+        {
+          "done": true,
+          "text": "Phase 1B: Publish dates — all 510 content nodes have event_date (yt-dlp + Substack scraping)"
+        },
+        {
+          "done": true,
+          "text": "Phase 1C: Podcast descriptions + notes — 247/247 complete"
+        },
+        {
+          "done": true,
+          "text": "Phase 1C: Paper-club descriptions + notes — 32/32 complete"
+        },
+        {
+          "done": true,
+          "text": "Phase 1C: Builders-club descriptions + notes — 24/24 complete"
         },
         {
           "done": false,
-          "text": "Task: Fix node_types — npx tsx scripts/refine-data.ts --task types"
+          "text": "Phase 2A: AINews descriptions + notes — 136 nodes, 0 done"
         },
         {
           "done": false,
-          "text": "Task: Create hub nodes — npx tsx scripts/refine-data.ts --task hubs"
+          "text": "Phase 2B: Article descriptions + notes — 71 nodes, 11 done, 60 remaining"
         },
         {
           "done": false,
-          "text": "Task: Populate event dates — npx tsx scripts/refine-data.ts --task event-dates"
+          "text": "Phase 2C: Guest descriptions + notes — 735 nodes, 3 done, 732 remaining"
         },
         {
           "done": false,
-          "text": "Task: Generate descriptions — npx tsx scripts/refine-data.ts --task descriptions"
+          "text": "Phase 2D: Entity descriptions + notes — 2562 nodes, 8 done, 2554 remaining"
         },
         {
           "done": false,
-          "text": "Task: Generate notes — npx tsx scripts/refine-data.ts --task notes"
+          "text": "Phase 2E: Edge cleanup — 7128 ai_similarity edges need audit + context rewrite"
         },
         {
           "done": false,
-          "text": "Task: Clean edges — npx tsx scripts/refine-data.ts --task edges"
+          "text": "Phase 2F: UI date display fix — sort by event_date, show publish date instead of updated_at"
         },
         {
           "done": false,
-          "text": "Task: Fill chunk gaps — npx tsx scripts/refine-data.ts --task chunks"
-        },
-        {
-          "done": false,
-          "text": "Verify: Re-run --audit, confirm zero NULLs, spot-check quality"
+          "text": "Verify: confirm zero NULLs across all types, spot-check quality"
         }
       ]
     },
@@ -142,6 +155,28 @@
         { "done": true, "text": "Create public-facing guides (welcome, categories, mcp-quickstart, bots)" },
         { "done": true, "text": "Rewrite docs/README.md" },
         { "done": true, "text": "Update CLAUDE.md" }
+      ]
+    },
+    "auto-ingestion": {
+      "id": "auto-ingestion",
+      "title": "Auto-ingestion pipeline — hourly RSS/API discovery, graph ingest, and #yap bot trigger",
+      "status": "in_progress",
+      "type": "feature",
+      "priority": "high",
+      "prd": "docs/development/prd-13-auto-ingestion.md",
+      "notes": "Hub-side foundation implemented: shared ingestion service, cron endpoints, ingestion run log table + admin API, and Discord webhook notifications with Sig mentions. Remaining work includes bot-repo changes for Slop auto-response and admin UI surface.",
+      "tasks": [
+        { "done": true, "text": "Create ingestion source config + discovery modules (YouTube RSS, Substack RSS, GitHub API/Atom fallback)" },
+        { "done": true, "text": "Create shared processing pipeline (extract → node → chunk/embed → entity edges)" },
+        { "done": true, "text": "Create ingestion_runs logging module with overlap guard and run summaries" },
+        { "done": true, "text": "Build GET /api/cron/ingest with auth + source/dry-run support" },
+        { "done": true, "text": "Build POST /api/cron/ingest/trigger for manual admin-triggered runs" },
+        { "done": true, "text": "Build GET /api/admin/ingestion-log for run history + health windows" },
+        { "done": true, "text": "Add hourly cron schedule in vercel.json" },
+        { "done": true, "text": "Add Discord #yap webhook notifications with Sig mention" },
+        { "done": false, "text": "Bot repo: add #yap to ALLOWED_CHANNEL_IDS and Slop auto-response to Sig in #yap" },
+        { "done": false, "text": "Dashboard UI: add ingestion section or /admin/ingestion page" },
+        { "done": false, "text": "Hardening: retry policy tuning, per-source failure alerts, and carry-over queue when nearing runtime budget" }
       ]
     },
     "discord-bot-v2": {
