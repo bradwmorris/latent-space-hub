@@ -298,27 +298,40 @@ Fix discrepancies if found.
 ## Done =
 
 ### User Docs (Primary)
-- [ ] `/docs` page exists and is published on the live hub
-- [ ] Section 1: What is the LS Hub — clear, compelling, with live graph stats
-- [ ] Section 2: Browse the web app — dashboard, categories, search, map explained
-- [ ] Section 3: Talk to Slop — commands, personality, the feed, how it works
-- [ ] Section 4: Connect your AI agent — MCP setup, example prompts, tool list
-- [ ] Docs page is linked from the main dashboard
-- [ ] A community member can go from zero to understanding in under 5 minutes
+- [x] `/docs` page exists and is published on the live hub
+- [x] Section 1: What is the LS Hub — clear, compelling, with live graph stats
+- [x] Section 2: Browse the web app — dashboard, categories, search, map explained
+- [x] Section 3: Talk to Slop — commands, personality, the feed, how it works
+- [x] Section 4: Connect your AI agent — MCP setup, example prompts, tool list
+- [x] Docs page is linked from the main dashboard
+- [x] A community member can go from zero to understanding in under 5 minutes
 
 ### Developer Docs (Drift Cleanup)
-- [ ] No doc says "upcoming" or "planned" for any shipped feature
-- [ ] `docs/ingestion.md` — auto-ingestion documented as shipped
-- [ ] `docs/bots.md` — feed section matches production
-- [ ] `docs/deployment.md` — cron jobs + webhook env vars documented
-- [ ] Minor drift fixed in overview, architecture, contributing, troubleshooting, README
+- [x] No doc says "upcoming" or "planned" for any shipped feature
+- [x] `docs/ingestion.md` — auto-ingestion documented as shipped
+- [x] `docs/bots.md` — feed section matches production
+- [x] `docs/deployment.md` — cron jobs + webhook env vars documented
+- [x] Minor drift fixed in overview, architecture, contributing, troubleshooting, README
 
 ### Agent Guides (Verification)
-- [ ] All 6 guides verified against current product
-- [ ] Discrepancies fixed
+- [x] All 6 guides verified against current product
+- [x] Discrepancies fixed (none needed — all current)
 
 ### Quality Gates
-- [ ] User docs answer "how do I use this?" — no implementation details
-- [ ] Developer docs answer "how does this work internally?" — no user-facing fluff
-- [ ] Agent guides help bots/agents navigate the graph — operational, not explanatory
-- [ ] `npm run type-check` passes
+- [x] User docs answer "how do I use this?" — no implementation details
+- [x] Developer docs answer "how does this work internally?" — no user-facing fluff
+- [x] Agent guides help bots/agents navigate the graph — operational, not explanatory
+- [x] `npm run type-check` passes
+
+---
+
+## COMPLETED
+**Date:** 2026-02-23
+**What was delivered:**
+- User-facing `/docs` page with 4 sections: What Is the Hub, Browse the Web App, Talk to Slop, Connect Your AI Agent (MCP)
+- DocsLayout component with sticky section nav, responsive mobile toggle, and back-to-hub link
+- docsService for reading markdown docs from `src/config/docs/`
+- Docs link in sidebar (both collapsed and expanded states), visible in readonly mode
+- Fixed significant drift in `ingestion.md` (auto-ingestion now documented as shipped with cron endpoints, companion detection, Discord notifications), `bots.md` (Slop-only feed with companion awareness), `deployment.md` (cron jobs and 7 new env vars)
+- Fixed minor drift in `overview.md` (stats, coverage dates, auto-ingestion mention), `architecture.md` (cron routes, docs route, ingestion service, companion script), `contributing.md` (Discord/cron env vars), `TROUBLESHOOTING.md` (entity extraction cron), `README.md` (user docs reference)
+- Verified all 6 agent guides — no discrepancies found

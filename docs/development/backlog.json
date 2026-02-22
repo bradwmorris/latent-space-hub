@@ -79,26 +79,26 @@
     "documentation-overhaul-v2": {
       "id": "documentation-overhaul-v2",
       "title": "Documentation overhaul v2 — second pass after data and bot refinements are complete",
-      "status": "ready",
+      "status": "completed",
       "type": "docs",
       "priority": "medium",
       "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
-      "notes": "V1 shipped. V2 is a focused refresh to align docs with final post-refinement schema, hub-node architecture, ingestion automation, and bot v2 behavior.",
+      "notes": "Completed. User-facing /docs page shipped. Developer docs drift fixed. Agent guides verified.",
       "tasks": [
         {
-          "done": false,
+          "done": true,
           "text": "Audit docs for drift after PRD-10/11/15 completion"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Update architecture, ingestion, and bot runtime docs with final flows"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Refresh user-facing guides to match the finalized product"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Run docs consistency pass and update onboarding/index pages"
         }
       ]

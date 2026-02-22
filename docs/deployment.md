@@ -24,6 +24,19 @@ Read-only mode is for public access. Writes happen via:
 - MCP tools (with appropriate auth)
 - Discord bots (read-only — they don't write to the KB)
 
+## Vercel Cron Jobs
+
+Two cron endpoints handle automated ingestion:
+
+| Endpoint | Schedule | Purpose |
+|----------|----------|---------|
+| `/api/cron/ingest` | Hourly | Discover and ingest new content from RSS/GitHub |
+| `/api/cron/extract-entities` | Hourly (offset) | Extract entities from nodes with chunks but no edges |
+
+Cron schedule is defined in `vercel.json`. Both endpoints require `Authorization: Bearer $CRON_SECRET`.
+
+The `/api/cron/ingest/trigger` endpoint allows manual triggering with source filters and dry-run mode.
+
 ## Environment Variables (Vercel)
 
 | Variable | Value |
@@ -32,6 +45,14 @@ Read-only mode is for public access. Writes happen via:
 | `TURSO_AUTH_TOKEN` | Turso auth JWT |
 | `NEXT_PUBLIC_READONLY_MODE` | `true` |
 | `NEXT_PUBLIC_BASE_URL` | Production URL |
+| `CRON_SECRET` | Auth secret for cron endpoints |
+| `OPENAI_API_KEY` | Embedding generation |
+| `ANTHROPIC_API_KEY` | Entity extraction |
+| `DISCORD_ANNOUNCEMENTS_WEBHOOK_URL` | Webhook for #announcements channel |
+| `DISCORD_YAP_WEBHOOK_URL` | Webhook for #yap channel |
+| `DISCORD_SLOP_USER_ID` | Slop user ID for @mentions in yap kickoff |
+| `DISCORD_BOT_KICKOFF_URL` | (Optional) Deterministic bot kickoff endpoint |
+| `DISCORD_BOT_KICKOFF_SECRET` | (Optional) Shared secret for kickoff auth |
 
 ## Local Development
 

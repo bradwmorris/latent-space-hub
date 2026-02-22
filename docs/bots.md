@@ -58,12 +58,16 @@ Discord Gateway
 
 ## The Feed — #yap Channel
 
-When new content is ingested, a kickoff message drops in `#yap` tagging Slop:
+When new content is ingested, the auto-ingestion pipeline (`src/services/ingestion/notify.ts`) sends two Discord messages:
 
-1. New content announcement posts to `#announcements`
-2. Kickoff message posts to `#yap` mentioning Slop
-3. Slop digs into the graph, surfaces interesting connections and insights, and links back to original sources
-4. Community jumps in from there
+1. **#announcements** — Clean announcement with title, published date, chunk count, and source link
+2. **#yap** — Kickoff message mentioning Slop with a graph-insight prompt
+
+Slop responds to the yap kickoff by searching the graph, surfacing interesting connections, and sparking discussion. Community jumps in from there.
+
+**Companion-aware:** If a new item has a companion (e.g., a podcast with a matching article), only the first item triggers the yap kickoff. The companion gets announced but skips the yap to avoid duplicate discussions. Companion detection uses `hasCompanion` in `src/services/ingestion/processing.ts`.
+
+**Deterministic kickoff (preferred):** If `DISCORD_BOT_KICKOFF_URL` is configured, the pipeline calls the bot service's internal API instead of posting a yap webhook. This starts a multi-exchange Slop thread in the bot-talk channel with more control over the conversation flow.
 
 Slop-only automated kickoff — Sig stays available for slash commands but is not part of the automated feed.
 

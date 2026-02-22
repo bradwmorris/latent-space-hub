@@ -13,6 +13,9 @@ latent-space-hub/
 │   │   ├── guides/                Guide CRUD
 │   │   ├── quick-add/             Multi-format ingestion
 │   │   ├── ingestion/             Embedding pipeline
+│   │   ├── cron/
+│   │   │   ├── ingest/            Hourly auto-ingestion cron
+│   │   │   └── extract-entities/  Entity extraction cron
 │   │   ├── extract/               PDF upload
 │   │   ├── health/                Ping, DB, vectors
 │   │   ├── system/                MCP status, auto-context
@@ -20,6 +23,8 @@ latent-space-hub/
 │   │   ├── types/                 Node type schemas
 │   │   ├── logs/                  System logs
 │   │   └── events/                SSE stream
+│   ├── docs/
+│   │   └── page.tsx               User-facing documentation
 │   ├── page.tsx                   Home → ThreePanelLayout
 │   └── layout.tsx                 Root layout
 │
@@ -68,7 +73,13 @@ latent-space-hub/
 │   │   │   ├── youtube            Transcript extraction (innertube)
 │   │   │   ├── website            Web scraping (Cheerio + readability)
 │   │   │   └── paper              PDF/arXiv extraction (pdf-parse)
+│   │   ├── ingestion/             Auto-ingestion pipeline
+│   │   │   ├── index              Main checkAndIngest orchestrator
+│   │   │   ├── sources            RSS/GitHub source definitions
+│   │   │   ├── processing         Per-item ingest + companion detection
+│   │   │   └── notify             Discord notification (announcements + yap)
 │   │   ├── guides/                Guide CRUD service
+│   │   ├── docs/                  User-facing docs service
 │   │   ├── events.ts              SSE real-time broadcasting
 │   │   └── embeddings.ts          AI embedding wrapper
 │   │
@@ -80,7 +91,8 @@ latent-space-hub/
 │   ├── config/
 │   │   ├── categories.ts          8-category taxonomy config
 │   │   ├── prompts/               Agent system prompts
-│   │   └── guides/                Built-in markdown guides
+│   │   ├── guides/                Built-in markdown guides (agent-facing)
+│   │   └── docs/                  User-facing documentation content
 │   │
 │   ├── types/
 │   │   └── database.ts            Core TypeScript definitions
@@ -91,7 +103,7 @@ latent-space-hub/
 │   ├── mcp-server/                In-app MCP server (HTTP + stdio)
 │   └── mcp-server-standalone/     NPX-installable MCP server
 │
-├── scripts/                       Ingestion + data refinement scripts
+├── scripts/                       Ingestion, data refinement, companion backfill
 ├── docs/                          Documentation (you are here)
 └── docs/development/              PRDs, backlog, process
 ```

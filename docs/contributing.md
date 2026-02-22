@@ -20,6 +20,12 @@ npm run type-check     # Must pass before committing
 | `OPENAI_API_KEY` | For embeddings | OpenAI API key (embedding generation) |
 | `ANTHROPIC_API_KEY` | For agents | Anthropic API key (entity extraction, descriptions) |
 | `NEXT_PUBLIC_READONLY_MODE` | No | Set `true` to disable writes (public deployment) |
+| `CRON_SECRET` | For auto-ingestion | Auth secret for cron endpoints |
+| `DISCORD_ANNOUNCEMENTS_WEBHOOK_URL` | For notifications | Discord webhook for #announcements |
+| `DISCORD_YAP_WEBHOOK_URL` | For notifications | Discord webhook for #yap feed |
+| `DISCORD_SLOP_USER_ID` | For notifications | Slop's Discord user ID for @mentions |
+
+See `.env.example` for the full list including optional bot kickoff and channel configuration.
 
 ## Git Workflow
 

@@ -16,10 +16,10 @@ Substack articles    →  Entity extraction     →  MCP Server (agents)
 GitHub (AINews)      →  Auto-edges            →  Discord Bots (Sig & Slop)
 ```
 
-1. **Content goes in** — Ingestion pipeline extracts from YouTube, Substack, and GitHub
+1. **Content goes in** — Auto-ingestion pipeline polls RSS feeds and GitHub hourly, extracts from YouTube, Substack, and GitHub
 2. **AI enriches it** — Chunks are embedded, entities extracted, edges created automatically
 3. **Humans and agents explore it** — Via the web UI, MCP tools, or Discord bots
-4. **The graph grows** — Each new piece of content connects to existing knowledge
+4. **The graph grows** — Each new piece of content connects to existing knowledge, continuously updated
 
 ## Three Interfaces
 
@@ -62,12 +62,12 @@ See [Bots docs](./bots.md) for details.
 
 | Metric | Count |
 |--------|-------|
-| Total nodes | ~4,000 |
-| Content nodes | ~570 (episodes, articles, newsletters) |
-| Entity nodes | ~3,400 (people, orgs, topics) |
-| Edges | ~7,300 |
-| Chunks with embeddings | ~36,000 |
-| Coverage | Jan 2025 → present |
+| Total nodes | ~3,900 |
+| Content nodes | ~515 (podcasts, articles, AINews, workshops, paper clubs, builders clubs) |
+| People & entity nodes | ~3,360 (guests, organizations, topics) |
+| Edges | ~7,500 |
+| Chunks with embeddings | ~35,800 |
+| Coverage | June 2023 → present, continuously updated |
 
 ## Origin
 

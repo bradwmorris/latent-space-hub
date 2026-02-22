@@ -9,6 +9,7 @@ import {
   Search,
   Plus,
   Settings,
+  BookOpen,
 } from 'lucide-react';
 import { Node } from '@/types/database';
 import { CATEGORIES } from '@/config/categories';
@@ -191,6 +192,25 @@ export default function LeftTypePanel({
           </>
         )}
         <div style={{ flex: 1 }} />
+        <a
+          href="/docs"
+          title="Docs"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: '#666',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textDecoration: 'none',
+          }}
+        >
+          <BookOpen size={16} />
+        </a>
         {!isReadOnly && (
           <button
             onClick={onSettingsClick}
@@ -430,14 +450,38 @@ export default function LeftTypePanel({
         })}
       </div>
 
-      {/* Bottom settings */}
-      {!isReadOnly && (
-        <div
+      {/* Bottom actions */}
+      <div
+        style={{
+          padding: '8px 12px',
+          borderTop: '1px solid #1a1a1a',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2px',
+        }}
+      >
+        <a
+          href="/docs"
           style={{
-            padding: '8px 12px',
-            borderTop: '1px solid #1a1a1a',
+            width: '100%',
+            height: '30px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: '#666',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '0 8px',
+            fontSize: '12px',
+            textDecoration: 'none',
           }}
         >
+          <BookOpen size={14} />
+          <span>Docs</span>
+        </a>
+        {!isReadOnly && (
           <button
             onClick={onSettingsClick}
             style={{
@@ -458,8 +502,8 @@ export default function LeftTypePanel({
             <Settings size={14} />
             <span>Settings</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

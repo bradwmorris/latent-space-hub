@@ -29,8 +29,12 @@ A knowledge graph for the Latent Space universe — podcasts, articles, AI News,
 |-----|-------------|
 | [Architecture](./architecture.md) | Codebase map, key directories, patterns |
 | [Contributing](./contributing.md) | Dev setup, git workflow, backlog, env vars |
-| [Deployment](./deployment.md) | Vercel, environments, readonly mode |
+| [Deployment](./deployment.md) | Vercel, cron jobs, environments, readonly mode |
 | [Troubleshooting](./TROUBLESHOOTING.md) | Common issues and fixes |
+
+### User-Facing
+
+The published user documentation is at [`/docs`](https://latent-space-hub.vercel.app/docs) on the live hub. Source content is in `src/config/docs/`.
 
 ### Development Workflow
 

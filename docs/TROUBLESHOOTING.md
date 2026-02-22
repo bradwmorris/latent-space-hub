@@ -109,6 +109,8 @@ Write tools are disabled by default. Set `MCP_ALLOW_WRITES=true` in your environ
 1. Verify `ANTHROPIC_API_KEY` is set and valid
 2. Check the server console for specific error messages
 3. Entity extraction uses Claude — ensure the key has sufficient credits
+4. Entity extraction also runs as a separate cron endpoint (`/api/cron/extract-entities`) — check Vercel cron logs if the hourly job is timing out
+5. To backfill entities for existing nodes that have chunks but no edges, trigger the cron endpoint manually or run it with a higher limit
 
 ### Ingestion script fails
 

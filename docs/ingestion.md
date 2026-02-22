@@ -72,14 +72,57 @@ After extraction, every input type follows the same path:
 2. Auto-edge creates connections to related entities
 3. Auto-embed queue chunks and embeds the content
 
-## Auto-Ingestion (Upcoming — PRD-13)
+## Auto-Ingestion
 
-Automated hourly ingestion with zero manual intervention:
+Automated hourly ingestion with zero manual intervention, deployed on Vercel.
 
-- **Vercel cron** (hourly) → `GET /api/cron/ingest`
-- Per-source RSS polling
-- Discord webhook announces new content to announcements
-- Preferred: deterministic bot kickoff API starts Sig/Slop thread in bot-talk channel
+### Cron Endpoints
+
+| Endpoint | Schedule | What it does |
+|----------|----------|-------------|
+| `GET /api/cron/ingest` | Hourly | Polls RSS feeds and GitHub for new content across all sources. Discovers, extracts, chunks, embeds, and creates nodes. |
+| `GET /api/cron/extract-entities` | Hourly (offset) | Runs entity extraction on nodes that have chunks but no edges. Creates guest/entity nodes and connects them. |
+
+Both endpoints require `Authorization: Bearer $CRON_SECRET`.
+
+### Per-Item Flow
+
+```
+1. Discover    RSS/GitHub check → find new items not in DB
+2. Extract     Transcript / article text / markdown
+3. Create      Node with title, link, event_date, node_type, dimensions
+4. Chunk       Split text (~2000 chars, 400 overlap)
+5. Embed       text-embedding-3-small → 1536d vectors
+6. Companion   Detect podcast/article pairs → create companion edges
+7. Notify      Post to Discord: announcement + yap kickoff
+8. Log         Record in ingestion_runs table
+```
+
+### Companion Detection
+
+When a new podcast or article is ingested, the pipeline checks for a matching companion (same topic, published within a few days). If found, a `companion_article` or `companion_episode` edge is created linking them. Companion items skip the yap kickoff to avoid duplicate discussions.
+
+### Discord Notifications
+
+Each new item triggers two Discord messages:
+
+1. **#announcements** — Clean announcement with title, date, and link
+2. **#yap** — Kickoff message mentioning Slop to start a graph-backed discussion
+
+Slop-only automated kickoff — Sig stays available for slash commands but is not part of the automated feed.
+
+Alternatively, if `DISCORD_BOT_KICKOFF_URL` is configured, a deterministic bot kickoff API call replaces the yap webhook, starting a multi-exchange Slop thread in the bot-talk channel.
+
+### Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `CRON_SECRET` | Auth for cron endpoints |
+| `DISCORD_ANNOUNCEMENTS_WEBHOOK_URL` | Webhook for #announcements |
+| `DISCORD_YAP_WEBHOOK_URL` | Webhook for #yap feed |
+| `DISCORD_SLOP_USER_ID` | Slop user ID for @mentions in yap |
+| `DISCORD_BOT_KICKOFF_URL` | (Optional) Deterministic bot kickoff endpoint |
+| `DISCORD_BOT_KICKOFF_SECRET` | (Optional) Shared secret for kickoff auth |
 
 ## Extractors
 
