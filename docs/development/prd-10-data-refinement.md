@@ -102,20 +102,21 @@ All content nodes now have `event_date` set to their publish/upload date.
 
 ### Phase 2D: Entity Descriptions & Notes 🟡
 
-**2,562 nodes, 8 have descriptions, 2,554 need descriptions + notes.**
+**1,612/2,589 entities have descriptions (62%). ~977 remaining (all 1-edge or 0-edge entities).**
 
-These are organizations (683 former `organization` nodes), topics (1,867 former `topic` nodes), and 4 misc. Most have NO chunks. Context must come from:
-- Node title
-- Connected edges and their connected nodes
-- Mentions in content node chunks
+Completed in 3 rounds by edge count priority:
+1. **10+ edges (72 entities):** ✅ All done. Major companies (OpenAI, Anthropic, Google, DeepSeek), concepts (RL, benchmarking, reasoning), and platforms (Hugging Face, LangChain).
+2. **5-9 edges (121 entities):** ✅ All done. Mid-tier companies, models, and technical concepts.
+3. **2-4 edges (548 entities):** ✅ All done. Long-tail companies, specific models, niche concepts.
+4. **0-1 edges (~1,808 entities):** ~842 done, ~977 remaining. Hit rate limit during processing.
 
-**This is the largest batch.** Prioritize:
-1. Entities with most edges (hub nodes in the graph) — they matter most for navigation
-2. Organizations — users search for companies
-3. Topics with >5 edges — frequently referenced concepts
-4. Long tail topics — brief descriptions are fine
+**Data quality issues flagged:**
+- `N/A` (id 2067, 41 edges) and `Unknown` (id 2336, 33 edges) — placeholder entities, need edge cleanup
+- Multiple Decibel Partners transcription variants: Deible/Desible/Decible/Desel/Descelible/CTI Decible/Deal Partners/Deel Partners
+- Duplicate entities: HuggingFace/Hugging Face, TogetherCompute/Together AI, SmallI/Small AI
+- ASR artifacts: "Enthropic" = Anthropic, "Laid in Space" = Latent Space, "L Chain" = LangChain
 
-**Approach:** Batch prepare → Claude Code generates → MCP writes. Consider processing by edge count (most-connected first).
+**Approach:** Batch-queried edges via SQL IN clauses, used training knowledge for well-known entities, derived context from edge connections for unknowns. Parallel Claude Code subagents (3-6 at a time).
 
 ### Phase 2E: Edge Cleanup 🟡
 

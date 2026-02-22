@@ -133,6 +133,27 @@ Required follow-up for deterministic debate kickoff:
 - Preferred: move kickoff to a bot-authored message path (Discord bot token + channel send API), then tag Sig/Slop in that bot-authored message.
 - Alternative: keep webhook posts for announcements, but add an explicit app-level kickoff trigger (separate from mention events) that calls the Sig/Slop reply pipeline in yap.
 
+## Implementation Status (February 22, 2026)
+
+Shipped in production:
+- Ingestion fan-out is live: new ingested items post to announcements and yap via webhooks.
+- Yap kickoff now uses a simplified pattern: Latent Space Hub app posts one kickoff message and tags both bots (no forced multi-turn deterministic debate loop).
+- Thread behavior is live for user questions: user tags one bot, thread is created, that bot owns the thread conversation.
+- Bot response formatting updated:
+  - model shown at top (`🤖 <short-model-name>`)
+  - tool/retrieval method shown at bottom (`🛠️ ...`)
+- AI News ingestion now uses `latent.space` feed URLs, not GitHub issue links, for discovery and posting.
+- Cron schedule updated from daily to hourly (`0 * * * *` in `vercel.json`).
+- Dual-bot kickoff reliability fixes shipped in `latent-space-bots`:
+  - message dedupe is per-bot (Sig and Slop can both process the same kickoff mention)
+  - rate limits are per-bot (one bot no longer throttles the other on the same kickoff message)
+
+Known open items / config dependencies:
+- `LATENTSPACETV_CHANNEL_ID` in production is currently invalid (YouTube feed 404), so LatentSpaceTV source discovery fails until env is corrected.
+- `LATENTSPACE_PODCAST_CHANNEL_ID` can fail if a stale/incorrect env override is set in production; remove bad override or set correct channel ID.
+- Structural guide rewrites (`start-here`, `content-types`, `search`) are still pending in this PRD stream.
+- Full temporal-query UX and slash filter enhancements are only partially addressed; not fully complete against PRD scope.
+
 ### 5. Daily audio recap — "Sig vs Slop"
 
 A daily automated audio podcast where Sig and Slop recap and debate the day's activity across the Latent Space ecosystem. Published to YouTube as an audio podcast.
@@ -214,10 +235,10 @@ A daily automated audio podcast where Sig and Slop recap and debate the day's ac
 - [ ] Sig persona updated with content-type awareness and temporal framing
 - [ ] Slop persona updated with grounded hot takes referencing specific content
 - [ ] Temporal queries work: "recent episodes," "since January," "timeline of X"
-- [ ] Bot-talk channel implemented: new content triggers Sig summary → Slop response
-- [ ] User thread model implemented: questions create threads, conversation continues there
-- [ ] Tested end-to-end in test Discord server
+- [x] Bot-talk channel implemented (simplified): new content posts in yap and tags Sig + Slop for response
+- [x] User thread model implemented: questions create threads, conversation continues there
+- [x] Tested end-to-end in test Discord server
 - [ ] Demo'd to swyx
-- [ ] Live in LS Discord
+- [x] Live in LS Discord
 - [ ] *(stretch)* Daily audio recap pipeline working end-to-end
 - [ ] *(stretch)* First episode published to YouTube
