@@ -21,6 +21,11 @@ import QuickAddInput from '../agents/QuickAddInput';
 
 // ─── Type View: list of nodes for selected type ──────────────────────────────
 
+function formatAbsoluteDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
@@ -116,6 +121,9 @@ function TypeNodeList({
           const dims = node.dimensions?.slice(0, 3) || [];
           const edgeCount = node.edge_count ?? 0;
           const dateStr = node.event_date || node.updated_at || node.created_at;
+          const formattedDate = dateStr
+            ? (node.event_date ? formatAbsoluteDate(dateStr) : formatRelativeDate(dateStr))
+            : '';
           const thumb = getYouTubeThumbnail(node.link);
 
           return (
@@ -194,9 +202,9 @@ function TypeNodeList({
                 marginTop: '2px',
               }}>
                 {/* Date */}
-                {dateStr && (
+                {formattedDate && (
                   <span style={{ fontSize: '11px', color: '#444' }}>
-                    {formatRelativeDate(dateStr)}
+                    {formattedDate}
                   </span>
                 )}
 

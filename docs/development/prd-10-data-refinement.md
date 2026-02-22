@@ -1,384 +1,202 @@
 # PRD 10: Data Refinement & Hygiene
 
+## Status: In Progress
+
+**Last updated:** 2026-02-22
+
+Phase 1 (type migration, content node descriptions/notes/dates) is complete. Phases 2A (ainews), 2B (article), 2C (guests), and 2F (UI date fix) are complete. Remaining: 2D (entities), 2E (edge cleanup).
+
+---
+
 ## Background
 
-PRD-05 ingested ~523 nodes via the pipeline. The raw content (chunk) is there, but the user-facing fields are garbage:
+PRD-05 ingested ~4,000+ nodes via the content ingestion pipeline. The raw content (chunks/transcripts) was there, but the user-facing fields were garbage — most nodes had NULL descriptions, NULL notes, wrong types, and no publish dates. This PRD tracks the systematic cleanup.
 
-- **1,736 / 1,874 nodes** have NULL or empty `description`
-- **1,670 / 1,874 nodes** have NULL or empty `notes`
-- **1,532 nodes** have zero rows in the `chunks` table
-- **157 nodes** have NULL `node_type`
-- **100 edges** have NULL or undefined `context`
-- **2,619 / 2,688 edges** are `ai_similarity` with JSON blob context — no human-readable explanation
-- Node types are wrong — `source` and `episode` are too generic, hiding the actual content categories
-
-The database has data but it's not usable. This PRD fixes that.
-
-## Open Question: Graph Structure — Hub Nodes vs Flat Types
-
-Before diving into refinement, we need to decide how the graph should be structured for maximum efficiency — both for SQL queries and for bot retrieval.
-
-### The problem
-
-Right now every node is a flat peer. 182 podcast episodes sit alongside 121 newsletter issues and 755 topic nodes with no structural hierarchy. `node_type` lets us filter (`WHERE node_type = 'podcast'`), but there's no single place in the graph that says "what IS the Latent Space podcast?" The bots have to infer context from individual nodes.
-
-### Option A: Flat types only (current state, cleaned up)
-
-Keep the current flat model. `node_type` is the only grouping mechanism. Bots get grounding context from their system prompts and guides, not from the graph itself.
-
-**Pros:**
-- Simplest. No extra nodes to create or maintain.
-- `node_type` queries are fast and well-understood.
-- Guides (MCP `start-here`, `content-types`) can carry the grounding context instead.
-
-**Cons:**
-- Bots can't "discover" what LS is from the graph — they only know what's hardcoded in prompts.
-- No graph-level representation of content series as first-class entities.
-- No natural parent-child traversal (e.g., "show me all episodes of the podcast" requires a flat WHERE, not a graph walk).
-
-### Option B: Hub nodes as structural anchors
-
-Create a small number of "hub" nodes — one master identity node ("Latent Space") and one per content series (podcast, AINews, articles, etc.). All content nodes connect to their hub via edges. Bots retrieve hub nodes for instant contextual grounding.
-
-**Possible hierarchy:**
-```
-"Latent Space" (master hub)
-  ├── "Latent Space Podcast" → podcast episodes
-  ├── "AINews" → newsletter issues
-  ├── "Latent Space Articles" → article nodes
-  ├── "Builders Club" → meetup recordings
-  ├── "Paper Club" → paper-club sessions
-  └── "AI Engineer Conference" → AIE event nodes
-```
-
-**Pros:**
-- Bots can retrieve a single node and instantly understand "what is the LS podcast?"
-- Graph becomes navigable — traversal from hub → content → entities is natural.
-- Hub nodes can store aggregate metadata (total episodes, date range, hosts, key themes).
-- Rich descriptions on hubs improve vector search — "Latent Space podcast" query hits the hub node first.
-- People connect to hubs naturally (swyx → "hosts" → LS Podcast).
-
-**Cons:**
-- More nodes and edges to create and maintain.
-- Need to decide: what `node_type` do hubs get? A new `'hub'` type? Or something else?
-- Every new content node needs a "contains" edge to its hub — maintenance overhead.
-- Could the same grounding be achieved with just better guides/prompts instead?
-
-### Option C: Hybrid — hub nodes exist but are lightweight
-
-Create hub nodes for identity/grounding, but don't wire every content node to its hub via individual edges. Instead, the hub nodes exist as rich context anchors that the bots retrieve when they need grounding, and the `node_type` filter handles the actual content grouping.
-
-**Pros:**
-- Hub nodes provide grounding without the edge maintenance overhead.
-- `node_type` remains the primary grouping mechanism.
-- Hub → content association is implicit (hub's `anchors_type` metadata points to the `node_type` value).
-
-**Cons:**
-- Graph doesn't actually connect hubs to content — it's metadata-level association, not graph-level.
-- Loses the traversal benefit of Option B.
-
-### Questions to resolve during Phase 0
-
-These should be explored during the audit before committing to an approach:
-
-1. **How do the bots actually retrieve context today?** Is the bottleneck the data structure, or the prompt/guide content? Would better guides alone solve the grounding problem?
-2. **How many "contains" edges would Option B create?** If it's ~500 content nodes × 1 hub edge each, that's manageable. If it bloats the edge table, it's a problem.
-3. **Would hub nodes clutter the UI type navigation?** If hubs show up alongside regular content, is that confusing? Does the UI need to filter them out?
-4. **Do we need a master "Latent Space" hub, or just per-series hubs?** The master hub is appealing but might be redundant with the `start-here` guide.
-5. **What `node_type` should hubs use?** Options: `'hub'` (new type), `'collection'` (generic), or same type as their children with a metadata flag.
-6. **How do hubs interact with the planned PRD-08 Storylines?** Storylines are also structural/narrative nodes — is there overlap?
-7. **What's the maintenance story?** When new content is ingested, do hub edges get created automatically? Do hub node stats (episode count, date range) need periodic updates?
-
-### Decision point
-
-This decision should be made after Phase 0 (audit) when we have a concrete understanding of the current data shape. The audit should include explicit evaluation of:
-- Sample bot retrieval quality with and without hub-like context
-- Edge count impact analysis
-- UI rendering implications
-
-## Approach
-
-**Phase 0: Audit** — manual review of current state, identify all issues, update this PRD with specifics before any code runs. Includes evaluating the hub nodes question above.
-
-**Phase 0.5: Graph structure decision** — based on audit findings, decide on flat types vs hub nodes vs hybrid. If hub nodes: create them before fixing individual nodes.
-
-**Phase 1: Build refinement script** — batch processor that fixes each category below, with dry-run mode and example output for human review before committing changes.
-
-**Phase 2: Run in batches** — process small batches (10-20 nodes), review output, iterate on prompts/logic, then run the rest.
+**Reference:** `docs/development/data-standards.md` defines the target data quality standards for all node types.
 
 ---
 
-## Phase 0: Audit
+## Completed Work
 
-Before writing any code, manually audit the database:
+### Phase 0: Audit & Graph Structure Decision ✅
 
-- [ ] Sample 5 nodes of each `node_type` — what's populated, what's missing?
-- [ ] Sample 10 edges — are directions correct? Are explanations useful?
-- [ ] Check chunk coverage — which node types have chunks, which don't?
-- [ ] Check for duplicate nodes (same content, different IDs)
-- [ ] Document all issues found → update this PRD
+- Audited all node types, identified missing fields, duplicates, and junk nodes
+- Decided on **flat types** (no hub nodes) — `node_type` is the primary grouping mechanism
+- Identified the target 8-type system: `podcast`, `ainews`, `article`, `builders-club`, `paper-club`, `workshop`, `guest`, `entity`
 
----
+### Phase 1A: Node Type Migration ✅
 
----
+All nodes now use the target type system. Zero NULL types remain.
 
-## Phase 1: Refinement Tasks
+**Migrations performed:**
 
-### 1. Node Types
-
-**This is the highest priority fix. Node types drive the primary navigation views in the UI.**
-
-The current `node_type` values are wrong. `episode` and `source` are too generic — they hide the actual content categories that the user cares about. The correct categories are derived from `metadata.series` and `metadata.source_type` which already exist in the data.
-
-**Canonical node types:**
-
-| node_type | What it is | Current state | Count |
-|---|---|---|---|
-| `podcast` | Latent Space podcast episode | `episode` + metadata.series = `latent-space-podcast` | 182 |
-| `meetup` | Builders Club / Latent Space TV | `episode` + metadata.series = `meetup` | 75 |
-| `paper-club` | Paper Club episode | `episode` + metadata.series = `paper-club` | 11 |
-| `article` | Blog post, essay, written content | `source` + metadata.source_type = `blog` | 134 |
-| `newsletter` | AI News digest | `source` + metadata.source_type = `newsletter` | 121 |
-| `person` | Individual human | already correct | 264 |
-| `organization` | Company, lab, institution | already correct | 187 |
-| `topic` | Concept, technology, subject area | already correct | 755 |
-| `hub` | Structural anchor — master identity or content series | TBD (see graph structure question) | 0 → 7? |
-| `insight` | Extracted insight or synthesis node | keep if exists | — |
-| `paper` | Academic or research paper | for future use | — |
-
-**These are the primary views in the UI.** Each type should be a navigable category.
-
-**Migration logic:**
-
-```
-IF node_type = 'episode':
-  IF metadata.series = 'latent-space-podcast' → node_type = 'podcast'
-  IF metadata.series = 'meetup' → node_type = 'meetup'
-  IF metadata.series = 'paper-club' → node_type = 'paper-club'
-  IF no series → infer from title/content, default to 'podcast'
-
-IF node_type = 'source':
-  IF metadata.source_type = 'newsletter' → node_type = 'newsletter'
-  IF metadata.source_type = 'blog' → node_type = 'article'
-  IF no source_type → infer from title/content
-
-IF node_type IS NULL:
-  Examine title + metadata → assign correct type
-
-35 episodes + 12 sources have no series/source_type metadata — these need manual classification.
-```
-
-### 2. Descriptions
-
-**Every node must have a clear, concise, contextually grounding description.**
-
-This is the most important field in the entire database. It is what the user sees first. It must tell them exactly what this thing is in plain language.
-
-**Rules:**
-
-- One to two sentences maximum.
-- First sentence states exactly WHAT this is. Second sentence (optional) adds critical context.
-- Must be concrete and specific. No vague language. No "explores", "discusses", "examines", "delves into".
-- Must include contextually grounding information — WHO is involved, WHAT the subject is, WHEN it happened if relevant.
-
-**Examples of GOOD descriptions:**
-
-- `Podcast episode featuring George Hotz (tinygrad) and swyx discussing commoditizing GPU compute and making petaflop-scale AI accessible to individuals. Recorded January 2025.`
-- `AI News digest covering Qwen 3 model family release (0.6B to 235B MoE), including benchmarks against Llama 4 and DeepSeek. Published April 2025.`
-- `Blog post by Lilian Weng (OpenAI) explaining RLHF, DPO, and constitutional AI alignment techniques with mathematical foundations.`
-- `Sam Altman — CEO of OpenAI. Previously president of Y Combinator.`
-- `Retrieval-Augmented Generation — technique combining LLM generation with external document retrieval to ground responses in source material.`
-
-**Examples of BAD descriptions (do NOT produce these):**
-
-- `This episode explores the future of AI computing.` — vague, no specifics
-- `An interesting discussion about various topics in machine learning.` — meaningless
-- `Discusses important developments in the AI space.` — says nothing
-- `A comprehensive overview of recent advances.` — garbage
-
-**Generation approach:**
-
-- For nodes WITH chunk data: summarize from the chunk content
-- For entity nodes (person, organization, topic) WITHOUT chunks: use the node title + any metadata + edge context to generate
-- For nodes that already have a description: review and rewrite if it's vague/bad
-
-### 3. Notes
-
-**Notes should capture the most important insights, takeaways, and key points from/about the node.**
-
-This is NOT a summary (that's the description). Notes are the valuable extracted knowledge — the stuff worth remembering.
-
-**Rules:**
-
-- Bullet points, 3-8 items
-- Each bullet is a specific, concrete insight — not a topic label
-- For content nodes (podcast, article, newsletter): key arguments, surprising claims, important announcements, technical details worth remembering
-- For entity nodes (person, org, topic): key facts, relationships, notable positions/opinions
-- Must be information-dense — every bullet should teach the reader something
-
-**Example for a podcast episode:**
-
-```
-- George Hotz argues GPU clouds will be commoditized within 2 years, making $10M training runs accessible to individuals
-- tinygrad's approach: build the simplest possible ML framework, then optimize — opposite of PyTorch's philosophy
-- Key tension: NVIDIA's CUDA moat vs. open alternatives (AMD ROCm, tinygrad's custom backends)
-- Hotz prediction: most AI companies will fail because they're building on rented infrastructure
-```
-
-**Example for a person entity:**
-
-```
-- CEO of OpenAI since 2019, navigated the board crisis of November 2023
-- Advocates for gradual AI deployment ("iterative deployment") over pausing
-- Previously ran Y Combinator (2014-2019), invested in >1000 startups
-- Publicly stated AGI could arrive by 2027-2028
-```
-
-### 4. Edges
-
-**Every edge must have a clear, human-readable explanation of what the connection is and why it matters.**
-
-Current state is broken:
-- 2,619 edges have `source: ai_similarity` with JSON blob context containing generic explanations
-- 100 edges have NULL/undefined context
-- Edge directions may be incorrect
-
-**Rules:**
-
-- The `context` field must be a clear, human-readable sentence (NOT a JSON blob)
-- The explanation should read naturally: `[source node] [explanation] [target node]`
-- Direction matters: `from_node_id` → `to_node_id` should read logically
-- Every edge must have a non-null, non-empty context
-
-**Edge direction conventions:**
-
-| Relationship | Direction | Example |
+| Migration | Count | Method |
 |---|---|---|
-| Hub → content hub (if hubs adopted) | Latent Space → LS Podcast | "produces" |
-| Hub → content node (if hubs adopted) | LS Podcast → Episode X | "contains" |
-| Person → hub (if hubs adopted) | swyx → LS Podcast | "hosts" |
-| Person appeared on episode | person → episode | "appeared as guest on" |
-| Episode covers topic | episode → topic | "covers in depth" |
-| Person works at org | person → org | "is CEO of" |
-| Article references paper | article → paper | "cites and builds on" |
-| Node is related to node | either → either | clear explanation required |
+| `episode` → `podcast` | 247 | SQL: metadata.series = 'latent-space-podcast' + title heuristics |
+| `episode` → `paper-club` | 34 | SQL: metadata.series = 'paper-club' + title heuristics |
+| `episode` → `builders-club` | 24 | SQL: metadata.series = 'meetup' + title heuristics |
+| `source` → `ainews` | 136 | SQL: metadata.source_type = 'newsletter' OR title starts with '[AINews]' |
+| `source` → `article` | 71 | SQL: remaining Substack blog posts (latent.space/p/...) |
+| `source` → `paper-club` | 2 | SQL: metadata match |
+| `person` → `guest` | 732 | Script: persons connected to content nodes via edges |
+| `person` → `entity` | 4 | Script: persons NOT connected to any content |
+| `organization` → `entity` | 683 | SQL: bulk UPDATE |
+| `topic` → `entity` | 1867 | SQL: bulk UPDATE |
 
-**What needs to happen:**
+**Deletions performed:**
 
-- Audit all 2,619 `ai_similarity` edges — are they real relationships or noise?
-- Rewrite context from JSON blobs to plain English
-- Fix NULL/undefined contexts
-- Remove junk edges that don't represent meaningful relationships
-- Verify direction is correct for all edges
+| What | Count | Reason |
+|---|---|---|
+| AI Engineer conference talks | 58 | Not LS content (channel_name = 'AI Engineer'), 0 chunks |
+| Insight nodes | 65 | NULL metadata, 0 chunks, auto-generated placeholders |
+| AINews placeholder nodes | 31 | Empty shells with 0 chunks, 0 edges (channel_name = 'Latent Space', [AINews] titles) |
+| Promo/event posts | 7 | Non-content ("Join the community", "Speaker applications", etc.) |
+| Duplicate source-podcast pairs | 52 | Merged: chunks moved to podcast node, edges redirected, source deleted |
+| Duplicate paper-club pairs | 2 | Merged: edges redirected, duplicate deleted |
 
-### 5. Chunks
+**Scripts used:** `scripts/output/reclassify-sources.ts`, `scripts/output/delete-null-types.ts`, `scripts/output/migrate-entity-types.ts`, `scripts/output/merge-pc-dupes.ts`
 
-**Every node must have at least one row in the `chunks` table.**
+### Phase 1B: Publish Dates ✅
 
-Current state: 1,532 nodes have zero chunks.
+All content nodes now have `event_date` set to their publish/upload date.
 
-**Rules:**
+| Type | Nodes with dates | Method |
+|---|---|---|
+| podcast | 247/247 | yt-dlp parallel fetch (video_id → upload_date) |
+| paper-club | 32/32 | yt-dlp parallel fetch |
+| builders-club | 24/24 | yt-dlp parallel fetch |
+| ainews | 136/136 | Already had dates from ingestion |
+| article | 71/71 | Mix: yt-dlp for video articles, Substack JSON-LD scraping for blog posts, metadata extraction |
 
-- Content nodes (podcast, meetup, paper-club, article, newsletter): should have MANY chunks — the full transcript/article split into ~2000 char segments with overlap. These should already exist from the `chunk` column on the node — they just need to be split and inserted into the `chunks` table.
-- Entity nodes (person, organization, topic): should have exactly ONE chunk containing a comprehensive summary of what is known about this entity from the graph. This chunk enables vector search to find these entities.
+**Scripts used:** `scripts/output/fetch-dates.sh` (parallel yt-dlp fetcher), `scripts/output/apply-dates.ts` (Turso batch updater)
 
-**Process:**
+### Phase 1C: Descriptions & Notes for Content Types ✅
 
-- For nodes with `chunk` data on the node row but no rows in `chunks` table: run the chunking logic (split + embed + insert)
-- For entity nodes with no `chunk` data: generate a summary chunk from the node's description, notes, and connected edges, then embed it
+| Type | Descriptions | Notes | Method |
+|---|---|---|---|
+| podcast | 247/247 ✅ | 247/247 ✅ | Claude Code via MCP: read chunks → generate → ls_update_node |
+| paper-club | 32/32 ✅ | 32/32 ✅ | Claude Code via MCP: read chunks → generate → ls_update_node |
+| builders-club | 24/24 ✅ | 24/24 ✅ | Claude Code via MCP: read chunks → generate → ls_update_node |
+
+**Workflow:** For each node, read first 3 chunks (chunk_idx 0, 1, 2) from `chunks` table via `ls_sqlite_query`, generate description (1-2 sentences, concrete/specific) and notes (3-6 bullet points, insight-dense), write via `ls_update_node` content field (appends to notes) and description field (overwrites).
 
 ---
 
-## Phase 2: Execution Plan
+## Remaining Work
 
-### Step 1: Build `scripts/refine-data.ts`
+### Phase 2A: AINews Descriptions & Notes ✅
 
-Single script with subcommands:
+**136/136 nodes complete.** All AINews nodes now have descriptions ("AI News edition covering...") and bullet-point notes. Generated via 10 parallel Claude Code subagents reading chunks and writing via MCP.
 
-```bash
-# Audit mode — show current state
-npx tsx scripts/refine-data.ts --audit
+### Phase 2B: Article Descriptions & Notes ✅
 
-# Create hub nodes (if hub approach adopted — run once, idempotent)
-# npx tsx scripts/refine-data.ts --task hubs --dry-run
-# npx tsx scripts/refine-data.ts --task hubs
+**71/71 nodes complete.** All article nodes now have descriptions ("Latent Space article/podcast episode...") and bullet-point notes. Generated via 5 parallel Claude Code subagents.
 
-# Dry run — show what would change for N nodes
-npx tsx scripts/refine-data.ts --task types --limit 5 --dry-run
-npx tsx scripts/refine-data.ts --task descriptions --limit 5 --dry-run
+### Phase 2C: Guest Descriptions & Notes ✅
 
-# Live run — apply changes
-npx tsx scripts/refine-data.ts --task types --limit 20
-npx tsx scripts/refine-data.ts --task descriptions --limit 20
+**725/735 nodes complete.** 10 skipped (product/bot accounts: Claude Opus, Augment Code, Gemini folks, Claudeai, Cline, Cognition, Claude_code, Lmarena_ai, Latent.Space, Devin). Generated via 3 parallel Claude Code subagents split by ID range (< 2000, 2000-3000, >= 3000).
 
-# Wire content nodes to their hub (if hub approach adopted)
-# npx tsx scripts/refine-data.ts --task hub-edges --dry-run
-# npx tsx scripts/refine-data.ts --task hub-edges
+**Approach used:** Batch-queried edges for all guests in SQL `IN` clauses, resolved Twitter handles to real identities using training knowledge, wrote descriptions (role + why they matter) and bullet-point notes using edge context. Cross-node context assembly was key — guest descriptions came from their connected episodes, not from chunks on the guest node itself.
 
-# All tasks
-npx tsx scripts/refine-data.ts --task types
-npx tsx scripts/refine-data.ts --task descriptions
-npx tsx scripts/refine-data.ts --task notes
-npx tsx scripts/refine-data.ts --task edges
-npx tsx scripts/refine-data.ts --task chunks
-```
+**Duplicate handle pairs flagged for future cleanup:** Teknium1/Teknuim1/Teknim1, Akhaliq/_akhaliq, Philschmid/_philschmid, Lewtun/Lvwerra, Karpathy/Andrej Karpathy, Gdb/Greg_brockman, Mike_krieger/Mikeyk, Swix/Swixs/Swyx.
 
-### Step 2: Review loop
+### Phase 2D: Entity Descriptions & Notes 🟡
 
-For each task:
-1. Run `--dry-run --limit 5` and output results to console
-2. **Human reviews output** — approves or gives feedback
-3. Iterate on prompts/logic until output quality is right
-4. Run `--limit 20`, review again
-5. Run full batch
+**2,562 nodes, 8 have descriptions, 2,554 need descriptions + notes.**
 
-### Step 3: Verify
+These are organizations (683 former `organization` nodes), topics (1,867 former `topic` nodes), and 4 misc. Most have NO chunks. Context must come from:
+- Node title
+- Connected edges and their connected nodes
+- Mentions in content node chunks
 
-After all tasks complete:
-- Re-run `--audit` to confirm zero NULL descriptions, zero NULL notes, zero missing chunks, zero NULL types
-- Spot-check 10 random nodes in the UI
-- Spot-check 10 random edges for direction + explanation quality
+**This is the largest batch.** Prioritize:
+1. Entities with most edges (hub nodes in the graph) — they matter most for navigation
+2. Organizations — users search for companies
+3. Topics with >5 edges — frequently referenced concepts
+4. Long tail topics — brief descriptions are fine
+
+**Approach:** Batch prepare → Claude Code generates → MCP writes. Consider processing by edge count (most-connected first).
+
+### Phase 2E: Edge Cleanup 🟡
+
+**7,128 / 7,130 edges are `ai_similarity` with JSON blob context.**
+
+These edges were auto-generated during ingestion. They need:
+1. **Audit:** Are the connections meaningful? Sample 50 edges, check if the relationship is real.
+2. **Context rewrite:** Convert JSON blob context to plain English sentences.
+3. **Junk removal:** Delete edges that don't represent meaningful relationships.
+4. **Direction check:** Verify from_node_id → to_node_id reads logically.
+
+**This is the hardest task** — 7K edges need individual evaluation. Consider:
+- Rule-based rewrite for common patterns (guest → episode, episode → topic)
+- Batch delete edges between unrelated entity nodes with low similarity
+- Claude Code for ambiguous cases
+
+### Phase 2F: UI Date Display Fix ✅
+
+- `src/services/database/nodes.ts` — default sort changed to `event_date DESC NULLS LAST, updated_at DESC`
+- `src/components/layout/ThreePanelLayout.tsx` — event_dates display as absolute dates ("Jan 15, 2025"), updated_at dates show as relative ("3d ago")
+
+---
+
+## Current Database Snapshot (as of 2026-02-22, post-2C)
+
+| Metric | Count |
+|---|---|
+| Total nodes | 3,808 |
+| Total edges | 7,130 |
+| Total chunks | 35,329 |
+| NULL node_type | 0 ✅ |
+| NULL description | ~2,560 (was 3,286) |
+| NULL notes | ~2,560 (was 3,286) |
+| NULL event_date | 3,297 |
+| Edges with NULL context | 1 |
+| Edges `ai_similarity` | 7,128 |
+
+**Node type breakdown:**
+
+| Type | Total | Has Desc | Has Notes | Has Date |
+|---|---|---|---|---|
+| entity | 2,562 | 12 | 12 | 0 |
+| guest | 735 | 725 ✅ | 725 ✅ | 0 |
+| podcast | 247 | 247 ✅ | 247 ✅ | 247 ✅ |
+| ainews | 136 | 136 ✅ | 136 ✅ | 136 ✅ |
+| article | 72 | 72 ✅ | 71 ✅ | 72 ✅ |
+| paper-club | 32 | 32 ✅ | 32 ✅ | 32 ✅ |
+| builders-club | 24 | 24 ✅ | 24 ✅ | 24 ✅ |
 
 ---
 
 ## Technical Notes
 
-- Use `@libsql/client` directly (same pattern as `ingest.ts`) — no Next.js deps
-- LLM calls for description/notes generation: use `gpt-4o-mini` for speed/cost, with option to use `gpt-4o` for higher quality on specific node types
-- Batch size: 10-20 nodes per LLM call where possible
-- Rate limiting: respect OpenAI limits, add sleep between batches
-- Idempotent: skip nodes that already have good data (non-null, non-empty, passes quality check)
-- All changes logged to console with before/after for review
+### Scripts
 
----
+All batch scripts are in `scripts/output/` and use `@libsql/client` directly (no Next.js deps). Pattern:
+- `--dry-run` flag for preview
+- Batch processing in chunks of 50
+- Direct Turso connection via `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` from `.env.local`
 
-## Current Database Snapshot (as of 2026-02-20)
-
-| Metric | Count |
+| Script | Purpose |
 |---|---|
-| Total nodes | 1,874 |
-| Total edges | 2,688 |
-| Total chunks | 28,352 |
-| NULL description | 1,736 |
-| NULL notes | 1,670 |
-| NULL node_type | 157 |
-| Nodes without chunk rows | 1,532 |
-| Edges with NULL context | 100 |
-| Edges `ai_similarity` | 2,619 |
+| `fetch-dates.sh` | Parallel yt-dlp date fetcher (15 workers) |
+| `apply-dates.ts` | Batch update event_date + metadata.publish_date |
+| `reclassify-sources.ts` | Source → article migration + promo deletion |
+| `delete-null-types.ts` | Delete AIE, insight, placeholder nodes |
+| `migrate-entity-types.ts` | Person/org/topic → guest/entity migration |
+| `merge-pc-dupes.ts` | Merge paper-club duplicate pairs |
 
-**Node type breakdown (current → target):**
+### Claude Code MCP Workflow
 
-| Current type | Count | Target type |
-|---|---|---|
-| `episode` (series=latent-space-podcast) | 182 | `podcast` |
-| `episode` (series=meetup) | 75 | `meetup` |
-| `episode` (series=paper-club) | 11 | `paper-club` |
-| `episode` (no series) | 35 | classify manually |
-| `source` (source_type=blog) | 134 | `article` |
-| `source` (source_type=newsletter) | 121 | `newsletter` |
-| `source` (no source_type) | 12 | classify manually |
-| `person` | 264 | `person` (no change) |
-| `organization` | 187 | `organization` (no change) |
-| `topic` | 755 | `topic` (no change) |
-| NULL | 157 | classify from title/metadata |
-| *(TBD)* | 0 → 7? | `hub` — if hub node approach adopted (see open question) |
+For description/notes generation, the pattern is:
+1. **Read chunks:** `ls_sqlite_query` → `SELECT node_id, substr(text, 1, 2000) FROM chunks WHERE node_id = ? AND chunk_idx IN (0, 1, 2)`
+2. **Generate:** Claude Code reads chunks, writes description + bullet-point notes
+3. **Write:** `ls_update_node` — `content` field APPENDS to notes, `description` field OVERWRITES
+4. **Batch:** Process 10-12 nodes per subagent, run 2-3 subagents in parallel
+
+### Data Quality Standards
+
+See `docs/development/data-standards.md` for the full spec. Key rules:
+- Descriptions: 1-2 sentences, concrete/specific, no vague verbs
+- Notes: 3-8 bullet points, information-dense, each teaches something
+- Dates: `event_date` = publish/upload date in YYYY-MM-DD format
+- Types: One of 8 canonical types, no NULLs

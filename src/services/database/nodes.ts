@@ -62,7 +62,7 @@ export class NodeService {
     } else if (sortBy === 'event_date') {
       query += ' ORDER BY n.event_date DESC NULLS LAST, n.updated_at DESC';
     } else {
-      query += ' ORDER BY n.updated_at DESC';
+      query += ' ORDER BY n.event_date DESC NULLS LAST, n.updated_at DESC';
     }
 
     if (limit) {
