@@ -25,7 +25,7 @@ export interface DiscoveredItem {
 }
 
 const LATENT_SPACE_PODCAST_CHANNEL_ID =
-  process.env.LATENTSPACE_PODCAST_CHANNEL_ID || 'UCQMbwBMmIRCCRDB2AlrO6bA';
+  process.env.LATENTSPACE_PODCAST_CHANNEL_ID || 'UCxBcwypKK-W3GHd_RZ9FZrQ';
 const LATENT_SPACE_TV_CHANNEL_ID =
   process.env.LATENTSPACETV_CHANNEL_ID || process.env.LATENT_SPACE_TV_CHANNEL_ID || '';
 

@@ -160,7 +160,7 @@ async function extractEntitiesWithClaude(title: string, description: string, chu
 
   const response = await withRetry(async () => {
     return client.messages.create({
-      model: 'claude-3-5-haiku-latest',
+      model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
       max_tokens: 500,
       temperature: 0,
       messages: [{ role: 'user', content: prompt }],
@@ -410,14 +410,19 @@ export async function processDiscoveredItem(params: {
     const embeddingResult = await embedNodeContent(node.id);
     const chunksCreated = embeddingResult.chunk_embeddings.chunks_created || 0;
 
-    await extractEntitiesForNode({
-      nodeId: node.id,
-      nodeType,
-      title: node.title,
-      description,
-      chunk: extracted.chunk,
-      metadata: (node.metadata || {}) as Record<string, unknown>,
-    });
+    // Entity extraction should not fail the entire ingestion run.
+    try {
+      await extractEntitiesForNode({
+        nodeId: node.id,
+        nodeType,
+        title: node.title,
+        description,
+        chunk: extracted.chunk,
+        metadata: (node.metadata || {}) as Record<string, unknown>,
+      });
+    } catch (error) {
+      console.warn('[ingestion] Entity extraction failed; continuing without entities', error);
+    }
 
     return {
       source,

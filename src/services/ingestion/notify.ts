@@ -47,12 +47,27 @@ function typePrompt(nodeType: NodeType): string {
   }
 }
 
-function buildContent(payload: NotifyPayload): string {
+function buildAnnouncementContent(payload: NotifyPayload): string {
+  const lines = [
+    typeHeader(payload.nodeType),
+    '',
+    `**${payload.title}**`,
+    `Published: ${formatDate(payload.publishedAt)}${payload.chunksCreated !== undefined ? ` | ${payload.chunksCreated} chunks indexed` : ''}`,
+  ];
+
+  if (payload.url) {
+    lines.push(payload.url);
+  }
+
+  return lines.join('\n');
+}
+
+function buildYapContent(payload: NotifyPayload): string {
   const sigId = process.env.DISCORD_SIG_USER_ID;
   const mention = sigId ? `<@${sigId}>` : '@Sig';
 
   const lines = [
-    typeHeader(payload.nodeType),
+    '🧠 Discussion Kickoff',
     '',
     `**${payload.title}**`,
     `Published: ${formatDate(payload.publishedAt)}${payload.chunksCreated !== undefined ? ` | ${payload.chunksCreated} chunks indexed` : ''}`,
@@ -66,23 +81,35 @@ function buildContent(payload: NotifyPayload): string {
   return lines.join('\n');
 }
 
-export async function notifyYap(payload: NotifyPayload): Promise<void> {
-  const webhookUrl = process.env.DISCORD_YAP_WEBHOOK_URL;
-  if (!webhookUrl) {
-    return;
-  }
+async function sendWebhook(webhookUrl: string, content: string): Promise<void> {
+  const webhookUsername = process.env.DISCORD_WEBHOOK_USERNAME || 'Latent Space Hub';
+  const webhookAvatar = process.env.DISCORD_WEBHOOK_AVATAR_URL;
 
   const response = await fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      username: 'Latent Space Hub',
-      content: buildContent(payload),
+      username: webhookUsername,
+      avatar_url: webhookAvatar,
+      content,
     }),
     signal: AbortSignal.timeout(10000),
   });
 
   if (!response.ok) {
     throw new Error(`Discord webhook failed (${response.status})`);
+  }
+}
+
+export async function notifyAnnouncementsThenYap(payload: NotifyPayload): Promise<void> {
+  const announcementsWebhook = process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK_URL;
+  const yapWebhook = process.env.DISCORD_YAP_WEBHOOK_URL;
+
+  if (announcementsWebhook) {
+    await sendWebhook(announcementsWebhook, buildAnnouncementContent(payload));
+  }
+
+  if (yapWebhook) {
+    await sendWebhook(yapWebhook, buildYapContent(payload));
   }
 }

@@ -1,6 +1,6 @@
 import { discoverSource } from './discovery';
 import { completeIngestionRun, hasActiveRun, IngestionRunDetails, startIngestionRun } from './log';
-import { notifyYap } from './notify';
+import { notifyAnnouncementsThenYap } from './notify';
 import { ProcessItemResult, processDiscoveredItem } from './processing';
 import { IngestionSourceKey, SOURCE_KEYS } from './sources';
 
@@ -94,7 +94,7 @@ export async function checkAndIngest(options: CheckAndIngestOptions = {}): Promi
           itemsIngested += 1;
           if (!dryRun && result.nodeType) {
             try {
-              await notifyYap({
+              await notifyAnnouncementsThenYap({
                 title: result.title,
                 nodeType: result.nodeType,
                 chunksCreated: result.chunksCreated,
@@ -102,7 +102,7 @@ export async function checkAndIngest(options: CheckAndIngestOptions = {}): Promi
                 url: result.url,
               });
             } catch (error) {
-              console.warn('[ingestion] Failed to send Discord webhook', error);
+              console.warn('[ingestion] Failed to send Discord notifications', error);
             }
           }
         } else if (result.status === 'failed') {
