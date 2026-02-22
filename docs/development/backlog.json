@@ -1,8 +1,6 @@
 {
   "queue": [
     "data-refinement",
-    "hub-nodes",
-    "discord-bot-v2",
     "documentation-overhaul-v2"
   ],
   "projects": {
@@ -15,47 +13,42 @@
       "prd": "docs/development/prd-10-data-refinement.md",
       "notes": "Core type migration and date population are complete. Remaining work is quality completion for ainews/article/guest/entity notes and edge-context cleanup.",
       "tasks": [
-        { "done": true, "text": "Phase 0: Audit + graph structure decision (flat types, no hubs)" },
-        { "done": true, "text": "Phase 1: Node type migration + junk cleanup + duplicate merges" },
-        { "done": true, "text": "Phase 1: Publish dates for all content nodes" },
-        { "done": true, "text": "Phase 1: Podcast, paper-club, and builders-club descriptions + notes" },
-        { "done": false, "text": "Phase 2: AINews descriptions + notes" },
-        { "done": false, "text": "Phase 2: Article descriptions + notes" },
-        { "done": false, "text": "Phase 2: Guest descriptions + notes" },
-        { "done": false, "text": "Phase 2: Entity descriptions + notes" },
-        { "done": false, "text": "Phase 2: Edge context cleanup + verification pass" }
-      ]
-    },
-    "hub-nodes": {
-      "id": "hub-nodes",
-      "title": "Hub node architecture — anchor LS properties and absorb storyline-ready narrative links",
-      "status": "ready",
-      "type": "data",
-      "priority": "high",
-      "prd": "docs/development/prd-15-hub-nodes.md",
-      "notes": "Creates anchor nodes for the core Latent Space properties and links content to them. Storylines scope from PRD-08 is merged here as a focused narrative-link layer (timeline edges and evolving-arc metadata on hub-linked content). Includes canonical-name hygiene pass for host aliases and common extraction misspellings.",
-      "tasks": [
-        { "done": false, "text": "Create/update core hub nodes and remove duplicate Latent Space entities" },
-        { "done": false, "text": "Connect hubs to all relevant content nodes with explicit edge explanations" },
-        { "done": false, "text": "Add storyline carryover: timeline-oriented edges and arc notes on hub-linked clusters" },
-        { "done": false, "text": "Run canonical-name cleanup for host/entity typos (e.g., swix/swyx, alesio/Alessio) and merge duplicates" },
-        { "done": false, "text": "Install ongoing alias guardrail in ingestion/refinement prompts + scheduled typo audit report" },
-        { "done": false, "text": "Validate graph quality: counts, no orphans, and top-connected hub placement" }
-      ]
-    },
-    "discord-bot-v2": {
-      "id": "discord-bot-v2",
-      "title": "Discord bot v2 — grounded guides, temporal context, and deterministic channel triggers",
-      "status": "ready",
-      "type": "feature",
-      "priority": "high",
-      "prd": "docs/development/prd-11-discord-bot-v2.md",
-      "notes": "Focuses on better grounding/citations plus reliable kickoff behavior for announcement-driven discussion in yap.",
-      "tasks": [
-        { "done": false, "text": "Rewrite guides (start-here, content-types, search) with LS-specific grounding" },
-        { "done": false, "text": "Add deterministic kickoff path for announcement -> yap debate" },
-        { "done": false, "text": "Implement thread model and end-to-end channel behavior" },
-        { "done": false, "text": "Validate in test Discord, then promote to production server" }
+        {
+          "done": true,
+          "text": "Phase 0: Audit + graph structure decision (flat types, no hubs)"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Node type migration + junk cleanup + duplicate merges"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Publish dates for all content nodes"
+        },
+        {
+          "done": true,
+          "text": "Phase 1: Podcast, paper-club, and builders-club descriptions + notes"
+        },
+        {
+          "done": false,
+          "text": "Phase 2: AINews descriptions + notes"
+        },
+        {
+          "done": false,
+          "text": "Phase 2: Article descriptions + notes"
+        },
+        {
+          "done": false,
+          "text": "Phase 2: Guest descriptions + notes"
+        },
+        {
+          "done": false,
+          "text": "Phase 2: Entity descriptions + notes"
+        },
+        {
+          "done": false,
+          "text": "Phase 2: Edge context cleanup + verification pass"
+        }
       ]
     },
     "documentation-overhaul-v2": {
@@ -67,10 +60,22 @@
       "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
       "notes": "V1 shipped. V2 is a focused refresh to align docs with final post-refinement schema, hub-node architecture, ingestion automation, and bot v2 behavior.",
       "tasks": [
-        { "done": false, "text": "Audit docs for drift after PRD-10/11/15 completion" },
-        { "done": false, "text": "Update architecture, ingestion, and bot runtime docs with final flows" },
-        { "done": false, "text": "Refresh user-facing guides to match the finalized product" },
-        { "done": false, "text": "Run docs consistency pass and update onboarding/index pages" }
+        {
+          "done": false,
+          "text": "Audit docs for drift after PRD-10/11/15 completion"
+        },
+        {
+          "done": false,
+          "text": "Update architecture, ingestion, and bot runtime docs with final flows"
+        },
+        {
+          "done": false,
+          "text": "Refresh user-facing guides to match the finalized product"
+        },
+        {
+          "done": false,
+          "text": "Run docs consistency pass and update onboarding/index pages"
+        }
       ]
     }
   },
@@ -151,6 +156,20 @@
       "prd": "docs/development/completed-prds/prd-13-auto-ingestion.md",
       "completed_date": "2026-02-22",
       "branch": "codex/prd-13-auto-ingestion"
+    },
+    {
+      "id": "hub-nodes",
+      "title": "Hub node architecture — anchor LS properties and absorb storyline-ready narrative links",
+      "prd": "docs/development/completed-prds/prd-15-hub-nodes.md",
+      "completed_date": "2026-02-22",
+      "branch": "feature/data-refinement"
+    },
+    {
+      "id": "discord-bot-v2",
+      "title": "Discord bot v2 — grounded guides, temporal context, and deterministic channel triggers",
+      "prd": "docs/development/completed-prds/prd-11-discord-bot-v2.md",
+      "completed_date": "2026-02-22",
+      "branch": "main + latent-space-bots/main"
     }
   ]
 }
