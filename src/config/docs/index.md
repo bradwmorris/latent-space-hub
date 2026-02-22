@@ -59,6 +59,8 @@ Click any node to see its full details: description, notes, connections, source 
 
 # Talk to Slop in Discord
 
+![Slop](/images/docs/slop-avatar.png)
+
 Slop is an AI bot in the Latent Space Discord with full access to the knowledge graph.
 
 ### What Slop Does
@@ -82,11 +84,15 @@ Or just **@ mention Slop** in any channel.
 
 ### The #yap Feed
 
-When new content drops — a new podcast episode, article, or AINews digest — Slop automatically kicks off a discussion in **#yap**. It digs into the graph, surfaces the most interesting connections and insights, and links back to the source. Community jumps in from there.
+When new content drops — a new podcast episode, article, or AINews digest — the hub posts an announcement and Slop automatically kicks off a discussion in **#yap**. It digs into the graph, surfaces the most interesting connections and insights, and links back to the source. Community jumps in from there.
+
+![Announcement and discussion kickoff in Discord](/images/docs/discord-kickoff.jpg)
 
 ### Slop's Personality
 
 Slop is not a polite assistant. It's opinionated, provocative, and occasionally unhinged — but always grounded in the knowledge base. It exists to spark discussion, not to give safe answers.
+
+![Slop responding to a discussion kickoff](/images/docs/slop-response.jpg)
 
 ---
 

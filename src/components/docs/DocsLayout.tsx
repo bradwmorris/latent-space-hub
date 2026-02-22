@@ -348,6 +348,21 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                     color: '#999',
                   }}>{children}</blockquote>
                 ),
+                img: ({ src, alt }) => {
+                  const isAvatar = typeof src === 'string' && src.includes('avatar');
+                  return (
+                    <img
+                      src={src}
+                      alt={alt || ''}
+                      style={{
+                        maxWidth: isAvatar ? '120px' : '100%',
+                        borderRadius: isAvatar ? '50%' : '8px',
+                        border: isAvatar ? 'none' : '1px solid #1a1a1a',
+                        margin: isAvatar ? '0 0 12px 0' : '8px 0 16px 0',
+                      }}
+                    />
+                  );
+                },
                 table: ({ children }) => (
                   <div style={{ overflowX: 'auto', margin: '0 0 14px 0' }}>
                     <table style={{
