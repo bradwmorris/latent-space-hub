@@ -1,7 +1,6 @@
 {
   "queue": [
     "setup-handover",
-    "data-refinement",
     "graph-bot-polish"
   ],
   "projects": {
@@ -23,53 +22,6 @@
         { "done": false, "text": "Brad: Test full ingestion pipeline" },
         { "done": false, "text": "Brad: Switch to live channels + redeploy" },
         { "done": false, "text": "Brad: Delete test channel, confirm first real ingestion" }
-      ]
-    },
-    "data-refinement": {
-      "id": "data-refinement",
-      "title": "Data refinement & hygiene — finish descriptions/notes quality pass and edge cleanup",
-      "status": "in_progress",
-      "type": "feature",
-      "priority": "high",
-      "prd": "docs/development/prd-10-data-refinement.md",
-      "notes": "Core type migration and date population are complete. Remaining work is quality completion for ainews/article/guest/entity notes and edge-context cleanup.",
-      "tasks": [
-        {
-          "done": true,
-          "text": "Phase 0: Audit + graph structure decision (flat types, no hubs)"
-        },
-        {
-          "done": true,
-          "text": "Phase 1: Node type migration + junk cleanup + duplicate merges"
-        },
-        {
-          "done": true,
-          "text": "Phase 1: Publish dates for all content nodes"
-        },
-        {
-          "done": true,
-          "text": "Phase 1: Podcast, paper-club, and builders-club descriptions + notes"
-        },
-        {
-          "done": false,
-          "text": "Phase 2: AINews descriptions + notes"
-        },
-        {
-          "done": false,
-          "text": "Phase 2: Article descriptions + notes"
-        },
-        {
-          "done": false,
-          "text": "Phase 2: Guest descriptions + notes"
-        },
-        {
-          "done": false,
-          "text": "Phase 2: Entity descriptions + notes"
-        },
-        {
-          "done": false,
-          "text": "Phase 2: Edge context cleanup + verification pass"
-        }
       ]
     },
     "graph-bot-polish": {
@@ -195,6 +147,13 @@
       "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
       "completed_date": "2026-02-23",
       "branch": "feature/documentation-overhaul-v2"
+    },
+    {
+      "id": "data-refinement",
+      "title": "Data refinement & hygiene — type migration, descriptions/notes, dates, edge cleanup",
+      "prd": "docs/development/prd-10-data-refinement.md",
+      "completed_date": "2026-02-22",
+      "branch": "feature/data-refinement"
     }
   ]
 }
