@@ -2,8 +2,7 @@
   "queue": [
     "setup-handover",
     "data-refinement",
-    "graph-bot-polish",
-    "documentation-overhaul-v2"
+    "graph-bot-polish"
   ],
   "projects": {
     "setup-handover": {
@@ -97,33 +96,6 @@
         { "done": true, "text": "Part 4: Dashboard stats — type breakdown row + compact aggregate totals" }
       ]
     },
-    "documentation-overhaul-v2": {
-      "id": "documentation-overhaul-v2",
-      "title": "Documentation overhaul v2 — second pass after data and bot refinements are complete",
-      "status": "completed",
-      "type": "docs",
-      "priority": "medium",
-      "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
-      "notes": "Completed. User-facing /docs page shipped. Developer docs drift fixed. Agent guides verified.",
-      "tasks": [
-        {
-          "done": true,
-          "text": "Audit docs for drift after PRD-10/11/15 completion"
-        },
-        {
-          "done": true,
-          "text": "Update architecture, ingestion, and bot runtime docs with final flows"
-        },
-        {
-          "done": true,
-          "text": "Refresh user-facing guides to match the finalized product"
-        },
-        {
-          "done": true,
-          "text": "Run docs consistency pass and update onboarding/index pages"
-        }
-      ]
-    }
   },
   "completed": [
     {
@@ -216,6 +188,13 @@
       "prd": "docs/development/completed-prds/prd-11-discord-bot-v2.md",
       "completed_date": "2026-02-22",
       "branch": "main + latent-space-bots/main"
+    },
+    {
+      "id": "documentation-overhaul-v2",
+      "title": "Documentation overhaul v2 — user-facing /docs page, developer docs drift fixes, agent guides verification",
+      "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
+      "completed_date": "2026-02-23",
+      "branch": "feature/documentation-overhaul-v2"
     }
   ]
 }
