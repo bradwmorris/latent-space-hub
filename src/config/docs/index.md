@@ -71,16 +71,15 @@ Slop is an AI bot in the Latent Space Discord with full access to the knowledge 
 - Cites specific episodes, articles, and dates
 - Connects dots across the graph — "this contradicts what X said in episode Y three months ago"
 
-### Commands
+### How to Talk to Slop
 
-| Command | What it does |
-|---------|-------------|
-| `/ask` | Ask a question. Slop searches the graph and responds. |
-| `/search` | Search the knowledge base directly. |
-| `/episode` | Find specific episodes by topic or guest. |
-| `/debate` | Get Slop to argue both sides of a topic. |
+| Method | What it does |
+|--------|-------------|
+| **@ mention Slop** | Mention @Slop in any channel. A thread is created and Slop responds with graph-backed context. Follow-up in the thread to continue the conversation. |
+| `/tldr <query>` | Get a concise TLDR on any topic from the knowledge graph. |
+| `/wassup` | See what's new and interesting in Latent Space. |
 
-Or just **@ mention Slop** in any channel.
+Slop always links to sources — every response referencing an episode, article, or AINews issue includes a direct link to the original content.
 
 ### The #yap Feed
 

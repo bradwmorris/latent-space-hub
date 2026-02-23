@@ -1,6 +1,6 @@
 # PRD 18: Bot Polish v2 — Slop-only, model upgrade, source linking
 
-## Status: Ready
+## Status: Complete
 
 ## Background
 
@@ -169,3 +169,18 @@ After all changes:
 | `src/config/docs/index.md` | Update Discord section: Slop-only commands, source linking |
 | `src/config/guides/bots.md` | Update for Slop-only |
 | `.env.example` | Remove DISCORD_SIG_USER_ID |
+
+---
+
+## COMPLETED
+**Date:** 2026-02-23
+**What was delivered:**
+- Removed Sig entirely from latent-space-bots (client, thread routing, profile seeds, env vars)
+- Updated Slop default model from `moonshotai/kimi-k2` to `anthropic/claude-sonnet-4-6`
+- Added source link instructions to system prompt and grounding line
+- Formatted context assembly with markdown links so Slop passes them through in responses
+- Rewrote `docs/bots.md` for Slop-only with updated architecture, commands, and source linking docs
+- Updated user-facing `/docs` with correct slash commands (`/tldr`, `/wassup`) and interaction methods
+- Updated MCP guide (`src/config/guides/bots.md`) for Slop-only
+- Removed `DISCORD_SIG_USER_ID` from `.env.example`
+- Bot repo committed and pushed to `latent-space-bots/main`

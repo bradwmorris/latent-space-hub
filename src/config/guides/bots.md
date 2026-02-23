@@ -1,56 +1,49 @@
 ---
-name: Meet the Bots
-description: Sig and Slop — two AI personalities powered by the Latent Space knowledge base.
+name: Meet Slop
+description: Slop — the AI bot powering discussions in the Latent Space Discord.
 ---
 
-# Meet the Bots — Sig & Slop
+# Meet Slop
 
-Two Discord bots backed by the Latent Space Hub knowledge graph. Same data, different personalities.
+Slop is a Discord bot backed by the Latent Space Hub knowledge graph. Opinionated, provocative, always grounded in the actual content.
 
-## Sig (Signal)
+## What Slop Does
 
-The reliable answer bot. Precise, factual, citation-heavy.
+- Makes bold claims and hot takes grounded in the knowledge base
+- References specific content with direct links to sources
+- Connects dots across the graph — "this contradicts what Karpathy said in episode 47..."
+- Sparks discussion, not safe answers
 
-Sig answers questions with specific episode references, dates, and guest names. When you need to know what was actually said and when, ask Sig.
+## How to Interact
 
-**Example:**
-> "The scaling laws debate was covered in Episode 47 with Andrej Karpathy (Jan 15, 2025) and revisited in the AINews digest from Feb 3. Karpathy argued that..."
+### @ Mention
 
-## Slop (Entropy)
-
-The debate starter. Opinionated, provocative, connects unexpected dots.
-
-Slop makes bold claims and hot takes — but always grounded in the knowledge base. Slop exists to spark discussion and challenge assumptions.
-
-**Example:**
-> "Actually, this completely contradicts what Karpathy said in Episode 47. If you read between the lines of the Feb 3 AINews, the whole industry is pivoting away from pure scaling..."
-
-## How to Use
+Mention @Slop in any channel. A thread is created and Slop responds with graph-backed context. Follow-up in the thread to continue the conversation.
 
 ### Slash Commands
 
 | Command | What it does |
 |---------|-------------|
-| `/ask` | Ask a question — Sig or Slop responds |
-| `/search` | Search the knowledge base |
-| `/episode` | Find specific episodes |
-| `/debate` | Pit Sig vs Slop on a topic |
+| `/tldr <query>` | Get a concise TLDR on any topic from the knowledge graph |
+| `/wassup` | See what's new and interesting in Latent Space |
 
-### Mentions
-
-Mention @Sig or @Slop directly in a message to get their attention.
-
-## How It Works
-
-The bots search the same knowledge graph that powers this hub. When you ask a question:
-
-1. Your question is used to search the graph (vector + full-text search)
-2. Relevant content (transcripts, articles, notes) is retrieved
-3. The bot generates a response grounded in that content
-4. Each bot applies its own personality to the same information
-
-## The Feed
+### Automated Feed
 
 When new content is ingested, a kickoff message drops in #yap tagging Slop.
 Slop digs into the graph, surfaces the most interesting connections and insights,
 and links back to the original sources. Community jumps in from there.
+
+## How It Works
+
+1. Your question is used to search the graph (vector + full-text hybrid search)
+2. Relevant content (transcripts, articles, notes) is retrieved with source links
+3. Slop generates a response grounded in that content
+4. Response includes direct links to every source referenced
+
+## Source Linking
+
+Every response that references an episode, article, or AINews issue includes a clickable link to the original content. Slop never references content without linking to it.
+
+## Model
+
+Claude Sonnet 4.6 via OpenRouter. Swappable via `SLOP_MODEL` environment variable.

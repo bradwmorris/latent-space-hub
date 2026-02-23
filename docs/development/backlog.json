@@ -8,16 +8,16 @@
     "bot-polish-v2": {
       "id": "bot-polish-v2",
       "title": "Bot polish v2 — Slop-only, model upgrade to Sonnet 4.6, source linking",
-      "status": "ready",
+      "status": "completed",
       "type": "feature",
       "priority": "high",
       "prd": "docs/development/prd-18-bot-polish-v2.md",
-      "notes": "Spans two repos: latent-space-bots (bot code) and latent-space-hub (docs). Remove Sig entirely, switch Slop to claude-sonnet-4-6, ensure source links in every response.",
+      "notes": "Complete. Sig removed, Slop on Sonnet 4.6, source linking enforced, all docs updated.",
       "tasks": [
-        { "done": false, "text": "Part 0: Remove Sig bot — client, slash commands, message handling" },
-        { "done": false, "text": "Part 1: Update Slop model from kimi-k2 to claude-sonnet-4-6" },
-        { "done": false, "text": "Part 2: Add source links to context assembly + system prompt" },
-        { "done": false, "text": "Part 3: Update docs — bots.md, user-facing /docs, guides, .env.example" }
+        { "done": true, "text": "Part 0: Remove Sig bot — client, slash commands, message handling" },
+        { "done": true, "text": "Part 1: Update Slop model from kimi-k2 to claude-sonnet-4-6" },
+        { "done": true, "text": "Part 2: Add source links to context assembly + system prompt" },
+        { "done": true, "text": "Part 3: Update docs — bots.md, user-facing /docs, guides, .env.example" }
       ]
     },
     "setup-handover": {
