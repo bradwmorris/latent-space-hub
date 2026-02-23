@@ -1,10 +1,31 @@
 {
   "queue": [
+    "setup-handover",
     "data-refinement",
     "graph-bot-polish",
     "documentation-overhaul-v2"
   ],
   "projects": {
+    "setup-handover": {
+      "id": "setup-handover",
+      "title": "Setup & handover — get bot and webhooks live in the LS Discord server",
+      "status": "ready",
+      "type": "ops",
+      "priority": "high",
+      "prd": "docs/development/prd-17-setup-handover.md",
+      "notes": "No code. Owner does 3 tasks (invite bot, create webhooks, test channel), then Brad tests and switches to live.",
+      "tasks": [
+        { "done": false, "text": "Owner: Invite Slop bot to LS server" },
+        { "done": false, "text": "Owner: Create announcement webhook, send URL" },
+        { "done": false, "text": "Owner: Create yap webhook, send URL" },
+        { "done": false, "text": "Owner: Create #slop-testing channel + webhook" },
+        { "done": false, "text": "Brad: Test webhook post in #slop-testing" },
+        { "done": false, "text": "Brad: Test @Slop mention in #slop-testing" },
+        { "done": false, "text": "Brad: Test full ingestion pipeline" },
+        { "done": false, "text": "Brad: Switch to live channels + redeploy" },
+        { "done": false, "text": "Brad: Delete test channel, confirm first real ingestion" }
+      ]
+    },
     "data-refinement": {
       "id": "data-refinement",
       "title": "Data refinement & hygiene — finish descriptions/notes quality pass and edge cleanup",
