@@ -190,6 +190,18 @@ Everything lives in a single Turso (cloud SQLite) database:
 - **Chunks** — the actual text content, broken into searchable pieces (~35,000)
 - **Embeddings** — 1536-dimensional vectors for AI-powered semantic search
 
+### Search & Indexing
+
+Three layers of indexing make content searchable the moment it's ingested:
+
+1. **Full-text search (FTS5)** — keyword search with BM25 relevance ranking. A virtual table mirrors every chunk and stays in sync automatically via database triggers. When you search for "scaling laws", this finds every chunk containing those exact words.
+
+2. **Vector embeddings** — semantic search that finds content by meaning, not just keywords. Every chunk is embedded into a 1536-dimension vector using OpenAI's `text-embedding-3-small`. Searching for "how to make models smaller" finds content about distillation, quantization, and pruning — even if those exact words aren't in the query.
+
+3. **B-tree indexes** — standard database indexes on dates, types, dimensions, and edge connections for fast filtering.
+
+The default search mode is **hybrid** — it runs vector and full-text search in parallel and merges results using Reciprocal Rank Fusion (RRF). Content that scores well on both keyword match and semantic similarity rises to the top. If any layer fails, the system degrades gracefully: hybrid, then vector-only, then FTS-only, then basic text matching.
+
 ### Open Source
 
 The web app, ingestion pipeline, and MCP server are all in the [latent-space-hub](https://github.com/bradwmorris/latent-space-hub) repo. The Discord bots live in a separate [latent-space-bots](https://github.com/bradwmorris/latent-space-bots) repo.
