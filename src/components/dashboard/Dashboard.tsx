@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CATEGORIES, CATEGORY_MAP } from '@/config/categories';
 import { getYouTubeThumbnail } from '@/utils/thumbnails';
+import AsciiHeader from './AsciiHeader';
 
 interface PreviewItem {
   id: number;
@@ -62,9 +63,16 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
     return (
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column', padding: '32px',
-        gap: '24px', overflowY: 'auto',
+        gap: '16px', overflowY: 'auto',
       }}>
-        {/* Skeleton type cards */}
+        <div style={{
+          fontSize: '12px',
+          color: '#444',
+          fontFamily: 'inherit',
+          animation: 'blockPulse 1.5s ease-in-out infinite',
+        }}>
+          {'▓▒░'} loading graph {'░▒▓'}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
             <div key={i} style={{
@@ -73,7 +81,6 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
             }} />
           ))}
         </div>
-        {/* Skeleton cards */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
             <div key={i} style={{
@@ -110,20 +117,33 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
       flex: 1, display: 'flex', flexDirection: 'column',
       padding: '32px', gap: '24px', overflowY: 'auto',
     }}>
-      {/* Dashboard heading */}
-      <h1 style={{
-        fontSize: '18px', fontWeight: 600, color: '#e5e5e5',
-        margin: 0, letterSpacing: '-0.01em',
+      {/* Hero tile — ASCII banner left, type stats right */}
+      <div style={{
+        display: 'flex',
+        gap: '24px',
+        alignItems: 'stretch',
       }}>
-        Dashboard
-      </h1>
-
-      {/* Type breakdown — card grid */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* Left: ASCII banner */}
         <div style={{
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+        }}>
+          <AsciiHeader
+            totalNodes={stats.total_nodes}
+            totalEdges={stats.total_edges}
+            totalChunks={stats.total_chunks}
+            totalContent={stats.total_content}
+          />
+        </div>
+
+        {/* Right: Type breakdown pills */}
+        <div style={{
+          flex: 1,
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '12px',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '10px',
+          alignContent: 'center',
         }}>
           {(stats.type_counts || []).map((tc) => {
             const catConfig = CATEGORY_MAP[tc.key];
@@ -139,27 +159,28 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  padding: '14px 16px',
+                  padding: '10px 14px',
                   background: isActive ? '#1c1c1c' : '#151515',
-                  border: '1px solid #1a1a1a',
+                  border: `1px solid ${isActive ? 'var(--accent-brand-muted)' : '#1a1a1a'}`,
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  transition: 'background 0.12s ease',
+                  transition: 'all 0.12s ease',
                   color: 'inherit',
                   textAlign: 'left',
                 }}
                 aria-label={`${tc.label}: ${tc.count}`}
               >
-                {Icon && <Icon size={16} style={{ color: '#666', flexShrink: 0 }} aria-hidden="true" />}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                {Icon && <Icon size={14} style={{ color: isActive ? 'var(--accent-brand)' : '#666', flexShrink: 0, transition: 'color 0.12s ease' }} aria-hidden="true" />}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
                   <span style={{
-                    fontSize: '18px', fontWeight: 600, color: isActive ? '#e5e5e5' : '#ccc',
+                    fontSize: '16px', fontWeight: 700, color: isActive ? '#e5e5e5' : '#ccc',
                     fontVariantNumeric: 'tabular-nums', lineHeight: 1.2,
+                    transition: 'color 0.12s ease',
                   }}>
                     {tc.count.toLocaleString()}
                   </span>
                   <span style={{
-                    fontSize: '11px', color: isActive ? '#888' : '#666',
+                    fontSize: '10px', color: isActive ? '#888' : '#666',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {tc.label}
@@ -169,18 +190,19 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
             );
           })}
         </div>
+      </div>
 
-        {/* Aggregate totals — compact line */}
-        <div style={{
-          fontSize: '11px', color: '#555',
-          fontVariantNumeric: 'tabular-nums',
-          paddingLeft: '4px',
-        }}>
-          {stats.total_nodes.toLocaleString()} nodes{' · '}
-          {stats.total_edges.toLocaleString()} edges{' · '}
-          {stats.total_chunks.toLocaleString()} chunks{' · '}
-          {stats.total_content.toLocaleString()} content
-        </div>
+      {/* Section divider */}
+      <div style={{
+        color: '#262626',
+        fontSize: '11px',
+        userSelect: 'none',
+        letterSpacing: '0.1em',
+        lineHeight: 1,
+      }}
+        aria-hidden="true"
+      >
+        {'═'.repeat(72)}
       </div>
 
       {/* Category cards — 2-column grid */}
@@ -212,7 +234,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                 minWidth: 0,
               }}
             >
-              {/* Card header */}
+              {/* Card header with tree prefix */}
               <button
                 onClick={() => onCategoryClick(cat.key)}
                 style={{
@@ -229,9 +251,10 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                 aria-label={`${cat.label}, ${count} items`}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                  <Icon size={16} style={{ color: '#777', flexShrink: 0 }} aria-hidden="true" />
+                  <span style={{ color: '#333', fontSize: '12px', flexShrink: 0, userSelect: 'none' }} aria-hidden="true">┌─</span>
+                  <Icon size={14} style={{ color: isHovered ? 'var(--accent-brand)' : '#666', flexShrink: 0, transition: 'color 0.12s ease' }} aria-hidden="true" />
                   <h2 style={{
-                    fontSize: '14px', fontWeight: 600, color: '#ccc',
+                    fontSize: '13px', fontWeight: 600, color: '#ccc',
                     margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {cat.label}
@@ -245,22 +268,22 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                 </span>
               </button>
 
-              {/* Divider */}
-              <div style={{
-                height: '1px', background: '#1a1a1a',
-                margin: '10px 0',
-              }} />
-
-              {/* Preview items */}
+              {/* Preview items with tree characters */}
               {preview.length === 0 ? (
-                <div style={{ fontSize: '12px', color: '#444', padding: '4px 0' }}>
-                  No items yet
+                <div style={{
+                  fontSize: '11px', color: '#333', padding: '8px 0 2px',
+                  userSelect: 'none',
+                }}>
+                  <span style={{ color: '#333', marginRight: '6px' }}>└─</span>
+                  {'─ no items ──'}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {preview.map((item) => {
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '6px' }}>
+                  {preview.map((item, idx) => {
                     const thumb = getYouTubeThumbnail(item.link);
                     const isItemHovered = hoveredNode === item.id;
+                    const isLast = idx === preview.length - 1;
+                    const treeChar = isLast ? '└─' : '├─';
 
                     return (
                       <button
@@ -273,8 +296,8 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '10px',
-                          padding: '4px',
+                          gap: '8px',
+                          padding: '3px 4px',
                           background: isItemHovered ? '#1f1f1f' : 'transparent',
                           border: 'none',
                           borderRadius: '4px',
@@ -284,6 +307,12 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                           textAlign: 'left',
                         }}
                       >
+                        {/* Tree prefix */}
+                        <span style={{
+                          color: '#333', fontSize: '12px', flexShrink: 0,
+                          userSelect: 'none', lineHeight: 1,
+                        }} aria-hidden="true">{treeChar}</span>
+
                         {/* Thumbnail */}
                         {thumb && (
                           <img
@@ -291,8 +320,8 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                             alt=""
                             loading="lazy"
                             style={{
-                              width: '64px',
-                              height: '36px',
+                              width: '56px',
+                              height: '32px',
                               objectFit: 'cover',
                               borderRadius: '3px',
                               flexShrink: 0,

@@ -120,6 +120,7 @@ export default function NodePane({
                   padding: '4px 8px',
                   background: isActiveTab ? '#1f1f1f' : 'transparent',
                   borderRadius: '4px',
+                  borderBottom: isActiveTab ? '2px solid var(--accent-brand)' : '2px solid transparent',
                   cursor: 'grab',
                   flexShrink: 0,
                 }}

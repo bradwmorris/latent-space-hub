@@ -24,6 +24,12 @@
   --border-subtle: #1a1a1a;
   --border-default: #262626;
 
+  /* Brand accent — Latent Space purple */
+  --accent-brand: #9333ea;
+  --accent-brand-light: #a855f7;
+  --accent-brand-muted: #4a2d6b;
+  --accent-brand-subtle: rgba(147, 51, 234, 0.12);
+
   /* Semantic colors */
   --success: #22c55e;
   --error: #ef4444;
@@ -133,6 +139,16 @@ html, body {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+@keyframes blockPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes asciiReveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Modal animations */

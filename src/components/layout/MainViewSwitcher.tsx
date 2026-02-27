@@ -57,7 +57,7 @@ export default function MainViewSwitcher({
                 borderRadius: '4px',
                 border: 'none',
                 background: isActive ? '#1a1a1a' : 'transparent',
-                color: isActive ? '#e5e5e5' : (isHovered ? '#aaa' : '#666'),
+                color: isActive ? 'var(--accent-brand-light)' : (isHovered ? '#aaa' : '#666'),
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: isActive ? 500 : 400,

@@ -2,7 +2,9 @@
   "queue": [
     "bot-polish-v2",
     "setup-handover",
-    "graph-bot-polish"
+    "graph-bot-polish",
+    "member-nodes",
+    "visual-pizazz"
   ],
   "projects": {
     "bot-polish-v2": {
@@ -38,6 +40,42 @@
         { "done": false, "text": "Brad: Test full ingestion pipeline" },
         { "done": false, "text": "Brad: Switch to live channels + redeploy" },
         { "done": false, "text": "Brad: Delete test channel, confirm first real ingestion" }
+      ]
+    },
+    "member-nodes": {
+      "id": "member-nodes",
+      "title": "Member nodes — community members as first-class nodes in the knowledge graph",
+      "status": "ready",
+      "type": "feature",
+      "priority": "high",
+      "prd": "docs/development/prd-19-member-nodes.md",
+      "notes": "Adds 'member' node type, /join slash command, member-aware interactions (lookup before response, update after response), compounding knowledge per user. Changes span both latent-space-hub (type + category) and latent-space-bots (slash command + member lifecycle).",
+      "tasks": [
+        { "done": false, "text": "Part 1: Add member NodeType, MemberMetadata, and category to latent-space-hub" },
+        { "done": false, "text": "Part 2: Add lookupMember() and createMemberNode() functions to latent-space-bots" },
+        { "done": false, "text": "Part 3: Add /join slash command + handler to latent-space-bots" },
+        { "done": false, "text": "Part 4: Modify handleMessage — member lookup + system prompt injection" },
+        { "done": false, "text": "Part 5: Add updateMemberAfterInteraction() — notes, metadata, edges" },
+        { "done": false, "text": "Part 6: Update slop.soul.md with member awareness section" },
+        { "done": false, "text": "Part 7: End-to-end test — /join, chat, verify node + edges in graph" }
+      ]
+    },
+    "visual-pizazz": {
+      "id": "visual-pizazz",
+      "title": "Visual pizazz — ASCII art header, Latent Space purple accent, terminal flair",
+      "status": "completed",
+      "type": "feature",
+      "priority": "medium",
+      "prd": "docs/development/prd-20-visual-pizazz.md",
+      "notes": "Complete. ASCII header, purple brand accent, box-drawing dividers, tree-style previews, terminal loading states. Build + type-check pass.",
+      "tasks": [
+        { "done": true, "text": "Part 1: Create AsciiHeader component — 'LATENT SPACE' block text + system status line" },
+        { "done": true, "text": "Part 2: Add --accent-brand purple CSS vars, apply to active tabs, sidebar header, selected states" },
+        { "done": true, "text": "Part 3: Box-drawing dividers between dashboard sections" },
+        { "done": true, "text": "Part 4: Restyle category card previews with tree-drawing prefix characters" },
+        { "done": true, "text": "Part 5: Polish stat counters — weight, hover effects, selected border" },
+        { "done": true, "text": "Part 6: Terminal-style loading/empty states (block characters)" },
+        { "done": true, "text": "Part 7: Visual QA — build + type-check pass" }
       ]
     },
     "graph-bot-polish": {

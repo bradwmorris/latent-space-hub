@@ -265,7 +265,7 @@ export default function LeftTypePanel({
           style={{
             fontSize: '13px',
             fontWeight: 600,
-            color: '#999',
+            color: 'var(--accent-brand)',
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
           }}
@@ -375,7 +375,7 @@ export default function LeftTypePanel({
                   gap: '8px',
                   background: isSelected ? '#151515' : (isHovered ? '#0f0f0f' : 'transparent'),
                   border: 'none',
-                  borderLeft: isSelected ? '2px solid #666' : '2px solid transparent',
+                  borderLeft: isSelected ? '2px solid var(--accent-brand)' : '2px solid transparent',
                   color: isDimmed ? '#444' : (isSelected ? '#e5e5e5' : '#999'),
                   cursor: 'pointer',
                   fontSize: '13px',
@@ -408,13 +408,16 @@ export default function LeftTypePanel({
               {isExpanded && (
                 <div style={{ paddingLeft: '20px' }}>
                   {isLoading && (
-                    <div style={{ padding: '8px 12px', color: '#444', fontSize: '11px' }}>
-                      Loading...
+                    <div style={{
+                      padding: '8px 12px', color: '#444', fontSize: '11px',
+                      animation: 'blockPulse 1.5s ease-in-out infinite',
+                    }}>
+                      {'▓▒░'} loading {'░▒▓'}
                     </div>
                   )}
                   {!isLoading && nodes.length === 0 && (
-                    <div style={{ padding: '8px 12px', color: '#444', fontSize: '11px' }}>
-                      No nodes
+                    <div style={{ padding: '8px 12px', color: '#333', fontSize: '11px' }}>
+                      {'── no nodes ──'}
                     </div>
                   )}
                   {nodes.map((node) => (
