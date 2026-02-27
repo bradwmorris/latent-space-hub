@@ -262,6 +262,12 @@ export default function ThreePanelLayout() {
   const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'dashboard');
   const [selectedType, setSelectedType] = usePersistentState<string | null>('ui.selectedType', null);
 
+  // Always land on Dashboard on a fresh page load.
+  useEffect(() => {
+    setActiveView('dashboard');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Node focus state
   const [openTabs, setOpenTabs] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<number | null>(null);
