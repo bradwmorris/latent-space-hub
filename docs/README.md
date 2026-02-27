@@ -22,6 +22,7 @@ A knowledge graph for the Latent Space universe — podcasts, articles, AI News,
 | [Bots](./bots.md) | Slop bot architecture, commands, member memory flow |
 | [Ingestion](./ingestion.md) | Content pipeline, sources, extractors, Quick Add |
 | [Search](./search.md) | Vector, FTS5, hybrid search, fallback chain |
+| [Evals](./evals.md) | Discord trace logging, /evals dashboard, querying traces |
 
 ### Developer
 

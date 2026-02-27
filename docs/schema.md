@@ -101,19 +101,19 @@ Chunked text for retrieval and semantic search.
 
 ### `chats`
 
-Conversation logs.
+Conversation logs. Used by the Discord bot to log full interaction traces (see [Evals docs](./evals.md)).
 
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER PK | Auto-incrementing ID |
-| `chat_type` | TEXT | Type of conversation |
+| `chat_type` | TEXT | `'discord'` for bot traces |
 | `user_message` | TEXT | User's input |
 | `assistant_message` | TEXT | AI response |
-| `thread_id` | TEXT | Conversation thread identifier |
+| `thread_id` | TEXT | Discord channel/thread ID |
 | `focused_node_id` | INTEGER | Node being discussed |
-| `helper_name` | TEXT | Which agent handled the chat |
-| `agent_type` | TEXT | Agent classification |
-| `metadata` | TEXT (JSON) | Cost, tokens, tools used |
+| `helper_name` | TEXT | Bot name (`'slop'`) |
+| `agent_type` | TEXT | `'discord-bot'` for bot traces |
+| `metadata` | TEXT (JSON) | Tool calls, timing, Discord context, model info |
 | `created_at` | TEXT | Timestamp |
 
 ### `logs`

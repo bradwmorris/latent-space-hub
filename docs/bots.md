@@ -85,6 +85,12 @@ Discord Gateway
 4. Retrieved graph context + persona + member context + user question → LLM call via OpenRouter
 5. Response posted to Discord thread with source links and model badge
 
+## Trace Logging
+
+Every interaction is logged to the `chats` table with full MCP tool call traces (tool name, args, result, duration), request latency, Discord user context, and retrieval method. Logging is always-on and best-effort.
+
+View traces at `/evals` — see [Evals docs](./evals.md) for details.
+
 ## Hosting
 
 | Component | Where |
