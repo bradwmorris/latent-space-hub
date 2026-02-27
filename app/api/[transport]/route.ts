@@ -111,10 +111,12 @@ const handler = createMcpHandler(
         }
 
         const results: string[] = [];
+        const nodes: any[] = [];
         for (const id of uniqueIds) {
           try {
             const node = await nodeService.getNodeById(id);
             if (node) {
+              nodes.push(node);
               results.push(`## Node #${node.id}: ${node.title}\n`
                 + `**Description:** ${node.description || 'None'}\n`
                 + `**Dimensions:** ${(node.dimensions || []).join(', ') || 'None'}\n`
@@ -131,6 +133,108 @@ const handler = createMcpHandler(
 
         return {
           content: [{ type: 'text', text: `Loaded ${results.length} node(s):\n\n${results.join('\n---\n')}` }],
+          structuredContent: { count: nodes.length, nodes },
+        };
+      }
+    );
+
+    // ls_search_content - Search chunk text (FTS preferred, LIKE fallback)
+    server.registerTool(
+      'ls_search_content',
+      {
+        title: 'Search Latent Space chunk content',
+        description: 'Search chunk text content. Uses FTS when available and falls back to LIKE.',
+        inputSchema: {
+          query: z.string().min(1).max(400).describe('Search query for chunk text'),
+          limit: z.number().min(1).max(20).optional().describe('Max results (default 5)'),
+          node_id: z.number().int().positive().optional().describe('Optional node ID to scope the search'),
+        },
+      },
+      async ({ query, limit = 5, node_id }) => {
+        const sqlite = getSQLiteClient();
+        const safeLimit = Math.min(Math.max(limit, 1), 20);
+        let rows: any[] = [];
+
+        try {
+          const ftsArgs: any[] = [query.trim()];
+          let nodeFilter = '';
+          if (node_id) {
+            nodeFilter = 'AND c.node_id = ?';
+            ftsArgs.push(node_id);
+          }
+          ftsArgs.push(safeLimit);
+
+          const res = await sqlite.query(
+            `SELECT c.node_id, n.title, c.id AS chunk_id, c.text, bm25(chunks_fts) AS score
+               FROM chunks_fts
+               JOIN chunks c ON c.id = chunks_fts.rowid
+               JOIN nodes n ON n.id = c.node_id
+              WHERE chunks_fts MATCH ? ${nodeFilter}
+              ORDER BY score
+              LIMIT ?`,
+            ftsArgs
+          );
+          rows = res.rows || [];
+        } catch {
+          const like = `%${query.trim()}%`;
+          const likeArgs: any[] = [like];
+          let where = 'WHERE c.text LIKE ?';
+          if (node_id) {
+            where += ' AND c.node_id = ?';
+            likeArgs.push(node_id);
+          }
+          likeArgs.push(safeLimit);
+
+          const res = await sqlite.query(
+            `SELECT c.node_id, n.title, c.id AS chunk_id, c.text
+               FROM chunks c
+               JOIN nodes n ON n.id = c.node_id
+               ${where}
+              ORDER BY c.id DESC
+              LIMIT ?`,
+            likeArgs
+          );
+          rows = res.rows || [];
+        }
+
+        const results = rows.map((row: any) => ({
+          node_id: Number(row.node_id),
+          chunk_id: Number(row.chunk_id),
+          title: String(row.title || ''),
+          text: String(row.text || '').slice(0, 800),
+          score: row.score == null ? null : Number(row.score),
+        }));
+
+        return {
+          content: [{ type: 'text', text: `Found ${results.length} matching chunk(s).` }],
+          structuredContent: { count: results.length, results },
+        };
+      }
+    );
+
+    // ls_sqlite_query - Read-only SQL query
+    server.registerTool(
+      'ls_sqlite_query',
+      {
+        title: 'Read-only SQL query',
+        description: 'Execute read-only SQL (SELECT/WITH/PRAGMA only).',
+        inputSchema: {
+          sql: z.string().min(1).describe('Read-only SQL query'),
+        },
+      },
+      async ({ sql }) => {
+        const normalized = sql.trim().toUpperCase();
+        if (!(normalized.startsWith('SELECT') || normalized.startsWith('WITH') || normalized.startsWith('PRAGMA'))) {
+          return {
+            content: [{ type: 'text', text: 'Only read-only SQL is allowed (SELECT/WITH/PRAGMA).' }],
+          };
+        }
+        const sqlite = getSQLiteClient();
+        const result = await sqlite.query(sql, []);
+        const columns = result.rows.length ? Object.keys(result.rows[0] || {}) : [];
+        return {
+          content: [{ type: 'text', text: `Query returned ${result.rows.length} row(s).` }],
+          structuredContent: { columns, rows: result.rows || [] },
         };
       }
     );
@@ -274,20 +378,116 @@ const handler = createMcpHandler(
             link: z.string().url().optional().describe('Source URL'),
             description: z.string().max(2000).optional().describe('Short description'),
             dimensions: z.array(z.string()).min(1).max(5).describe('Categories/tags (at least 1)'),
+            metadata: z.record(z.unknown()).optional().describe('Optional metadata JSON object'),
+            node_type: z.string().min(1).max(60).optional().describe('Optional node type'),
+            event_date: z.string().optional().describe('Optional event date (YYYY-MM-DD)'),
+            chunk: z.string().max(100000).optional().describe('Optional full source chunk'),
           },
         },
-        async ({ title, content, link, description, dimensions }) => {
+        async ({ title, content, link, description, dimensions, metadata, node_type, event_date, chunk }) => {
           // MCP backward compat: external schema uses "content", internally we store as "notes"
           const node = await nodeService.createNode({
             title: title.trim(),
             notes: content?.trim(),
             link: link?.trim(),
             description: description?.trim(),
+            metadata: metadata || {},
+            node_type: node_type?.trim() as any,
+            event_date: event_date?.trim(),
+            chunk: chunk?.trim(),
             dimensions,
           });
 
           return {
             content: [{ type: 'text', text: `Created node #${node.id}: ${node.title}` }],
+            structuredContent: { nodeId: node.id, title: node.title, dimensions },
+          };
+        }
+      );
+
+      server.registerTool(
+        'ls_update_node',
+        {
+          title: 'Update Latent Space node',
+          description: 'Update node fields. Content is appended to notes when provided.',
+          inputSchema: {
+            id: z.number().int().positive().describe('Node ID'),
+            updates: z.object({
+              title: z.string().min(1).max(160).optional(),
+              content: z.string().max(20000).optional(),
+              link: z.string().url().optional(),
+              description: z.string().max(2000).optional(),
+              dimensions: z.array(z.string()).min(1).max(8).optional(),
+              metadata: z.record(z.unknown()).optional(),
+              node_type: z.string().min(1).max(60).optional(),
+              event_date: z.string().optional(),
+            }),
+          },
+        },
+        async ({ id, updates }) => {
+          const existing = await nodeService.getNodeById(id);
+          if (!existing) {
+            return { content: [{ type: 'text', text: `Node not found: ${id}` }] };
+          }
+
+          const notesAppend = typeof updates.content === 'string' ? updates.content.trim() : '';
+          const newNotes = notesAppend
+            ? (existing.notes && existing.notes.trim().length > 0 ? `${existing.notes}\n\n${notesAppend}` : notesAppend)
+            : undefined;
+
+          await nodeService.updateNode(id, {
+            title: updates.title?.trim(),
+            notes: newNotes,
+            link: updates.link?.trim(),
+            description: updates.description?.trim(),
+            dimensions: updates.dimensions,
+            metadata: updates.metadata,
+            node_type: updates.node_type?.trim(),
+            event_date: updates.event_date?.trim(),
+          } as any);
+
+          return {
+            content: [{ type: 'text', text: `Updated node #${id}.` }],
+            structuredContent: { success: true, nodeId: id },
+          };
+        }
+      );
+
+      server.registerTool(
+        'ls_create_edge',
+        {
+          title: 'Create Latent Space edge',
+          description: 'Connect two nodes with a directional relationship.',
+          inputSchema: {
+            sourceId: z.number().int().positive().describe('Source node ID'),
+            targetId: z.number().int().positive().describe('Target node ID'),
+            explanation: z.string().min(1).describe('Edge explanation'),
+          },
+        },
+        async ({ sourceId, targetId, explanation }) => {
+          try {
+            const exists = await edgeService.edgeExists(sourceId, targetId);
+            if (exists) {
+              return {
+                content: [{ type: 'text', text: `Edge already exists: ${sourceId} -> ${targetId}` }],
+                structuredContent: { success: true, duplicate: true },
+              };
+            }
+          } catch {
+            // Best effort duplicate check
+          }
+
+          const edge = await edgeService.createEdge({
+            from_node_id: sourceId,
+            to_node_id: targetId,
+            explanation: explanation.trim(),
+            created_via: 'mcp',
+            source: 'ai_similarity',
+          });
+
+          return {
+            content: [{ type: 'text', text: `Created edge #${edge.id}: ${sourceId} -> ${targetId}` }],
+            structuredContent: { success: true, edgeId: edge.id },
           };
         }
       );

@@ -1,6 +1,6 @@
 import {
   Mic, Users, FileText, Building2, Hammer,
-  BookOpen, Presentation, Newspaper,
+  BookOpen, Presentation, Newspaper, UserCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,6 +21,7 @@ export const CATEGORIES: CategoryConfig[] = [
   { key: 'paper-club',    label: 'Paper Club',     icon: BookOpen,     sortMode: 'recent',    order: 5 },
   { key: 'workshop',      label: 'Workshop',       icon: Presentation, sortMode: 'recent',    order: 6 },
   { key: 'ainews',        label: 'AI News',        icon: Newspaper,    sortMode: 'recent',    order: 7 },
+  { key: 'member',        label: 'Member',         icon: UserCircle,   sortMode: 'connected', order: 8 },
 ];
 
 export type CategoryKey = typeof CATEGORIES[number]['key'];

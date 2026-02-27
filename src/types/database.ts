@@ -9,7 +9,8 @@ export type NodeType =
   | 'paper-club'
   | 'workshop'
   | 'ainews'
-  | 'hub';        // Structural anchor — not user-facing
+  | 'hub'
+  | 'member';     // Structural anchor + community member profiles
 
 export interface Node {
   id: number;
@@ -85,6 +86,18 @@ export interface HubMetadata {
   anchors_types?: string[];
 }
 
+export interface MemberMetadata {
+  discord_id: string;
+  discord_handle: string;
+  joined_at: string;
+  last_active?: string;
+  interaction_count?: number;
+  interests?: string[];
+  role?: string;
+  company?: string;
+  location?: string;
+}
+
 export type NodeMetadataMap = {
   podcast: ContentMetadata;
   ainews: ContentMetadata;
@@ -95,6 +108,7 @@ export type NodeMetadataMap = {
   guest: GuestMetadata;
   entity: EntityMetadata;
   hub: HubMetadata;
+  member: MemberMetadata;
 };
 
 // ─── Chunks ──────────────────────────────────────────────────────────────────
