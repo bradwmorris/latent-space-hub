@@ -14,7 +14,7 @@ interface ChipProps {
 export default function Chip({
   label,
   onRemove,
-  color = '#1a1a1a',
+  color = 'var(--bg-elevated)',
   maxWidth = 150,
   icon,
   style = {}
@@ -36,7 +36,7 @@ export default function Chip({
       <span
         style={{
           background: color,
-          color: '#fff',
+          color: 'var(--text-primary)',
           padding: '2px 6px',
           borderRadius: '12px',
           fontSize: '10px',
@@ -64,7 +64,7 @@ export default function Chip({
             style={{
               background: 'none',
               border: 'none',
-              color: '#ccc',
+              color: 'var(--text-primary)',
               cursor: 'pointer',
               fontSize: '8px',
               padding: '0',
@@ -100,8 +100,8 @@ export default function Chip({
             transform: 'translateX(-50%)',
             marginBottom: '4px',
             padding: '4px 8px',
-            background: '#333',
-            color: '#fff',
+            background: 'var(--border-default)',
+            color: 'var(--text-primary)',
             fontSize: '11px',
             borderRadius: '3px',
             whiteSpace: 'nowrap',

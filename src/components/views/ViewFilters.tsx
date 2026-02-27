@@ -53,12 +53,12 @@ export default function ViewFilters({
       alignItems: 'center',
       gap: '8px',
       padding: '8px 12px',
-      borderBottom: '1px solid #222',
-      background: '#0a0a0a',
+      borderBottom: '1px solid var(--bg-elevated)',
+      background: 'var(--bg-base)',
       flexWrap: 'wrap',
       minHeight: '40px'
     }}>
-      <span style={{ fontSize: '11px', color: '#666', fontWeight: 500 }}>
+      <span style={{ fontSize: '11px', color: 'var(--accent-dark)', fontWeight: 500 }}>
         Filters:
       </span>
 
@@ -71,11 +71,11 @@ export default function ViewFilters({
             alignItems: 'center',
             gap: '4px',
             padding: '4px 8px',
-            background: filter.operator === 'includes' ? '#1a1a1a' : '#2a1515',
-            border: `1px solid ${filter.operator === 'includes' ? '#555' : '#7f1d1d'}`,
+            background: filter.operator === 'includes' ? 'var(--bg-elevated)' : '#2a1515',
+            border: `1px solid ${filter.operator === 'includes' ? 'var(--accent-dark)' : '#7f1d1d'}`,
             borderRadius: '4px',
             fontSize: '11px',
-            color: filter.operator === 'includes' ? '#888' : '#ef4444'
+            color: filter.operator === 'includes' ? 'var(--accent-primary)' : 'var(--error)'
           }}
         >
           <button
@@ -120,11 +120,11 @@ export default function ViewFilters({
             alignItems: 'center',
             gap: '4px',
             padding: '4px 8px',
-            background: '#1a1a1a',
-            border: '1px solid #333',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)',
             borderRadius: '4px',
             fontSize: '11px',
-            color: '#888',
+            color: 'var(--accent-primary)',
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
@@ -142,8 +142,8 @@ export default function ViewFilters({
             marginTop: '4px',
             width: '200px',
             maxHeight: '300px',
-            background: '#1a1a1a',
-            border: '1px solid #333',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)',
             borderRadius: '6px',
             overflow: 'hidden',
             zIndex: 100,
@@ -157,10 +157,10 @@ export default function ViewFilters({
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                background: '#0a0a0a',
+                background: 'var(--bg-base)',
                 border: 'none',
-                borderBottom: '1px solid #333',
-                color: '#fff',
+                borderBottom: '1px solid var(--border-default)',
+                color: 'var(--text-primary)',
                 fontSize: '12px',
                 outline: 'none'
               }}
@@ -171,7 +171,7 @@ export default function ViewFilters({
                 <div style={{
                   padding: '12px',
                   fontSize: '12px',
-                  color: '#666',
+                  color: 'var(--accent-dark)',
                   textAlign: 'center'
                 }}>
                   No dimensions found
@@ -186,13 +186,13 @@ export default function ViewFilters({
                       padding: '8px 12px',
                       background: 'transparent',
                       border: 'none',
-                      color: '#ccc',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       textAlign: 'left',
                       cursor: 'pointer',
                       transition: 'background 0.2s'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a2a'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--border-default)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
                     {dim}
@@ -210,12 +210,12 @@ export default function ViewFilters({
           onClick={() => onFilterLogicChange(filterLogic === 'and' ? 'or' : 'and')}
           style={{
             padding: '4px 8px',
-            background: '#1a1a1a',
-            border: '1px solid #333',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)',
             borderRadius: '4px',
             fontSize: '10px',
             fontWeight: 600,
-            color: filterLogic === 'and' ? '#888' : '#3b82f6',
+            color: filterLogic === 'and' ? 'var(--accent-primary)' : '#3b82f6',
             cursor: 'pointer',
             textTransform: 'uppercase',
             letterSpacing: '0.05em'

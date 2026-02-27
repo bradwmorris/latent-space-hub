@@ -66,8 +66,8 @@ export default function ToolsViewer() {
 }
 
 const containerStyle: CSSProperties = { padding: 24, height: '100%', overflow: 'auto' };
-const loadingStyle: CSSProperties = { padding: 24, color: '#6b7280' };
-const descStyle: CSSProperties = { fontSize: 13, color: '#6b7280', marginBottom: 20 };
+const loadingStyle: CSSProperties = { padding: 24, color: 'var(--text-muted)' };
+const descStyle: CSSProperties = { fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 };
 
 const groupHeaderStyle: CSSProperties = {
   display: 'flex',
@@ -78,8 +78,8 @@ const groupHeaderStyle: CSSProperties = {
   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
 };
 
-const groupTitleStyle: CSSProperties = { fontSize: 13, fontWeight: 500, color: '#e5e7eb' };
-const countStyle: CSSProperties = { fontSize: 11, color: '#6b7280' };
+const groupTitleStyle: CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' };
+const countStyle: CSSProperties = { fontSize: 11, color: 'var(--text-muted)' };
 
 const toolStyle: CSSProperties = {
   padding: '10px 14px',
@@ -91,7 +91,7 @@ const toolStyle: CSSProperties = {
 const toolNameStyle: CSSProperties = {
   fontSize: 12,
   fontFamily: 'monospace',
-  color: '#888',
+  color: 'var(--accent-primary)',
   marginBottom: 4,
 };
 

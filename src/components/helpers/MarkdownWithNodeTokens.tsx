@@ -38,8 +38,8 @@ function NodeLabelInline({ id, title, onNodeClick }: NodeLabelInlineProps) {
         style={{
           display: 'inline',
           padding: '2px 6px',
-          background: '#333',
-          color: '#e5e5e5',
+          background: 'var(--border-default)',
+          color: 'var(--text-primary)',
           borderRadius: '3px',
           fontSize: '11px',
           fontWeight: '600',
@@ -53,7 +53,7 @@ function NodeLabelInline({ id, title, onNodeClick }: NodeLabelInlineProps) {
       <span style={{
         fontWeight: 'bold',
         textDecoration: 'underline',
-        color: '#e5e5e5'
+        color: 'var(--text-primary)'
       }}>
         {truncatedTitle}
       </span>
@@ -146,17 +146,17 @@ export default function MarkdownWithNodeTokens({ content, onNodeClick }: Markdow
       components={{
         // Style headings
         h1: ({ children }) => (
-          <h1 style={{ fontSize: '1.5em', fontWeight: 'bold', marginTop: '16px', marginBottom: '8px', color: '#e5e5e5' }}>
+          <h1 style={{ fontSize: '1.5em', fontWeight: 'bold', marginTop: '16px', marginBottom: '8px', color: 'var(--text-primary)' }}>
             {processChildren(children, 'h1')}
           </h1>
         ),
         h2: ({ children }) => (
-          <h2 style={{ fontSize: '1.3em', fontWeight: 'bold', marginTop: '14px', marginBottom: '6px', color: '#e5e5e5' }}>
+          <h2 style={{ fontSize: '1.3em', fontWeight: 'bold', marginTop: '14px', marginBottom: '6px', color: 'var(--text-primary)' }}>
             {processChildren(children, 'h2')}
           </h2>
         ),
         h3: ({ children }) => (
-          <h3 style={{ fontSize: '1.1em', fontWeight: 'bold', marginTop: '12px', marginBottom: '4px', color: '#e5e5e5' }}>
+          <h3 style={{ fontSize: '1.1em', fontWeight: 'bold', marginTop: '12px', marginBottom: '4px', color: 'var(--text-primary)' }}>
             {processChildren(children, 'h3')}
           </h3>
         ),
@@ -199,7 +199,7 @@ export default function MarkdownWithNodeTokens({ content, onNodeClick }: Markdow
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: '#999', textDecoration: 'underline' }}
+            style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}
           >
             {processChildren(children, 'a')}
           </a>
@@ -210,7 +210,7 @@ export default function MarkdownWithNodeTokens({ content, onNodeClick }: Markdow
           if (isInline) {
             return (
               <code style={{
-                background: '#1a1a1a',
+                background: 'var(--bg-elevated)',
                 padding: '2px 4px',
                 borderRadius: '3px',
                 fontSize: '0.9em',
@@ -228,7 +228,7 @@ export default function MarkdownWithNodeTokens({ content, onNodeClick }: Markdow
         },
         pre: ({ children }) => (
           <pre style={{
-            background: '#1a1a1a',
+            background: 'var(--bg-elevated)',
             padding: '12px',
             borderRadius: '4px',
             overflow: 'auto',
@@ -241,12 +241,12 @@ export default function MarkdownWithNodeTokens({ content, onNodeClick }: Markdow
         // Style blockquotes
         blockquote: ({ children }) => (
           <blockquote style={{
-            borderLeft: '3px solid #333',
+            borderLeft: '3px solid var(--border-default)',
             paddingLeft: '12px',
             marginLeft: '0',
             marginTop: '8px',
             marginBottom: '8px',
-            color: '#999'
+            color: 'var(--text-secondary)'
           }}>
             {processChildren(children, 'blockquote')}
           </blockquote>

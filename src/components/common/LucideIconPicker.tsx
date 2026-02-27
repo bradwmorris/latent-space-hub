@@ -323,7 +323,7 @@ export default function LucideIconPicker({ selectedIcon, onSelect, onClose }: Lu
             left: '10px',
             top: '50%',
             transform: 'translateY(-50%)',
-            color: '#666'
+            color: 'var(--accent-dark)'
           }}
         />
         <input
@@ -334,18 +334,18 @@ export default function LucideIconPicker({ selectedIcon, onSelect, onClose }: Lu
           style={{
             width: '100%',
             padding: '8px 12px 8px 32px',
-            background: '#111',
-            border: '1px solid #333',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)',
             borderRadius: '6px',
-            color: '#e5e5e5',
+            color: 'var(--text-primary)',
             fontSize: '13px',
             outline: 'none'
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = '#888';
+            e.currentTarget.style.borderColor = 'var(--accent-primary)';
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = '#333';
+            e.currentTarget.style.borderColor = 'var(--border-default)';
           }}
         />
       </div>
@@ -378,22 +378,22 @@ export default function LucideIconPicker({ selectedIcon, onSelect, onClose }: Lu
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: isSelected ? 'rgba(136, 136, 136, 0.15)' : 'transparent',
-                border: isSelected ? '1px solid #888' : '1px solid transparent',
+                border: isSelected ? '1px solid var(--accent-primary)' : '1px solid transparent',
                 borderRadius: '6px',
                 cursor: 'pointer',
-                color: isSelected ? '#fff' : '#888',
+                color: isSelected ? 'var(--text-primary)' : 'var(--accent-primary)',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.background = '#1a1a1a';
-                  e.currentTarget.style.color = '#e5e5e5';
+                  e.currentTarget.style.background = 'var(--bg-elevated)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSelected) {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#888';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
                 }
               }}
             >
@@ -407,7 +407,7 @@ export default function LucideIconPicker({ selectedIcon, onSelect, onClose }: Lu
         <div style={{
           padding: '20px',
           textAlign: 'center',
-          color: '#666',
+          color: 'var(--accent-dark)',
           fontSize: '13px'
         }}>
           No icons match "{searchQuery}"

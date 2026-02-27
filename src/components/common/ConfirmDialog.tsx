@@ -45,7 +45,7 @@ export default function ConfirmDialog({
           width: '380px',
           maxWidth: '100%',
           background: '#121212',
-          border: '1px solid #2a2a2a',
+          border: '1px solid var(--border-default)',
           borderRadius: '8px',
           padding: '24px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)'
@@ -54,7 +54,7 @@ export default function ConfirmDialog({
         <div style={{ 
           fontSize: '15px', 
           fontWeight: 600, 
-          color: '#e5e5e5', 
+          color: 'var(--text-primary)', 
           marginBottom: '12px',
           letterSpacing: '0.01em',
           fontFamily: 'inherit'
@@ -77,9 +77,9 @@ export default function ConfirmDialog({
             style={{
               padding: '10px 16px',
               borderRadius: '8px',
-              border: '1px solid #1f1f1f',
+              border: '1px solid var(--bg-elevated)',
               background: 'transparent',
-              color: '#94a3b8',
+              color: 'var(--text-secondary)',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               fontSize: '11px',
@@ -88,14 +88,14 @@ export default function ConfirmDialog({
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#0f0f0f';
-              e.currentTarget.style.borderColor = '#2a2a2a';
-              e.currentTarget.style.color = '#cbd5f5';
+              e.currentTarget.style.background = 'var(--bg-surface)';
+              e.currentTarget.style.borderColor = 'var(--border-default)';
+              e.currentTarget.style.color = 'var(--accent-brand-muted)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = '#1f1f1f';
-              e.currentTarget.style.color = '#94a3b8';
+              e.currentTarget.style.borderColor = 'var(--bg-elevated)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
             }}
           >
             {cancelLabel}
@@ -105,7 +105,7 @@ export default function ConfirmDialog({
             style={{
               padding: '10px 16px',
               borderRadius: '8px',
-              border: '1px solid #dc2626',
+              border: '1px solid var(--error)',
               background: '#7f1d1d',
               color: '#fca5a5',
               textTransform: 'uppercase',
@@ -122,7 +122,7 @@ export default function ConfirmDialog({
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = '#7f1d1d';
-              e.currentTarget.style.borderColor = '#dc2626';
+              e.currentTarget.style.borderColor = 'var(--error)';
               e.currentTarget.style.color = '#fca5a5';
             }}
           >

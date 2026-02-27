@@ -205,7 +205,7 @@ export default function DimensionTags({
         {dimensions.length === 0 && !disabled && (
           <span style={{
             fontSize: '11px',
-            color: '#555',
+            color: 'var(--accent-dark)',
             fontStyle: 'italic',
             display: 'flex',
             alignItems: 'center',
@@ -236,9 +236,9 @@ export default function DimensionTags({
                 alignItems: 'center',
                 gap: '3px',
                 fontSize: '10px',
-                color: isPriority ? '#ccc' : '#d1d5db',
-                background: isPriority ? '#1a1a1a' : '#1a1a1a',
-                border: isPriority ? '1px solid #555' : '1px solid #333',
+                color: isPriority ? 'var(--text-primary)' : '#d1d5db',
+                background: isPriority ? 'var(--bg-elevated)' : 'var(--bg-elevated)',
+                border: isPriority ? '1px solid var(--accent-dark)' : '1px solid var(--border-default)',
                 borderRadius: '8px',
                 padding: '2px 6px',
                 cursor: disabled ? 'default' : (onPriorityToggle ? 'pointer' : 'grab'),
@@ -247,11 +247,11 @@ export default function DimensionTags({
               }}
               onMouseEnter={(e) => {
                 if (!disabled) {
-                  e.currentTarget.style.borderColor = isPriority ? '#888' : '#555';
+                  e.currentTarget.style.borderColor = isPriority ? 'var(--accent-primary)' : 'var(--accent-dark)';
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = isPriority ? '#555' : '#333';
+                e.currentTarget.style.borderColor = isPriority ? 'var(--accent-dark)' : 'var(--border-default)';
               }}
               title={isPriority ? 'Priority dimension (click to unpin)' : 'Click to pin as priority dimension'}
             >
@@ -269,14 +269,14 @@ export default function DimensionTags({
                   style={{
                     padding: '0 2px',
                     fontSize: '14px',
-                    color: '#666',
+                    color: 'var(--accent-dark)',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
                     marginLeft: '2px'
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = '#ff6b6b'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
                 >
                   ×
                 </button>
@@ -296,21 +296,21 @@ export default function DimensionTags({
               display: 'inline-flex',
               alignItems: 'center',
               fontSize: '11px',
-              color: '#666',
+              color: 'var(--accent-dark)',
               background: 'transparent',
-              border: '1px dashed #333',
+              border: '1px dashed var(--border-default)',
               borderRadius: '12px',
               padding: '2px 8px',
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#999';
-              e.currentTarget.style.borderColor = '#444';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+              e.currentTarget.style.borderColor = 'var(--text-muted)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#666';
-              e.currentTarget.style.borderColor = '#333';
+              e.currentTarget.style.color = 'var(--accent-dark)';
+              e.currentTarget.style.borderColor = 'var(--border-default)';
             }}
           >
             +{hiddenCount} more
@@ -328,21 +328,21 @@ export default function DimensionTags({
               display: 'inline-flex',
               alignItems: 'center',
               fontSize: '11px',
-              color: '#666',
+              color: 'var(--accent-dark)',
               background: 'transparent',
-              border: '1px dashed #333',
+              border: '1px dashed var(--border-default)',
               borderRadius: '12px',
               padding: '2px 8px',
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#999';
-              e.currentTarget.style.borderColor = '#444';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+              e.currentTarget.style.borderColor = 'var(--text-muted)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#666';
-              e.currentTarget.style.borderColor = '#333';
+              e.currentTarget.style.color = 'var(--accent-dark)';
+              e.currentTarget.style.borderColor = 'var(--border-default)';
             }}
           >
             show less
@@ -362,11 +362,11 @@ export default function DimensionTags({
               gap: '8px',
               fontSize: '11px',
               fontWeight: 600,
-              color: '#999',
+              color: 'var(--text-secondary)',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              borderBottom: '1px solid #1a1a1a',
-              background: '#0a0a0a',
+              borderBottom: '1px solid var(--bg-elevated)',
+              background: 'var(--bg-base)',
               border: 'none',
               cursor: 'pointer',
               padding: '8px 12px',
@@ -374,10 +374,10 @@ export default function DimensionTags({
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#151515';
+              e.currentTarget.style.background = 'var(--bg-hover)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#0a0a0a';
+              e.currentTarget.style.background = 'var(--bg-base)';
             }}
             title="Add dimension"
           >
@@ -388,8 +388,8 @@ export default function DimensionTags({
               width: '16px',
               height: '16px',
               borderRadius: '50%',
-              background: '#555',
-              color: '#0a0a0a',
+              background: 'var(--accent-dark)',
+              color: 'var(--bg-base)',
               fontSize: '12px',
               lineHeight: 1,
               fontWeight: 300,

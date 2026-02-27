@@ -66,14 +66,14 @@ export default function ExternalAgentsPanel() {
   return (
     <div style={{ padding: '32px', color: '#e2e8f0', overflowY: 'auto' }}>
       <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px' }}>External Agents</h2>
-      <p style={{ color: '#94a3b8', marginBottom: '24px', lineHeight: 1.5 }}>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: 1.5 }}>
         Connect Claude, ChatGPT, Gemini, or any MCP-compatible assistant to the Latent Space Hub.
         Tools call this connector to add or search nodes.
       </p>
 
       <div
         style={{
-          border: '1px solid #1f2937',
+          border: '1px solid var(--border-default)',
           borderRadius: '10px',
           padding: '20px',
           marginBottom: '24px',
@@ -82,8 +82,8 @@ export default function ExternalAgentsPanel() {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '14px', color: '#94a3b8' }}>Connector URL</div>
-            <div style={{ fontSize: '18px', color: connectorUrl ? '#fff' : '#64748b', marginTop: '4px' }}>
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Connector URL</div>
+            <div style={{ fontSize: '18px', color: connectorUrl ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: '4px' }}>
               {loading ? 'Loading…' : connectorUrl ?? 'Unavailable (MCP server not running)'}
             </div>
             {status.last_updated && (
@@ -97,8 +97,8 @@ export default function ExternalAgentsPanel() {
             onClick={handleCopy}
             disabled={!connectorUrl}
             style={{
-              background: connectorUrl ? '#333' : '#1f2937',
-              color: connectorUrl ? '#fff' : '#475569',
+              background: connectorUrl ? 'var(--border-default)' : 'var(--border-default)',
+              color: connectorUrl ? 'var(--text-primary)' : '#475569',
               border: 'none',
               borderRadius: '6px',
               padding: '10px 16px',
@@ -118,7 +118,7 @@ export default function ExternalAgentsPanel() {
 
       <div
         style={{
-          border: '1px solid #1f2937',
+          border: '1px solid var(--border-default)',
           borderRadius: '10px',
           padding: '20px',
           marginBottom: '24px',
@@ -126,7 +126,7 @@ export default function ExternalAgentsPanel() {
         }}
       >
         <h3 style={{ marginBottom: '12px', fontSize: '16px', fontWeight: 600 }}>How to use in Claude or ChatGPT</h3>
-        <ol style={{ paddingLeft: '20px', lineHeight: 1.6, color: '#cbd5f5' }}>
+        <ol style={{ paddingLeft: '20px', lineHeight: 1.6, color: 'var(--accent-brand-muted)' }}>
           <li>Open the MCP / connectors settings in your assistant.</li>
           <li>Select “Add connector” → choose HTTP → paste the URL above.</li>
           <li>Give the connector a friendly name (e.g., “Latent Space Hub”).</li>
@@ -175,14 +175,14 @@ function HelperCard({ title, body }: { title: string; body: string }) {
   return (
     <div
       style={{
-        border: '1px solid #1f2937',
+        border: '1px solid var(--border-default)',
         borderRadius: '8px',
         padding: '14px',
         background: '#0f172a'
       }}
     >
       <div style={{ fontWeight: 600, marginBottom: '6px', color: '#f1f5f9' }}>{title}</div>
-      <div style={{ color: '#cbd5f5', fontSize: '14px', lineHeight: 1.5 }}>{body}</div>
+      <div style={{ color: 'var(--accent-brand-muted)', fontSize: '14px', lineHeight: 1.5 }}>{body}</div>
     </div>
   );
 }

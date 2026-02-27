@@ -187,7 +187,7 @@ export function toRFEdges(
         target: String(e.to_node_id),
         animated: isConnected,
         style: isConnected
-          ? { stroke: '#888', strokeWidth: 2.5, opacity: 1 }
+          ? { stroke: 'var(--accent-primary)', strokeWidth: 2.5, opacity: 1 }
           : isDimmed
             ? { stroke: '#374151', strokeWidth: 1, opacity: 0.15 }
             : undefined,

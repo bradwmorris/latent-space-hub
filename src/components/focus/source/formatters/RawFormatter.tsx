@@ -106,7 +106,7 @@ export default function RawFormatter({ content, onTextSelect, highlightedText, h
   if (!content) {
     return (
       <div style={{
-        color: '#555',
+        color: 'var(--accent-dark)',
         fontSize: '15px',
         fontStyle: 'italic',
         textAlign: 'center',

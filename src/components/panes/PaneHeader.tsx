@@ -79,9 +79,9 @@ export default function PaneHeader({
             width: '28px',
             height: '28px',
             borderRadius: '6px',
-            border: '1px solid #2a2a2a',
-            background: '#111',
-            color: '#777',
+            border: '1px solid var(--border-default)',
+            background: 'var(--bg-surface)',
+            color: 'var(--text-muted)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -91,14 +91,14 @@ export default function PaneHeader({
           }}
           title="Close pane"
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#1a1a1a';
+            e.currentTarget.style.background = 'var(--bg-elevated)';
             e.currentTarget.style.borderColor = '#3a3a3a';
-            e.currentTarget.style.color = '#aaa';
+            e.currentTarget.style.color = 'var(--accent-light)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#111';
-            e.currentTarget.style.borderColor = '#2a2a2a';
-            e.currentTarget.style.color = '#777';
+            e.currentTarget.style.background = 'var(--bg-surface)';
+            e.currentTarget.style.borderColor = 'var(--border-default)';
+            e.currentTarget.style.color = 'var(--text-muted)';
           }}
         >
           <X size={14} />

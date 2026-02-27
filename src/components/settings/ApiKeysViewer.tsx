@@ -45,10 +45,10 @@ export default function ApiKeysViewer() {
   };
 
   const getStatusLabel = (s: string) => {
-    if (s === 'connected') return { text: 'Connected', color: '#888' };
-    if (s === 'failed') return { text: 'Failed', color: '#ef4444' };
-    if (s === 'testing') return { text: 'Testing...', color: '#6b7280' };
-    return { text: 'Not set', color: '#6b7280' };
+    if (s === 'connected') return { text: 'Connected', color: 'var(--accent-primary)' };
+    if (s === 'failed') return { text: 'Failed', color: 'var(--error)' };
+    if (s === 'testing') return { text: 'Testing...', color: 'var(--text-muted)' };
+    return { text: 'Not set', color: 'var(--text-muted)' };
   };
 
   return (
@@ -156,7 +156,7 @@ const containerStyle: CSSProperties = {
 
 const descStyle: CSSProperties = {
   fontSize: 13,
-  color: '#6b7280',
+  color: 'var(--text-muted)',
   marginBottom: 16,
 };
 
@@ -164,7 +164,7 @@ const toggleStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   fontSize: 12,
-  color: '#6b7280',
+  color: 'var(--text-muted)',
   cursor: 'pointer',
   marginBottom: 20,
 };
@@ -187,7 +187,7 @@ const cardHeaderStyle: CSSProperties = {
 const cardTitleStyle: CSSProperties = {
   fontSize: 13,
   fontWeight: 500,
-  color: '#e5e7eb',
+  color: 'var(--text-primary)',
 };
 
 const inputStyle: CSSProperties = {
@@ -198,7 +198,7 @@ const inputStyle: CSSProperties = {
   background: 'rgba(0, 0, 0, 0.3)',
   border: '1px solid rgba(255, 255, 255, 0.08)',
   borderRadius: 6,
-  color: '#e5e7eb',
+  color: 'var(--text-primary)',
   marginBottom: 12,
   outline: 'none',
 };
@@ -212,8 +212,8 @@ const btnPrimaryStyle: CSSProperties = {
   padding: '8px 14px',
   fontSize: 12,
   fontWeight: 500,
-  background: '#333',
-  color: '#fff',
+  background: 'var(--border-default)',
+  color: 'var(--text-primary)',
   border: 'none',
   borderRadius: 6,
   cursor: 'pointer',
@@ -237,10 +237,10 @@ const helpStyle: CSSProperties = {
   border: '1px solid rgba(255, 255, 255, 0.06)',
   borderRadius: 8,
   fontSize: 12,
-  color: '#6b7280',
+  color: 'var(--text-muted)',
 };
 
 const linkStyle: CSSProperties = {
-  color: '#888',
+  color: 'var(--accent-primary)',
   textDecoration: 'none',
 };

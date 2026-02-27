@@ -152,7 +152,7 @@ export default function KanbanView({
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      background: '#000'
+      background: 'var(--bg-base)'
     }}>
       {/* Column Setup Bar */}
       <div style={{
@@ -160,16 +160,16 @@ export default function KanbanView({
         alignItems: 'center',
         gap: '8px',
         padding: '8px 12px',
-        borderBottom: '1px solid #222',
-        background: '#0a0a0a',
+        borderBottom: '1px solid var(--bg-elevated)',
+        background: 'var(--bg-base)',
         flexShrink: 0
       }}>
-        <span style={{ fontSize: '11px', color: '#666', fontWeight: 500 }}>
+        <span style={{ fontSize: '11px', color: 'var(--accent-dark)', fontWeight: 500 }}>
           Columns:
         </span>
 
         {columns.length === 0 && (
-          <span style={{ fontSize: '11px', color: '#555', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '11px', color: 'var(--accent-dark)', fontStyle: 'italic' }}>
             Add dimensions to create columns
           </span>
         )}
@@ -183,11 +183,11 @@ export default function KanbanView({
               alignItems: 'center',
               gap: '4px',
               padding: '4px 8px',
-              background: '#1a1a1a',
-              border: '1px solid #333',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
               borderRadius: '4px',
               fontSize: '11px',
-              color: '#888',
+              color: 'var(--accent-primary)',
               cursor: 'pointer'
             }}
           >
@@ -204,8 +204,8 @@ export default function KanbanView({
               marginTop: '4px',
               width: '200px',
               maxHeight: '300px',
-              background: '#1a1a1a',
-              border: '1px solid #333',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
               borderRadius: '6px',
               overflow: 'hidden',
               zIndex: 100,
@@ -219,10 +219,10 @@ export default function KanbanView({
                 style={{
                   width: '100%',
                   padding: '8px 12px',
-                  background: '#0a0a0a',
+                  background: 'var(--bg-base)',
                   border: 'none',
-                  borderBottom: '1px solid #333',
-                  color: '#fff',
+                  borderBottom: '1px solid var(--border-default)',
+                  color: 'var(--text-primary)',
                   fontSize: '12px',
                   outline: 'none'
                 }}
@@ -233,7 +233,7 @@ export default function KanbanView({
                   <div style={{
                     padding: '12px',
                     fontSize: '12px',
-                    color: '#666',
+                    color: 'var(--accent-dark)',
                     textAlign: 'center'
                   }}>
                     No dimensions available
@@ -248,12 +248,12 @@ export default function KanbanView({
                         padding: '8px 12px',
                         background: 'transparent',
                         border: 'none',
-                        color: '#ccc',
+                        color: 'var(--text-primary)',
                         fontSize: '12px',
                         textAlign: 'left',
                         cursor: 'pointer'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a2a'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--border-default)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       {dim}
@@ -296,8 +296,8 @@ export default function KanbanView({
                 minWidth: '280px',
                 display: 'flex',
                 flexDirection: 'column',
-                background: isDropTarget ? '#1a1a1a' : '#0a0a0a',
-                border: isReorderTarget ? '2px dashed #888' : '1px solid #1a1a1a',
+                background: isDropTarget ? 'var(--bg-elevated)' : 'var(--bg-base)',
+                border: isReorderTarget ? '2px dashed var(--accent-primary)' : '1px solid var(--bg-elevated)',
                 borderRadius: '8px',
                 transition: 'all 0.2s'
               }}
@@ -312,7 +312,7 @@ export default function KanbanView({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '10px 12px',
-                  borderBottom: '1px solid #1a1a1a',
+                  borderBottom: '1px solid var(--bg-elevated)',
                   cursor: 'grab'
                 }}
                 draggable
@@ -326,11 +326,11 @@ export default function KanbanView({
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <GripVertical size={14} color="#444" />
+                  <GripVertical size={14} color="var(--text-muted)" />
                   <span style={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#e5e5e5',
+                    color: 'var(--text-primary)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em'
                   }}>
@@ -338,8 +338,8 @@ export default function KanbanView({
                   </span>
                   <span style={{
                     fontSize: '11px',
-                    color: '#666',
-                    background: '#1a1a1a',
+                    color: 'var(--accent-dark)',
+                    background: 'var(--bg-elevated)',
                     padding: '2px 6px',
                     borderRadius: '10px'
                   }}>
@@ -353,7 +353,7 @@ export default function KanbanView({
                     border: 'none',
                     padding: '4px',
                     cursor: 'pointer',
-                    color: '#666',
+                    color: 'var(--accent-dark)',
                     display: 'flex',
                     alignItems: 'center'
                   }}
@@ -378,8 +378,8 @@ export default function KanbanView({
                     style={{
                       padding: '10px',
                       marginBottom: '6px',
-                      background: draggedNodeId === node.id ? '#1a1a1a' : '#111',
-                      border: '1px solid #222',
+                      background: draggedNodeId === node.id ? 'var(--bg-elevated)' : 'var(--bg-surface)',
+                      border: '1px solid var(--bg-elevated)',
                       borderRadius: '6px',
                       cursor: 'pointer',
                       opacity: draggedNodeId === node.id ? 0.5 : 1,
@@ -387,21 +387,21 @@ export default function KanbanView({
                     }}
                     onMouseEnter={(e) => {
                       if (draggedNodeId !== node.id) {
-                        e.currentTarget.style.background = '#1a1a1a';
-                        e.currentTarget.style.borderColor = '#333';
+                        e.currentTarget.style.background = 'var(--bg-elevated)';
+                        e.currentTarget.style.borderColor = 'var(--border-default)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (draggedNodeId !== node.id) {
-                        e.currentTarget.style.background = '#111';
-                        e.currentTarget.style.borderColor = '#222';
+                        e.currentTarget.style.background = 'var(--bg-surface)';
+                        e.currentTarget.style.borderColor = 'var(--bg-elevated)';
                       }
                     }}
                   >
                     <div style={{
                       fontSize: '12px',
                       fontWeight: 500,
-                      color: '#e5e5e5',
+                      color: 'var(--text-primary)',
                       marginBottom: '4px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -424,10 +424,10 @@ export default function KanbanView({
                               key={dim}
                               style={{
                                 padding: '2px 6px',
-                                background: '#1a1a1a',
+                                background: 'var(--bg-elevated)',
                                 borderRadius: '3px',
                                 fontSize: '10px',
-                                color: '#666'
+                                color: 'var(--accent-dark)'
                               }}
                             >
                               {dim}
@@ -442,7 +442,7 @@ export default function KanbanView({
                   <div style={{
                     padding: '20px',
                     textAlign: 'center',
-                    color: '#444',
+                    color: 'var(--text-muted)',
                     fontSize: '11px'
                   }}>
                     Drop nodes here
@@ -461,19 +461,19 @@ export default function KanbanView({
               minWidth: '280px',
               display: 'flex',
               flexDirection: 'column',
-              background: '#0a0a0a',
-              border: '1px dashed #333',
+              background: 'var(--bg-base)',
+              border: '1px dashed var(--border-default)',
               borderRadius: '8px'
             }}
           >
             <div style={{
               padding: '10px 12px',
-              borderBottom: '1px solid #1a1a1a'
+              borderBottom: '1px solid var(--bg-elevated)'
             }}>
               <span style={{
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#666',
+                color: 'var(--accent-dark)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em'
               }}>
@@ -495,8 +495,8 @@ export default function KanbanView({
                   style={{
                     padding: '10px',
                     marginBottom: '6px',
-                    background: '#111',
-                    border: '1px solid #222',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--bg-elevated)',
                     borderRadius: '6px',
                     cursor: 'pointer'
                   }}
@@ -504,7 +504,7 @@ export default function KanbanView({
                   <div style={{
                     fontSize: '12px',
                     fontWeight: 500,
-                    color: '#888',
+                    color: 'var(--accent-primary)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
@@ -524,7 +524,7 @@ export default function KanbanView({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#666',
+            color: 'var(--accent-dark)',
             fontSize: '13px'
           }}>
             Add dimension columns to organize your nodes

@@ -66,8 +66,8 @@ function ToolbarButton({ icon: Icon, label, shortcut, onClick, disabled, isActiv
         height: '36px',
         borderRadius: '8px',
         border: 'none',
-        background: isHovered ? '#1a1a1a' : 'transparent',
-        color: isActive ? '#888' : (isHovered ? '#aaa' : '#666'),
+        background: isHovered ? 'var(--bg-elevated)' : 'transparent',
+        color: isActive ? 'var(--accent-primary)' : (isHovered ? 'var(--accent-light)' : 'var(--accent-dark)'),
         cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -96,9 +96,9 @@ function PaneTypeButton({ icon: Icon, label, paneType, isOpen, isActivePane, onC
   // Determine color: green if open, brighter if it's the active pane
   const getColor = () => {
     if (isOpen) {
-      return isActivePane ? '#aaa' : '#888'; // Brighter green for active
+      return isActivePane ? 'var(--accent-light)' : 'var(--accent-primary)'; // Brighter green for active
     }
-    return isHovered ? '#aaa' : '#666';
+    return isHovered ? 'var(--accent-light)' : 'var(--accent-dark)';
   };
 
   return (
@@ -112,7 +112,7 @@ function PaneTypeButton({ icon: Icon, label, paneType, isOpen, isActivePane, onC
         height: '36px',
         borderRadius: '8px',
         border: 'none',
-        background: isOpen ? '#1a1a1a' : (isHovered ? '#151515' : 'transparent'),
+        background: isOpen ? 'var(--bg-elevated)' : (isHovered ? 'var(--bg-hover)' : 'transparent'),
         color: getColor(),
         cursor: 'pointer',
         display: 'flex',
@@ -134,7 +134,7 @@ function PaneTypeButton({ icon: Icon, label, paneType, isOpen, isActivePane, onC
             width: '4px',
             height: '4px',
             borderRadius: '50%',
-            background: '#aaa',
+            background: 'var(--accent-light)',
           }}
         />
       )}
@@ -164,7 +164,7 @@ export default function LeftToolbar({
       style={{
         width: '50px',
         height: '100%',
-        background: '#0a0a0a',
+        background: 'var(--bg-base)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',

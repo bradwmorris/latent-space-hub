@@ -34,8 +34,8 @@ function NodeLabel({ id, title, dimensions, onNodeClick }: NodeLabelProps) {
         style={{
           display: 'inline',
           padding: '2px 6px',
-          background: '#333',
-          color: '#e5e5e5',
+          background: 'var(--border-default)',
+          color: 'var(--text-primary)',
           borderRadius: '3px',
           fontSize: '11px',
           fontWeight: '600',
@@ -51,7 +51,7 @@ function NodeLabel({ id, title, dimensions, onNodeClick }: NodeLabelProps) {
       <span style={{
         fontWeight: 'bold',
         textDecoration: 'underline',
-        color: '#e5e5e5'
+        color: 'var(--text-primary)'
       }}>
         {truncatedTitle}
       </span>

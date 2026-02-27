@@ -177,7 +177,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           background: 'rgba(136, 136, 136, 0.1)',
           border: '1px solid rgba(136, 136, 136, 0.3)',
           borderRadius: '8px',
-          color: '#999',
+          color: 'var(--text-secondary)',
           fontSize: '11px',
           fontWeight: 600,
           letterSpacing: '0.08em',
@@ -189,7 +189,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.background = 'rgba(136, 136, 136, 0.2)';
-          e.currentTarget.style.borderColor = '#999';
+          e.currentTarget.style.borderColor = 'var(--text-secondary)';
           e.currentTarget.style.boxShadow = '0 0 20px rgba(136, 136, 136, 0.25)';
         }}
         onMouseLeave={(e) => {
@@ -202,8 +202,8 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           width: '18px',
           height: '18px',
           borderRadius: '50%',
-          background: '#555',
-          color: '#0a0a0a',
+          background: 'var(--accent-dark)',
+          color: 'var(--bg-base)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -239,7 +239,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         <div className="qa-file-preview">
           {/* PDF icon */}
           <div className="qa-file-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--error)" strokeWidth="1.5">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
               <polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/>
               <line x1="16" y1="13" x2="8" y2="13" strokeLinecap="round"/>
@@ -250,7 +250,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           {/* File info */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              color: '#e5e5e5',
+              color: 'var(--text-primary)',
               fontSize: '13px',
               fontWeight: 500,
               overflow: 'hidden',
@@ -259,7 +259,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
             }}>
               {uploadedFile.name}
             </div>
-            <div style={{ color: '#666', fontSize: '11px', marginTop: '2px' }}>
+            <div style={{ color: 'var(--accent-dark)', fontSize: '11px', marginTop: '2px' }}>
               {uploadedFile.size < 1024 * 1024
                 ? `${Math.round(uploadedFile.size / 1024)} KB`
                 : `${(uploadedFile.size / 1024 / 1024).toFixed(1)} MB`}
@@ -267,9 +267,9 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           </div>
 
           {/* Remove button */}
-          <button onClick={clearFile} className="qa-close" style={{ color: '#666' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+          <button onClick={clearFile} className="qa-close" style={{ color: 'var(--accent-dark)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--error)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
@@ -285,7 +285,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           background: 'rgba(239, 68, 68, 0.1)',
           border: '1px solid rgba(239, 68, 68, 0.2)',
           borderRadius: '10px',
-          color: '#ef4444',
+          color: 'var(--error)',
           fontSize: '12px',
         }}>
           {uploadError}
@@ -303,7 +303,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: '8px',
-                color: '#888'
+                color: 'var(--accent-primary)'
               }}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
@@ -356,10 +356,10 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           display: flex;
           flex-direction: column;
           gap: 16px;
-          background: #141414;
+          background: var(--bg-hover);
           padding: 24px;
           border-radius: 16px;
-          border: 1px solid #262626;
+          border: 1px solid var(--border-default);
           transition: border-color 0.15s ease;
           box-shadow:
             0 0 0 1px rgba(255, 255, 255, 0.04),
@@ -376,7 +376,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         }
 
         .qa-title {
-          color: #fafafa;
+          color: var(--text-primary);
           font-size: 15px;
           font-weight: 600;
         }
@@ -385,7 +385,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           padding: 6px;
           background: transparent;
           border: none;
-          color: #525252;
+          color: var(--text-secondary);
           cursor: pointer;
           border-radius: 6px;
           display: flex;
@@ -395,7 +395,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         }
 
         .qa-close:hover {
-          color: #a3a3a3;
+          color: var(--text-secondary);
         }
 
         .qa-file-preview {
@@ -423,17 +423,17 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         .qa-input-wrapper {
           position: relative;
           border-radius: 12px;
-          border: 1px solid #262626;
-          background: #0a0a0a;
+          border: 1px solid var(--border-default);
+          background: var(--bg-base);
           transition: all 0.15s ease;
         }
 
         .qa-input-wrapper:focus-within {
-          border-color: #333;
+          border-color: var(--border-default);
         }
 
         .qa-input-wrapper.dragging {
-          border: 2px dashed #555;
+          border: 2px dashed var(--accent-dark);
           background: rgba(136, 136, 136, 0.05);
         }
 
@@ -456,7 +456,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           padding: 16px 18px;
           background: transparent;
           border: none;
-          color: #fafafa;
+          color: var(--text-primary);
           font-size: 15px;
           font-family: inherit;
           outline: none;
@@ -466,7 +466,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         }
 
         .qa-textarea::placeholder {
-          color: #525252;
+          color: var(--text-secondary);
         }
 
         .qa-footer {
@@ -477,7 +477,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
 
         .qa-hint {
           font-size: 11px;
-          color: #525252;
+          color: var(--text-secondary);
         }
 
         .qa-hint kbd {
@@ -485,12 +485,12 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           align-items: center;
           justify-content: center;
           padding: 2px 6px;
-          background: #262626;
+          background: var(--border-default);
           border-radius: 4px;
           font-size: 10px;
           font-family: inherit;
-          color: #737373;
-          border: 1px solid #333;
+          color: var(--text-muted);
+          border: 1px solid var(--border-default);
         }
 
         .qa-hint-sep {
@@ -504,22 +504,22 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
           align-items: center;
           justify-content: center;
           padding: 0;
-          background: #262626;
+          background: var(--border-default);
           border: none;
           border-radius: 10px;
-          color: #525252;
+          color: var(--text-secondary);
           cursor: default;
           transition: all 0.2s ease;
         }
 
         .qa-submit.active {
-          background: #333;
-          color: #e5e5e5;
+          background: var(--border-default);
+          color: var(--text-primary);
           cursor: pointer;
         }
 
         .qa-submit.active:hover {
-          background: #555;
+          background: var(--accent-dark);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(136, 136, 136, 0.3);
         }
@@ -527,7 +527,7 @@ export default function QuickAddInput({ onSubmit, isOpen, onClose }: QuickAddInp
         .qa-spinner {
           width: 14px;
           height: 14px;
-          border: 2px solid #0a0a0a;
+          border: 2px solid var(--bg-base);
           border-top-color: transparent;
           border-radius: 50%;
           animation: qaSpin 0.8s linear infinite;

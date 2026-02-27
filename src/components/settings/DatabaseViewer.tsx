@@ -195,7 +195,7 @@ export default function DatabaseViewer() {
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--accent-primary)' }}>
         Loading database...
       </div>
     );
@@ -203,7 +203,7 @@ export default function DatabaseViewer() {
 
   if (error) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--error)' }}>
         Error: {error}
       </div>
     );
@@ -211,7 +211,7 @@ export default function DatabaseViewer() {
 
   if (nodes.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--accent-primary)' }}>
         No nodes found
       </div>
     );
@@ -222,30 +222,30 @@ export default function DatabaseViewer() {
       <div
         style={{
           padding: '16px 24px',
-          borderBottom: '1px solid #2a2a2a',
+          borderBottom: '1px solid var(--border-default)',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
         }}
       >
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#888', gap: '4px' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: 'var(--accent-primary)', gap: '4px' }}>
             Search
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="title or content"
               style={{
-                background: '#0f0f0f',
-                border: '1px solid #2a2a2a',
-                color: '#ddd',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-default)',
+                color: 'var(--text-primary)',
                 padding: '6px 10px',
                 borderRadius: '4px',
                 minWidth: '220px',
               }}
             />
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#888', gap: '4px' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: 'var(--accent-primary)', gap: '4px' }}>
             Dimension
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
@@ -254,9 +254,9 @@ export default function DatabaseViewer() {
                 onKeyDown={handleDimensionKeyDown}
                 placeholder="e.g. research"
                 style={{
-                  background: '#0f0f0f',
-                  border: '1px solid #2a2a2a',
-                  color: '#ddd',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  color: 'var(--text-primary)',
                   padding: '6px 10px',
                   borderRadius: '4px',
                   minWidth: '180px',
@@ -278,15 +278,15 @@ export default function DatabaseViewer() {
               </button>
             </div>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#888', gap: '4px' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: 'var(--accent-primary)', gap: '4px' }}>
             Sort by
             <select
               value={sortBy}
               onChange={handleSortChange}
               style={{
-                background: '#0f0f0f',
-                border: '1px solid #2a2a2a',
-                color: '#ddd',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-default)',
+                color: 'var(--text-primary)',
                 padding: '6px 10px',
                 borderRadius: '4px',
               }}
@@ -322,7 +322,7 @@ export default function DatabaseViewer() {
                     marginLeft: '2px',
                     background: 'transparent',
                     border: 'none',
-                    color: '#7de8a5',
+                    color: 'var(--success)',
                     cursor: 'pointer',
                     fontSize: '11px',
                   }}
@@ -336,16 +336,16 @@ export default function DatabaseViewer() {
         )}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '12px', color: '#666' }}>{filterStatus}</div>
+          <div style={{ fontSize: '12px', color: 'var(--accent-dark)' }}>{filterStatus}</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={handleApplyFilters}
               style={{
                 padding: '8px 16px',
-                background: '#33333333',
-                border: '1px solid #33333366',
+                background: 'color-mix(in srgb, var(--border-default) 35%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--border-default) 50%, transparent)',
                 borderRadius: '4px',
-                color: '#888',
+                color: 'var(--accent-primary)',
                 cursor: 'pointer',
                 fontSize: '12px',
               }}
@@ -356,10 +356,10 @@ export default function DatabaseViewer() {
               onClick={handleClearFilters}
               style={{
                 padding: '8px 16px',
-                background: '#1a1a1a',
-                border: '1px solid #333',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '4px',
-                color: '#ccc',
+                color: 'var(--text-primary)',
                 cursor: 'pointer',
                 fontSize: '12px',
               }}
@@ -371,10 +371,10 @@ export default function DatabaseViewer() {
               disabled={isFirstPage || filtersActive}
               style={{
                 padding: '8px 12px',
-                background: isFirstPage || filtersActive ? '#1a1a1a' : '#2a2a2a',
-                border: '1px solid #333',
+                background: isFirstPage || filtersActive ? 'var(--bg-elevated)' : 'var(--border-default)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '4px',
-                color: isFirstPage || filtersActive ? '#555' : '#ccc',
+                color: isFirstPage || filtersActive ? 'var(--accent-dark)' : 'var(--text-primary)',
                 cursor: isFirstPage || filtersActive ? 'not-allowed' : 'pointer',
                 fontSize: '12px',
               }}
@@ -386,10 +386,10 @@ export default function DatabaseViewer() {
               disabled={isLastPage || filtersActive}
               style={{
                 padding: '8px 12px',
-                background: isLastPage || filtersActive ? '#1a1a1a' : '#2a2a2a',
-                border: '1px solid #333',
+                background: isLastPage || filtersActive ? 'var(--bg-elevated)' : 'var(--border-default)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '4px',
-                color: isLastPage || filtersActive ? '#555' : '#ccc',
+                color: isLastPage || filtersActive ? 'var(--accent-dark)' : 'var(--text-primary)',
                 cursor: isLastPage || filtersActive ? 'not-allowed' : 'pointer',
                 fontSize: '12px',
               }}
@@ -402,7 +402,7 @@ export default function DatabaseViewer() {
 
       <div style={{ flex: 1, overflow: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead style={{ position: 'sticky', top: 0, background: '#1a1a1a', zIndex: 1 }}>
+          <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-elevated)', zIndex: 1 }}>
             <tr>
               {['Node', 'Categories', 'Edges', 'Highlights', 'Updated', 'Created'].map((column) => (
                 <th
@@ -411,11 +411,11 @@ export default function DatabaseViewer() {
                     padding: '12px 16px',
                     textAlign: 'left',
                     fontSize: '11px',
-                    color: '#888',
+                    color: 'var(--accent-primary)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     fontWeight: 'normal',
-                    borderBottom: '1px solid #2a2a2a',
+                    borderBottom: '1px solid var(--border-default)',
                   }}
                 >
                   {column}
@@ -430,8 +430,8 @@ export default function DatabaseViewer() {
                 <tr
                   key={node.id}
                   style={{
-                    background: index % 2 === 0 ? '#080808' : '#0d0d0d',
-                    borderBottom: '1px solid #111',
+                    background: index % 2 === 0 ? '#080808' : 'var(--bg-surface)',
+                    borderBottom: '1px solid var(--bg-surface)',
                   }}
                 >
                   <td style={{ padding: '12px 16px', verticalAlign: 'top', width: '28%' }}>
@@ -445,7 +445,7 @@ export default function DatabaseViewer() {
                             style={{
                               background: 'transparent',
                               border: 'none',
-                              color: '#7de8a5',
+                              color: 'var(--success)',
                               cursor: 'pointer',
                               padding: 0,
                               display: 'flex',
@@ -456,7 +456,7 @@ export default function DatabaseViewer() {
                           </button>
                         )}
                       </div>
-                      <span style={{ fontSize: '11px', color: '#666', fontFamily: 'JetBrains Mono, monospace' }}>ID: {node.id}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--accent-dark)', fontFamily: 'JetBrains Mono, monospace' }}>ID: {node.id}</span>
                     </div>
                   </td>
                   <td style={{ padding: '12px 16px', verticalAlign: 'top', width: '24%' }}>
@@ -482,38 +482,38 @@ export default function DatabaseViewer() {
                           </span>
                         ))
                       ) : (
-                        <span style={{ fontSize: '11px', color: '#555' }}>No categories</span>
+                        <span style={{ fontSize: '11px', color: 'var(--accent-dark)' }}>No categories</span>
                       )}
                       {node.dimensions && node.dimensions.length > 3 && (
-                        <span style={{ fontSize: '11px', color: '#666' }}>+{node.dimensions.length - 3} more</span>
+                        <span style={{ fontSize: '11px', color: 'var(--accent-dark)' }}>+{node.dimensions.length - 3} more</span>
                       )}
                     </div>
                   </td>
                   <td style={{ padding: '12px 16px', verticalAlign: 'top', width: '10%' }}>
                     <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{node.edge_count ?? 0}</div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>connections</div>
+                    <div style={{ fontSize: '11px', color: 'var(--accent-dark)' }}>connections</div>
                   </td>
                   <td style={{ padding: '12px 16px', verticalAlign: 'top', width: '14%' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {contextHubIds.has(node.id) ? (
-                        <span style={{ fontSize: '11px', color: '#facc15', fontWeight: 600 }}>
+                        <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 600 }}>
                           Auto-context hub
                         </span>
                       ) : (
                         <span style={{ fontSize: '11px', color: '#475569' }}>—</span>
                       )}
                       {belongsToLocked && (
-                        <span style={{ fontSize: '11px', color: '#7de8a5' }}>Priority dimension</span>
+                        <span style={{ fontSize: '11px', color: 'var(--success)' }}>Priority dimension</span>
                       )}
                     </div>
                   </td>
                   <td style={{ padding: '12px 16px', verticalAlign: 'top', width: '12%' }}>
                     <div style={{ fontSize: '12px', color: '#e2e8f0' }}>{formatTimestamp(node.updated_at)}</div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>{formatRelative(node.updated_at)}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--accent-dark)' }}>{formatRelative(node.updated_at)}</div>
                   </td>
                   <td style={{ padding: '12px 16px', verticalAlign: 'top', width: '12%' }}>
-                    <div style={{ fontSize: '12px', color: '#cbd5f5' }}>{formatTimestamp(node.created_at)}</div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>{formatRelative(node.created_at)}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--accent-brand-muted)' }}>{formatTimestamp(node.created_at)}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--accent-dark)' }}>{formatRelative(node.created_at)}</div>
                   </td>
                 </tr>
               );

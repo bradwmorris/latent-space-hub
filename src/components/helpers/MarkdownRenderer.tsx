@@ -14,7 +14,7 @@ export default function MarkdownRenderer({ content, streaming, onNodeClick }: Ma
 
   const segments = splitCodeBlocks(content);
   return (
-    <div style={{ color: '#e5e5e5', fontSize: 16, lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+    <div style={{ color: 'var(--text-primary)', fontSize: 16, lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
       {segments.map((seg, i) =>
         seg.type === 'code' ? (
           <CodeBlock key={i} language={seg.lang} code={seg.text} />
@@ -41,12 +41,12 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
   return (
     <div style={{ margin: '8px 0' }}>
       <div style={{
-        background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 6,
+        background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 6,
         padding: 8, overflowX: 'auto', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12
       }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
           <span style={{ color: '#8a8a8a', fontSize: 11 }}>{language || 'code'}</span>
-          <button onClick={handleCopy} style={{ marginLeft: 'auto', fontSize: 11, color: '#8a8a8a', background: 'transparent', border: '1px solid #2a2a2a', borderRadius: 4, padding: '1px 6px', cursor: 'pointer' }}>
+          <button onClick={handleCopy} style={{ marginLeft: 'auto', fontSize: 11, color: '#8a8a8a', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 4, padding: '1px 6px', cursor: 'pointer' }}>
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
@@ -68,8 +68,8 @@ function renderTextWithFormatting(text: string, onNodeClick?: (nodeId: number) =
         <div key={`quote-${segIdx}`} style={{
           margin: '12px 0',
           padding: '10px 14px',
-          borderLeft: '3px solid #333',
-          background: '#0f0f0f',
+          borderLeft: '3px solid var(--border-default)',
+          background: 'var(--bg-surface)',
           fontStyle: 'italic',
           color: '#b8b8b8',
           position: 'relative'
@@ -158,7 +158,7 @@ function parseInlineFormatting(text: string, onNodeClick?: (nodeId: number) => v
           textDecorationColor: '#4a4a4a',
           textDecorationThickness: '1px',
           textUnderlineOffset: '2px',
-          color: '#f0f0f0'
+          color: 'var(--text-primary)'
         }}>
           {parseAndRenderContent(part.text, onNodeClick)}
         </strong>

@@ -67,7 +67,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
       }}>
         <div style={{
           fontSize: '12px',
-          color: '#444',
+          color: 'var(--text-muted)',
           fontFamily: 'inherit',
           animation: 'blockPulse 1.5s ease-in-out infinite',
         }}>
@@ -76,16 +76,16 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
             <div key={i} style={{
-              height: '72px', background: '#151515',
-              borderRadius: '8px', border: '1px solid #1a1a1a',
+              height: '72px', background: 'var(--bg-hover)',
+              borderRadius: '8px', border: '1px solid var(--bg-elevated)',
             }} />
           ))}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
             <div key={i} style={{
-              height: '180px', background: '#151515',
-              borderRadius: '8px', border: '1px solid #1a1a1a',
+              height: '180px', background: 'var(--bg-hover)',
+              borderRadius: '8px', border: '1px solid var(--bg-elevated)',
             }} />
           ))}
         </div>
@@ -97,7 +97,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
     return (
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#555', fontSize: '13px',
+        color: 'var(--accent-dark)', fontSize: '13px',
       }}>
         Failed to load dashboard
       </div>
@@ -160,8 +160,8 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                   alignItems: 'center',
                   gap: '10px',
                   padding: '10px 14px',
-                  background: isActive ? '#1c1c1c' : '#151515',
-                  border: `1px solid ${isActive ? 'var(--accent-brand-muted)' : '#1a1a1a'}`,
+                  background: isActive ? 'var(--bg-elevated)' : 'var(--bg-hover)',
+                  border: `1px solid ${isActive ? 'var(--accent-brand-muted)' : 'var(--bg-elevated)'}`,
                   borderRadius: '8px',
                   cursor: 'pointer',
                   transition: 'all 0.12s ease',
@@ -170,17 +170,17 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                 }}
                 aria-label={`${tc.label}: ${tc.count}`}
               >
-                {Icon && <Icon size={14} style={{ color: isActive ? 'var(--accent-brand)' : '#666', flexShrink: 0, transition: 'color 0.12s ease' }} aria-hidden="true" />}
+                {Icon && <Icon size={14} style={{ color: isActive ? 'var(--accent-brand)' : 'var(--accent-dark)', flexShrink: 0, transition: 'color 0.12s ease' }} aria-hidden="true" />}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
                   <span style={{
-                    fontSize: '16px', fontWeight: 700, color: isActive ? '#e5e5e5' : '#ccc',
+                    fontSize: '16px', fontWeight: 700, color: isActive ? 'var(--text-primary)' : 'var(--text-primary)',
                     fontVariantNumeric: 'tabular-nums', lineHeight: 1.2,
                     transition: 'color 0.12s ease',
                   }}>
                     {tc.count.toLocaleString()}
                   </span>
                   <span style={{
-                    fontSize: '10px', color: isActive ? '#888' : '#666',
+                    fontSize: '10px', color: isActive ? 'var(--accent-primary)' : 'var(--accent-dark)',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {tc.label}
@@ -194,7 +194,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
 
       {/* Section divider */}
       <div style={{
-        color: '#262626',
+        color: 'var(--border-default)',
         fontSize: '11px',
         userSelect: 'none',
         letterSpacing: '0.1em',
@@ -225,9 +225,9 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
               onMouseEnter={() => setHoveredCard(cat.key)}
               onMouseLeave={() => setHoveredCard(null)}
               style={{
-                background: isHovered ? '#181818' : '#151515',
+                background: isHovered ? 'var(--bg-elevated)' : 'var(--bg-hover)',
                 borderRadius: '8px',
-                border: '1px solid #1a1a1a',
+                border: '1px solid var(--bg-elevated)',
                 padding: '16px',
                 transition: 'background 0.12s ease',
                 overflow: 'hidden',
@@ -251,17 +251,17 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                 aria-label={`${cat.label}, ${count} items`}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                  <span style={{ color: '#333', fontSize: '12px', flexShrink: 0, userSelect: 'none' }} aria-hidden="true">┌─</span>
-                  <Icon size={14} style={{ color: isHovered ? 'var(--accent-brand)' : '#666', flexShrink: 0, transition: 'color 0.12s ease' }} aria-hidden="true" />
+                  <span style={{ color: 'var(--border-default)', fontSize: '12px', flexShrink: 0, userSelect: 'none' }} aria-hidden="true">┌─</span>
+                  <Icon size={14} style={{ color: isHovered ? 'var(--accent-brand)' : 'var(--accent-dark)', flexShrink: 0, transition: 'color 0.12s ease' }} aria-hidden="true" />
                   <h2 style={{
-                    fontSize: '13px', fontWeight: 600, color: '#ccc',
+                    fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)',
                     margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {cat.label}
                   </h2>
                 </div>
                 <span style={{
-                  fontSize: '12px', color: '#555',
+                  fontSize: '12px', color: 'var(--accent-dark)',
                   fontVariantNumeric: 'tabular-nums',
                 }}>
                   {count.toLocaleString()}
@@ -271,10 +271,10 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
               {/* Preview items with tree characters */}
               {preview.length === 0 ? (
                 <div style={{
-                  fontSize: '11px', color: '#333', padding: '8px 0 2px',
+                  fontSize: '11px', color: 'var(--border-default)', padding: '8px 0 2px',
                   userSelect: 'none',
                 }}>
-                  <span style={{ color: '#333', marginRight: '6px' }}>└─</span>
+                  <span style={{ color: 'var(--border-default)', marginRight: '6px' }}>└─</span>
                   {'─ no items ──'}
                 </div>
               ) : (
@@ -298,7 +298,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                           alignItems: 'center',
                           gap: '8px',
                           padding: '3px 4px',
-                          background: isItemHovered ? '#1f1f1f' : 'transparent',
+                          background: isItemHovered ? 'var(--bg-elevated)' : 'transparent',
                           border: 'none',
                           borderRadius: '4px',
                           cursor: 'pointer',
@@ -309,7 +309,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                       >
                         {/* Tree prefix */}
                         <span style={{
-                          color: '#333', fontSize: '12px', flexShrink: 0,
+                          color: 'var(--border-default)', fontSize: '12px', flexShrink: 0,
                           userSelect: 'none', lineHeight: 1,
                         }} aria-hidden="true">{treeChar}</span>
 
@@ -325,7 +325,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                               objectFit: 'cover',
                               borderRadius: '3px',
                               flexShrink: 0,
-                              background: '#1a1a1a',
+                              background: 'var(--bg-elevated)',
                             }}
                           />
                         )}
@@ -337,7 +337,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                         }}>
                           <span style={{
                             fontSize: '12px',
-                            color: isItemHovered ? '#ddd' : '#aaa',
+                            color: isItemHovered ? 'var(--text-primary)' : 'var(--accent-light)',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
@@ -346,7 +346,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                             {item.title}
                           </span>
                           <span style={{
-                            fontSize: '11px', color: '#444',
+                            fontSize: '11px', color: 'var(--text-muted)',
                             fontVariantNumeric: 'tabular-nums',
                           }}>
                             {catConfig?.sortMode === 'connected' && item.edge_count !== undefined

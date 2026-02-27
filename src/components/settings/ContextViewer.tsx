@@ -90,7 +90,7 @@ export default function ContextViewer() {
             disabled={loadingSettings || saving}
             style={{
               ...toggleStyle,
-              background: enabled ? '#333' : 'rgba(255, 255, 255, 0.1)',
+              background: enabled ? 'var(--border-default)' : 'rgba(255, 255, 255, 0.1)',
             }}
           >
             <span style={{
@@ -131,7 +131,7 @@ export default function ContextViewer() {
 }
 
 const containerStyle: CSSProperties = { padding: 24, height: '100%', overflow: 'auto' };
-const descStyle: CSSProperties = { fontSize: 13, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 };
+const descStyle: CSSProperties = { fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.5 };
 
 const cardStyle: CSSProperties = {
   background: 'rgba(255, 255, 255, 0.02)',
@@ -141,9 +141,9 @@ const cardStyle: CSSProperties = {
   marginBottom: 24,
 };
 
-const labelStyle: CSSProperties = { fontSize: 13, fontWeight: 500, color: '#e5e7eb', marginBottom: 8 };
-const subLabelStyle: CSSProperties = { fontSize: 12, color: '#6b7280' };
-const mutedStyle: CSSProperties = { fontSize: 13, color: '#6b7280' };
+const labelStyle: CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 };
+const subLabelStyle: CSSProperties = { fontSize: 12, color: 'var(--text-muted)' };
+const mutedStyle: CSSProperties = { fontSize: 13, color: 'var(--text-muted)' };
 
 const toggleStyle: CSSProperties = {
   width: 48,
@@ -161,7 +161,7 @@ const toggleKnobStyle: CSSProperties = {
   width: 18,
   height: 18,
   borderRadius: '50%',
-  background: '#fff',
+  background: 'var(--text-primary)',
   transition: 'left 0.15s',
 };
 
@@ -172,13 +172,13 @@ const nodeCardStyle: CSSProperties = {
   borderRadius: 6,
 };
 
-const nodeTitleStyle: CSSProperties = { fontSize: 13, fontWeight: 500, color: '#e5e7eb' };
-const edgeCountStyle: CSSProperties = { fontSize: 12, color: '#888' };
+const nodeTitleStyle: CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' };
+const edgeCountStyle: CSSProperties = { fontSize: 12, color: 'var(--accent-primary)' };
 
 const dimTagStyle: CSSProperties = {
   padding: '2px 8px',
   borderRadius: 4,
   fontSize: 11,
   background: 'rgba(136, 136, 136, 0.1)',
-  color: '#888',
+  color: 'var(--accent-primary)',
 };

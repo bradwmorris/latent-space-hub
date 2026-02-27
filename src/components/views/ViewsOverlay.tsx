@@ -431,7 +431,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
           background: 'transparent',
           cursor: 'pointer',
           transition: 'all 0.15s ease',
-          borderBottom: '1px solid #1a1a1a',
+          borderBottom: '1px solid var(--bg-elevated)',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
@@ -469,7 +469,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               <span style={{
                 fontSize: '13px',
                 fontWeight: 500,
-                color: '#f0f0f0',
+                color: 'var(--text-primary)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -480,8 +480,8 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               </span>
               <span style={{
                 fontSize: '10px',
-                color: '#555',
-                background: '#1a1a1a',
+                color: 'var(--accent-dark)',
+                background: 'var(--bg-elevated)',
                 padding: '2px 6px',
                 borderRadius: '4px',
                 fontFamily: 'monospace',
@@ -505,7 +505,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                         fontSize: '10px',
                         padding: '2px 6px',
                         background: 'rgba(136, 136, 136, 0.1)',
-                        color: '#888',
+                        color: 'var(--accent-primary)',
                         borderRadius: '4px'
                       }}
                     >
@@ -513,7 +513,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                     </span>
                   ))}
                   {node.dimensions.length > 3 && (
-                    <span style={{ fontSize: '10px', color: '#666' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--accent-dark)' }}>
                       +{node.dimensions.length - 3}
                     </span>
                   )}
@@ -530,7 +530,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
   const renderListView = () => {
     if (filteredNodesLoading) {
       return (
-        <div style={{ padding: '40px', color: '#888', textAlign: 'center' }}>
+        <div style={{ padding: '40px', color: 'var(--accent-primary)', textAlign: 'center' }}>
           Loading...
         </div>
       );
@@ -538,7 +538,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
 
     if (filteredNodes.length === 0) {
       return (
-        <div style={{ padding: '40px', color: '#888', textAlign: 'center' }}>
+        <div style={{ padding: '40px', color: 'var(--accent-primary)', textAlign: 'center' }}>
           {selectedFilters.length > 0 ? 'No nodes match the selected filters.' : 'No nodes yet. Add some content to get started.'}
         </div>
       );
@@ -562,7 +562,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
   const renderGridView = () => {
     if (filteredNodesLoading) {
       return (
-        <div style={{ padding: '40px', color: '#888', textAlign: 'center' }}>
+        <div style={{ padding: '40px', color: 'var(--accent-primary)', textAlign: 'center' }}>
           Loading...
         </div>
       );
@@ -570,7 +570,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
 
     if (filteredNodes.length === 0) {
       return (
-        <div style={{ padding: '40px', color: '#888', textAlign: 'center' }}>
+        <div style={{ padding: '40px', color: 'var(--accent-primary)', textAlign: 'center' }}>
           {selectedFilters.length > 0 ? 'No nodes match the selected filters.' : 'No nodes yet. Add some content to get started.'}
         </div>
       );
@@ -595,7 +595,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
   const renderKanbanView = () => {
     if (columns.length === 0) {
       return (
-        <div style={{ padding: '40px', color: '#888', textAlign: 'center' }}>
+        <div style={{ padding: '40px', color: 'var(--accent-primary)', textAlign: 'center' }}>
           Add dimension filters to see kanban columns.
         </div>
       );
@@ -647,9 +647,9 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               style={{
                 minWidth: '280px',
                 maxWidth: '320px',
-                background: columnDropTarget === column.id ? 'rgba(136, 136, 136, 0.05)' : '#0c0c0c',
+                background: columnDropTarget === column.id ? 'var(--accent-subtle)' : 'var(--bg-base)',
                 borderRadius: '10px',
-                border: isDropTarget ? '2px dashed #888' : '1px solid #1a1a1a',
+                border: isDropTarget ? '2px dashed var(--accent-primary)' : '1px solid var(--bg-elevated)',
                 display: 'flex',
                 flexDirection: 'column',
                 maxHeight: '100%',
@@ -659,7 +659,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               {/* Column header */}
               <div style={{
                 padding: '12px 14px',
-                borderBottom: '1px solid #1a1a1a',
+                borderBottom: '1px solid var(--bg-elevated)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -668,7 +668,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 <div style={{
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: '#f0f0f0',
+                  color: 'var(--text-primary)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em'
                 }}>
@@ -677,7 +677,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{
                     fontSize: '11px',
-                    color: '#666',
+                    color: 'var(--accent-dark)',
                     fontFamily: 'monospace'
                   }}>
                     {nodesInColumn.length}
@@ -687,15 +687,15 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#666',
+                      color: 'var(--accent-dark)',
                       cursor: 'pointer',
                       padding: '2px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--error)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
                   >
                     <X size={14} />
                   </button>
@@ -719,10 +719,10 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 {nodesInColumn.length === 0 && (
                   <div style={{
                     padding: '20px',
-                    color: '#555',
+                    color: 'var(--accent-dark)',
                     fontSize: '12px',
                     textAlign: 'center',
-                    border: '1px dashed #2a2a2a',
+                    border: '1px dashed var(--border-default)',
                     borderRadius: '6px'
                   }}>
                     Drop nodes here
@@ -746,7 +746,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
       {/* Header with filters */}
       <div style={{
         padding: '12px 16px',
-        borderBottom: '1px solid #1a1a1a',
+        borderBottom: '1px solid var(--bg-elevated)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
@@ -766,7 +766,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 border: '1px solid rgba(136, 136, 136, 0.2)',
                 borderRadius: '6px',
                 fontSize: '12px',
-                color: '#888'
+                color: 'var(--accent-primary)'
               }}
             >
               {filter}
@@ -775,7 +775,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#888',
+                  color: 'var(--accent-primary)',
                   cursor: 'pointer',
                   padding: '0',
                   display: 'flex',
@@ -797,20 +797,20 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 gap: '4px',
                 padding: '4px 10px',
                 background: 'transparent',
-                border: '1px dashed #333',
+                border: '1px dashed var(--border-default)',
                 borderRadius: '6px',
-                color: '#666',
+                color: 'var(--accent-dark)',
                 fontSize: '12px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#888';
-                e.currentTarget.style.color = '#888';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#333';
-                e.currentTarget.style.color = '#666';
+                e.currentTarget.style.borderColor = 'var(--border-default)';
+                e.currentTarget.style.color = 'var(--accent-dark)';
               }}
             >
               <Plus size={12} />
@@ -824,8 +824,8 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 top: '100%',
                 left: 0,
                 marginTop: '4px',
-                background: '#1a1a1a',
-                border: '1px solid #2a2a2a',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '8px',
                 padding: '8px',
                 minWidth: '200px',
@@ -843,20 +843,20 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                   style={{
                     width: '100%',
                     padding: '8px',
-                    background: '#0a0a0a',
-                    border: '1px solid #2a2a2a',
+                    background: 'var(--bg-base)',
+                    border: '1px solid var(--border-default)',
                     borderRadius: '6px',
-                    color: '#f0f0f0',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     marginBottom: '8px'
                   }}
                 />
                 {dimensionsLoading ? (
-                  <div style={{ padding: '12px', color: '#666', fontSize: '12px', textAlign: 'center' }}>
+                  <div style={{ padding: '12px', color: 'var(--accent-dark)', fontSize: '12px', textAlign: 'center' }}>
                     Loading dimensions...
                   </div>
                 ) : filterPickerDimensions.length === 0 ? (
-                  <div style={{ padding: '12px', color: '#666', fontSize: '12px', textAlign: 'center' }}>
+                  <div style={{ padding: '12px', color: 'var(--accent-dark)', fontSize: '12px', textAlign: 'center' }}>
                     {filterSearchQuery ? 'No matching dimensions' : 'No dimensions available'}
                   </div>
                 ) : (
@@ -873,16 +873,16 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                         background: 'transparent',
                         border: 'none',
                         borderRadius: '4px',
-                        color: '#ccc',
+                        color: 'var(--text-primary)',
                         fontSize: '12px',
                         cursor: 'pointer',
                         textAlign: 'left'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a2a'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--border-default)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <span>{d.dimension}</span>
-                      <span style={{ color: '#666', fontFamily: 'monospace', fontSize: '11px' }}>
+                      <span style={{ color: 'var(--accent-dark)', fontFamily: 'monospace', fontSize: '11px' }}>
                         {d.count}
                       </span>
                     </button>
@@ -899,12 +899,12 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                 padding: '4px 8px',
                 background: 'transparent',
                 border: 'none',
-                color: '#666',
+                color: 'var(--accent-dark)',
                 fontSize: '11px',
                 cursor: 'pointer'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--error)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
             >
               Clear all
             </button>
@@ -917,17 +917,17 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
           alignItems: 'center',
           gap: '2px',
           padding: '2px',
-          background: '#111',
+          background: 'var(--bg-surface)',
           borderRadius: '6px'
         }}>
           <button
             onClick={() => setViewMode('list')}
             style={{
               padding: '6px 8px',
-              background: viewMode === 'list' ? '#1a1a1a' : 'transparent',
+              background: viewMode === 'list' ? 'var(--bg-elevated)' : 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: viewMode === 'list' ? '#999' : '#666',
+              color: viewMode === 'list' ? 'var(--text-secondary)' : 'var(--accent-dark)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center'
@@ -940,10 +940,10 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
             onClick={() => setViewMode('grid')}
             style={{
               padding: '6px 8px',
-              background: viewMode === 'grid' ? '#1a1a1a' : 'transparent',
+              background: viewMode === 'grid' ? 'var(--bg-elevated)' : 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: viewMode === 'grid' ? '#999' : '#666',
+              color: viewMode === 'grid' ? 'var(--text-secondary)' : 'var(--accent-dark)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center'
@@ -956,10 +956,10 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
             onClick={() => setViewMode('kanban')}
             style={{
               padding: '6px 8px',
-              background: viewMode === 'kanban' ? '#1a1a1a' : 'transparent',
+              background: viewMode === 'kanban' ? 'var(--bg-elevated)' : 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: viewMode === 'kanban' ? '#999' : '#666',
+              color: viewMode === 'kanban' ? 'var(--text-secondary)' : 'var(--accent-dark)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center'
@@ -980,9 +980,9 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               gap: '4px',
               padding: '6px 10px',
               background: 'transparent',
-              border: '1px solid #2a2a2a',
+              border: '1px solid var(--border-default)',
               borderRadius: '6px',
-              color: activeView ? '#999' : '#888',
+              color: activeView ? 'var(--text-secondary)' : 'var(--accent-primary)',
               fontSize: '12px',
               cursor: 'pointer'
             }}
@@ -998,8 +998,8 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               top: '100%',
               right: 0,
               marginTop: '4px',
-              background: '#1a1a1a',
-              border: '1px solid #2a2a2a',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
               borderRadius: '8px',
               padding: '4px',
               minWidth: '180px',
@@ -1007,7 +1007,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
             }}>
               {savedViews.length === 0 ? (
-                <div style={{ padding: '12px', color: '#666', fontSize: '12px', textAlign: 'center' }}>
+                <div style={{ padding: '12px', color: 'var(--accent-dark)', fontSize: '12px', textAlign: 'center' }}>
                   No saved views yet
                 </div>
               ) : (
@@ -1020,13 +1020,13 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                       justifyContent: 'space-between',
                       padding: '8px 10px',
                       borderRadius: '4px',
-                      background: activeViewId === view.id ? '#2a2a2a' : 'transparent',
+                      background: activeViewId === view.id ? 'var(--border-default)' : 'transparent',
                       cursor: 'pointer'
                     }}
                     onClick={() => handleLoadView(view)}
                     onMouseEnter={(e) => {
                       if (activeViewId !== view.id) {
-                        e.currentTarget.style.background = '#222';
+                        e.currentTarget.style.background = 'var(--bg-elevated)';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -1035,7 +1035,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                       }
                     }}
                   >
-                    <span style={{ color: '#ccc', fontSize: '12px' }}>{view.name}</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '12px' }}>{view.name}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1044,19 +1044,19 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: '#666',
+                        color: 'var(--accent-dark)',
                         cursor: 'pointer',
                         padding: '2px'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--error)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
                     >
                       <Trash2 size={12} />
                     </button>
                   </div>
                 ))
               )}
-              <div style={{ borderTop: '1px solid #2a2a2a', marginTop: '4px', paddingTop: '4px' }}>
+              <div style={{ borderTop: '1px solid var(--border-default)', marginTop: '4px', paddingTop: '4px' }}>
                 <button
                   onClick={() => {
                     setShowSavedViewsDropdown(false);
@@ -1071,11 +1071,11 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
                     background: 'transparent',
                     border: 'none',
                     borderRadius: '4px',
-                    color: '#999',
+                    color: 'var(--text-secondary)',
                     fontSize: '12px',
                     cursor: 'pointer'
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#222'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <Save size={12} />

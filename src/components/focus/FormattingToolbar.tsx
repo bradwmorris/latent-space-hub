@@ -88,25 +88,25 @@ export default function FormattingToolbar({ textareaRef, value, onChange, inline
 
   const buttonStyle: React.CSSProperties = {
     background: 'transparent',
-    border: '1px solid #2a2a2a',
+    border: '1px solid var(--border-default)',
     borderRadius: '4px',
     padding: '4px 8px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#888',
+    color: 'var(--accent-primary)',
     transition: 'all 0.15s'
   };
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = '#1a1a1a';
-    e.currentTarget.style.color = '#ccc';
+    e.currentTarget.style.background = 'var(--bg-elevated)';
+    e.currentTarget.style.color = 'var(--text-primary)';
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.background = 'transparent';
-    e.currentTarget.style.color = '#888';
+    e.currentTarget.style.color = 'var(--accent-primary)';
   };
 
   return (
@@ -117,7 +117,7 @@ export default function FormattingToolbar({ textareaRef, value, onChange, inline
       ...(inline ? {} : {
         marginBottom: '8px',
         paddingBottom: '8px',
-        borderBottom: '1px solid #1a1a1a'
+        borderBottom: '1px solid var(--bg-elevated)'
       })
     }}>
       <button
@@ -150,7 +150,7 @@ export default function FormattingToolbar({ textareaRef, value, onChange, inline
       >
         <Heading3 size={14} />
       </button>
-      <div style={{ width: '1px', background: '#2a2a2a', margin: '0 4px' }} />
+      <div style={{ width: '1px', background: 'var(--border-default)', margin: '0 4px' }} />
       <button
         type="button"
         onClick={() => applyFormatting('bold')}

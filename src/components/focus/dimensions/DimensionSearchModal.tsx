@@ -308,8 +308,8 @@ export default function DimensionSearchModal({
           display: flex;
           align-items: center;
           gap: 16px;
-          background: #141414;
-          border: 1px solid #262626;
+          background: var(--bg-hover);
+          border: 1px solid var(--border-default);
           border-radius: 16px;
           padding: 20px 24px;
           box-shadow: 
@@ -320,7 +320,7 @@ export default function DimensionSearchModal({
         .search-icon {
           width: 22px;
           height: 22px;
-          color: #525252;
+          color: var(--text-secondary);
           flex-shrink: 0;
         }
         
@@ -329,14 +329,14 @@ export default function DimensionSearchModal({
           background: none;
           border: none;
           outline: none;
-          color: #fafafa;
+          color: var(--text-primary);
           font-size: 18px;
           font-family: inherit;
           font-weight: 400;
         }
         
         .search-input::placeholder {
-          color: #525252;
+          color: var(--text-secondary);
         }
         
         .search-shortcut {
@@ -350,18 +350,18 @@ export default function DimensionSearchModal({
           align-items: center;
           justify-content: center;
           padding: 4px 8px;
-          background: #262626;
+          background: var(--border-default);
           border-radius: 6px;
           font-size: 11px;
           font-family: inherit;
-          color: #737373;
-          border: 1px solid #333;
+          color: var(--text-muted);
+          border: 1px solid var(--border-default);
         }
         
         .search-results {
           margin-top: 8px;
-          background: #141414;
-          border: 1px solid #262626;
+          background: var(--bg-hover);
+          border: 1px solid var(--border-default);
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 
@@ -378,7 +378,7 @@ export default function DimensionSearchModal({
           padding: 16px 20px;
           background: transparent;
           border: none;
-          border-bottom: 1px solid #1f1f1f;
+          border-bottom: 1px solid var(--bg-elevated);
           cursor: pointer;
           transition: background 100ms ease;
           text-align: left;
@@ -391,34 +391,34 @@ export default function DimensionSearchModal({
         
         .search-result-item:hover,
         .search-result-item.selected {
-          background: #1a1a1a;
+          background: var(--bg-elevated);
         }
         
         .result-name {
           flex: 1;
-          color: #e5e5e5;
+          color: var(--text-primary);
           font-size: 15px;
         }
         
         .result-name.priority {
-          color: #999;
+          color: var(--text-secondary);
         }
         
         .result-count {
-          color: #525252;
+          color: var(--text-secondary);
           font-size: 12px;
           font-family: 'SF Mono', 'Fira Code', monospace;
         }
         
         .result-hint {
-          color: #525252;
+          color: var(--text-secondary);
           font-size: 13px;
         }
         
         .search-create {
           margin-top: 8px;
-          background: #141414;
-          border: 1px solid #262626;
+          background: var(--bg-hover);
+          border: 1px solid var(--border-default);
           border-radius: 16px;
           overflow: hidden;
           padding: 16px 20px;
@@ -435,7 +435,7 @@ export default function DimensionSearchModal({
         }
 
         .create-title {
-          color: #999;
+          color: var(--text-secondary);
           font-size: 15px;
           font-weight: 500;
         }
@@ -448,10 +448,10 @@ export default function DimensionSearchModal({
         .description-input {
           width: 100%;
           padding: 12px;
-          background: #0a0a0a;
-          border: 1px solid #333;
+          background: var(--bg-base);
+          border: 1px solid var(--border-default);
           border-radius: 8px;
-          color: #e5e5e5;
+          color: var(--text-primary);
           font-size: 14px;
           font-family: inherit;
           resize: none;
@@ -460,11 +460,11 @@ export default function DimensionSearchModal({
         }
 
         .description-input:focus {
-          border-color: #525252;
+          border-color: var(--text-secondary);
         }
 
         .description-input::placeholder {
-          color: #525252;
+          color: var(--text-secondary);
         }
 
         .description-counter {
@@ -472,7 +472,7 @@ export default function DimensionSearchModal({
           bottom: 8px;
           right: 12px;
           font-size: 11px;
-          color: #525252;
+          color: var(--text-secondary);
           font-family: 'SF Mono', 'Fira Code', monospace;
         }
 
@@ -493,35 +493,35 @@ export default function DimensionSearchModal({
           justify-content: center;
           gap: 8px;
           padding: 12px 16px;
-          background: #1a1a1a;
-          border: 1px solid #333;
+          background: var(--bg-elevated);
+          border: 1px solid var(--border-default);
           border-radius: 8px;
           cursor: pointer;
           transition: background 100ms ease;
           font-family: inherit;
-          color: #999;
+          color: var(--text-secondary);
           font-size: 14px;
           font-weight: 500;
         }
 
         .create-button:hover,
         .create-button.selected {
-          background: #262626;
+          background: var(--border-default);
         }
 
         .create-icon {
           font-size: 18px;
           font-weight: 300;
-          color: #999;
+          color: var(--text-secondary);
         }
         
         .search-empty {
           margin-top: 8px;
           padding: 32px 24px;
-          background: #141414;
-          border: 1px solid #262626;
+          background: var(--bg-hover);
+          border: 1px solid var(--border-default);
           border-radius: 16px;
-          color: #525252;
+          color: var(--text-secondary);
           font-size: 14px;
           text-align: center;
         }

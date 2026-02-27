@@ -10,6 +10,7 @@ import ExternalAgentsPanel from './ExternalAgentsPanel';
 import ContextViewer from './ContextViewer';
 import GuidesViewer from './GuidesViewer';
 import { apiKeyService } from '@/services/storage/apiKeys';
+import { Theme, useTheme } from '@/components/theme/ThemeProvider';
 
 export type SettingsTab =
   | 'logs'
@@ -18,7 +19,8 @@ export type SettingsTab =
   | 'apikeys'
   | 'database'
   | 'context'
-  | 'agents';
+  | 'agents'
+  | 'theme';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -29,6 +31,8 @@ interface SettingsModalProps {
 type TabType = SettingsTab;
 
 export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsModalProps) {
+  const { theme, resolved, setTheme } = useTheme();
+
   // Default to API Keys tab if no keys are configured, otherwise logs
   const getDefaultTab = (): TabType => {
     if (typeof window !== 'undefined') {
@@ -79,8 +83,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
         style={{
           width: '80vw',
           height: '85vh',
-          background: '#0f0f0f',
-          border: '1px solid #2a2a2a',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-default)',
           borderRadius: '8px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
           display: 'flex',
@@ -92,8 +96,8 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
         <div
           style={{
             width: '20%',
-            background: '#0a0a0a',
-            borderRight: '1px solid #2a2a2a',
+            background: 'var(--bg-base)',
+            borderRight: '1px solid var(--border-default)',
             display: 'flex',
             flexDirection: 'column',
             padding: '24px 0'
@@ -105,7 +109,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               marginBottom: '24px',
               fontSize: '18px',
               fontWeight: '600',
-              color: '#fff'
+              color: 'var(--text-primary)'
             }}
           >
             Settings
@@ -116,9 +120,9 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: activeTab === 'logs' ? '#fff' : '#888',
-                background: activeTab === 'logs' ? '#1a1a1a' : 'transparent',
-                borderLeft: activeTab === 'logs' ? '3px solid #666' : '3px solid transparent',
+                color: activeTab === 'logs' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'logs' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'logs' ? '3px solid var(--accent-dark)' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -130,9 +134,9 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: activeTab === 'tools' ? '#fff' : '#888',
-                background: activeTab === 'tools' ? '#1a1a1a' : 'transparent',
-                borderLeft: activeTab === 'tools' ? '3px solid #666' : '3px solid transparent',
+                color: activeTab === 'tools' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'tools' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'tools' ? '3px solid var(--accent-dark)' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -144,9 +148,9 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: activeTab === 'guides' ? '#fff' : '#888',
-                background: activeTab === 'guides' ? '#1a1a1a' : 'transparent',
-                borderLeft: activeTab === 'guides' ? '3px solid #666' : '3px solid transparent',
+                color: activeTab === 'guides' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'guides' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'guides' ? '3px solid var(--accent-dark)' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -158,9 +162,9 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: activeTab === 'apikeys' ? '#fff' : '#888',
-                background: activeTab === 'apikeys' ? '#1a1a1a' : 'transparent',
-                borderLeft: activeTab === 'apikeys' ? '3px solid #666' : '3px solid transparent',
+                color: activeTab === 'apikeys' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'apikeys' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'apikeys' ? '3px solid var(--accent-dark)' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -172,9 +176,9 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: activeTab === 'database' ? '#fff' : '#888',
-                background: activeTab === 'database' ? '#1a1a1a' : 'transparent',
-                borderLeft: activeTab === 'database' ? '3px solid #666' : '3px solid transparent',
+                color: activeTab === 'database' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'database' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'database' ? '3px solid var(--accent-dark)' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -186,9 +190,9 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: activeTab === 'context' ? '#fff' : '#888',
-                background: activeTab === 'context' ? '#1a1a1a' : 'transparent',
-                borderLeft: activeTab === 'context' ? '3px solid #666' : '3px solid transparent',
+                color: activeTab === 'context' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'context' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'context' ? '3px solid var(--accent-dark)' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -200,9 +204,9 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: activeTab === 'agents' ? '#fff' : '#888',
-                background: activeTab === 'agents' ? '#1a1a1a' : 'transparent',
-                borderLeft: activeTab === 'agents' ? '3px solid #666' : '3px solid transparent',
+                color: activeTab === 'agents' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'agents' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'agents' ? '3px solid var(--accent-dark)' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -210,26 +214,40 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               External Agents
             </div>
             <div
+              onClick={() => setActiveTab('theme')}
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: '#888',
-                opacity: 0.4,
-                cursor: 'not-allowed'
+                color: activeTab === 'theme' ? 'var(--text-primary)' : 'var(--accent-primary)',
+                background: activeTab === 'theme' ? 'var(--bg-elevated)' : 'transparent',
+                borderLeft: activeTab === 'theme' ? '3px solid var(--accent-dark)' : '3px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
             >
-              Backups
+              Theme
             </div>
             <div
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',
-                color: '#888',
+                color: 'var(--accent-primary)',
                 opacity: 0.4,
                 cursor: 'not-allowed'
               }}
             >
               Preferences
+            </div>
+            <div
+              style={{
+                padding: '12px 24px',
+                fontSize: '14px',
+                color: 'var(--accent-primary)',
+                opacity: 0.4,
+                cursor: 'not-allowed'
+              }}
+            >
+              Backups
             </div>
           </nav>
 
@@ -237,7 +255,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
             style={{
               marginTop: 'auto',
               padding: '24px',
-              borderTop: '1px solid #1f2937',
+              borderTop: '1px solid var(--border-default)',
               display: 'flex',
               flexDirection: 'column',
               gap: '12px'
@@ -249,7 +267,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 fontWeight: 600,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                color: '#64748b'
+                color: 'var(--text-muted)'
               }}
             >
               Local Mode
@@ -257,7 +275,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
             <p
               style={{
                 fontSize: '13px',
-                color: '#94a3b8',
+                color: 'var(--text-secondary)',
                 margin: 0,
                 lineHeight: 1.5
               }}
@@ -279,7 +297,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
           <div
             style={{
               padding: '16px 24px',
-              borderBottom: '1px solid #2a2a2a',
+              borderBottom: '1px solid var(--border-default)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
@@ -290,7 +308,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 margin: 0,
                 fontSize: '16px',
                 fontWeight: '600',
-                color: '#fff'
+                color: 'var(--text-primary)'
               }}
             >
               {activeTab === 'logs' && 'System Logs'}
@@ -300,13 +318,14 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
               {activeTab === 'database' && 'Knowledge Database'}
               {activeTab === 'context' && 'Auto-Context'}
               {activeTab === 'agents' && 'External Agents'}
+              {activeTab === 'theme' && 'Theme'}
             </h2>
             <button
               onClick={onClose}
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#888',
+                color: 'var(--accent-primary)',
                 cursor: 'pointer',
                 fontSize: '24px',
                 lineHeight: 1,
@@ -314,10 +333,10 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
                 transition: 'color 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#888';
+                e.currentTarget.style.color = 'var(--accent-primary)';
               }}
               title="Close (ESC)"
             >
@@ -334,6 +353,61 @@ export default function SettingsModal({ isOpen, onClose, initialTab }: SettingsM
             {activeTab === 'database' && <DatabaseViewer />}
             {activeTab === 'context' && <ContextViewer />}
             {activeTab === 'agents' && <ExternalAgentsPanel />}
+            {activeTab === 'theme' && (
+              <div
+                style={{
+                  height: '100%',
+                  overflowY: 'auto',
+                  padding: '24px',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: '560px',
+                    border: '1px solid var(--border-default)',
+                    background: 'var(--bg-surface)',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>
+                      Appearance
+                    </div>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                      Choose how the app colors are rendered. Current resolved theme: {resolved}.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {(['light', 'dark', 'system'] as Theme[]).map((option) => {
+                      const active = theme === option;
+                      return (
+                        <button
+                          key={option}
+                          onClick={() => setTheme(option)}
+                          style={{
+                            border: active ? '1px solid var(--accent-primary)' : '1px solid var(--border-default)',
+                            background: active ? 'var(--bg-elevated)' : 'var(--bg-base)',
+                            color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            textTransform: 'capitalize',
+                            fontSize: '13px'
+                          }}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -95,7 +95,7 @@ export default function NodePane({
       <PaneHeader slot={slot} onCollapse={onCollapse} onSwapPanes={onSwapPanes}>
         {/* Tabs rendered inline */}
         {openTabs.length === 0 ? (
-          <span style={{ fontSize: '12px', color: '#666' }}>No tabs open</span>
+          <span style={{ fontSize: '12px', color: 'var(--accent-dark)' }}>No tabs open</span>
         ) : (
           openTabs.map((tabId) => {
             const title = nodeTitles[tabId] || 'Loading...';
@@ -118,7 +118,7 @@ export default function NodePane({
                   alignItems: 'center',
                   gap: '4px',
                   padding: '4px 8px',
-                  background: isActiveTab ? '#1f1f1f' : 'transparent',
+                  background: isActiveTab ? 'var(--bg-elevated)' : 'transparent',
                   borderRadius: '4px',
                   borderBottom: isActiveTab ? '2px solid var(--accent-brand)' : '2px solid transparent',
                   cursor: 'grab',
@@ -129,7 +129,7 @@ export default function NodePane({
                   onClick={() => onTabSelect(tabId)}
                   style={{
                     fontSize: '11px',
-                    color: isActiveTab ? '#fff' : '#888',
+                    color: isActiveTab ? 'var(--text-primary)' : 'var(--accent-primary)',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
@@ -146,15 +146,15 @@ export default function NodePane({
                   }}
                   style={{
                     fontSize: '12px',
-                    color: '#666',
+                    color: 'var(--accent-dark)',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
                     padding: '0 2px',
                     lineHeight: 1,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
                 >
                   ×
                 </button>
@@ -187,8 +187,8 @@ export default function NodePane({
             position: 'fixed',
             top: contextMenu.y,
             left: contextMenu.x,
-            background: '#1a1a1a',
-            border: '1px solid #2a2a2a',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)',
             borderRadius: '6px',
             padding: '4px',
             zIndex: 9999,
@@ -212,18 +212,18 @@ export default function NodePane({
                 background: 'transparent',
                 border: 'none',
                 borderRadius: '4px',
-                color: '#ccc',
+                color: 'var(--text-primary)',
                 fontSize: '12px',
                 cursor: 'pointer',
                 textAlign: 'left',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#2a2a2a';
-                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.background = 'var(--border-default)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#ccc';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               <span style={{ fontSize: '14px' }}>↗</span>
@@ -244,18 +244,18 @@ export default function NodePane({
               background: 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: '#ccc',
+              color: 'var(--text-primary)',
               fontSize: '12px',
               cursor: 'pointer',
               textAlign: 'left',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#2a2a2a';
-              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.background = 'var(--border-default)';
+              e.currentTarget.style.color = 'var(--text-primary)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#ccc';
+              e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
             <span style={{ fontSize: '14px' }}>×</span>

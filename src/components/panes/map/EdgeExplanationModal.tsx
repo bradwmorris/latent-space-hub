@@ -51,7 +51,7 @@ export default function EdgeExplanationModal({
           <div className="edge-modal-connection">
             <span className="edge-modal-node-badge">{sourceTitle.length > 24 ? sourceTitle.slice(0, 22) + '\u2026' : sourceTitle}</span>
             <svg width="20" height="12" viewBox="0 0 20 12" fill="none" style={{ flexShrink: 0 }}>
-              <path d="M0 6h16M12 1l5 5-5 5" stroke="#888" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M0 6h16M12 1l5 5-5 5" stroke="var(--accent-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span className="edge-modal-node-badge">{targetTitle.length > 24 ? targetTitle.slice(0, 22) + '\u2026' : targetTitle}</span>
           </div>
@@ -110,8 +110,8 @@ export default function EdgeExplanationModal({
         }
 
         .edge-modal-card {
-          background: #141414;
-          border: 1px solid #262626;
+          background: var(--bg-hover);
+          border: 1px solid var(--border-default);
           border-radius: 16px;
           padding: 24px;
           box-shadow:
@@ -144,14 +144,14 @@ export default function EdgeExplanationModal({
         }
 
         .edge-modal-input-wrapper {
-          border: 1px solid #262626;
+          border: 1px solid var(--border-default);
           border-radius: 12px;
-          background: #0a0a0a;
+          background: var(--bg-base);
           transition: border-color 0.15s ease;
         }
 
         .edge-modal-input-wrapper:focus-within {
-          border-color: #333;
+          border-color: var(--border-default);
         }
 
         .edge-modal-textarea {
@@ -159,7 +159,7 @@ export default function EdgeExplanationModal({
           background: transparent;
           border: none;
           padding: 16px 18px;
-          color: #fafafa;
+          color: var(--text-primary);
           font-size: 15px;
           font-family: inherit;
           resize: none;
@@ -168,7 +168,7 @@ export default function EdgeExplanationModal({
         }
 
         .edge-modal-textarea::placeholder {
-          color: #525252;
+          color: var(--text-secondary);
         }
 
         .edge-modal-footer {
@@ -180,7 +180,7 @@ export default function EdgeExplanationModal({
 
         .edge-modal-hint {
           font-size: 11px;
-          color: #525252;
+          color: var(--text-secondary);
         }
 
         .edge-modal-hint kbd {
@@ -188,12 +188,12 @@ export default function EdgeExplanationModal({
           align-items: center;
           justify-content: center;
           padding: 2px 6px;
-          background: #262626;
+          background: var(--border-default);
           border-radius: 4px;
           font-size: 10px;
           font-family: inherit;
-          color: #737373;
-          border: 1px solid #333;
+          color: var(--text-muted);
+          border: 1px solid var(--border-default);
         }
 
         .edge-modal-actions {
@@ -213,30 +213,30 @@ export default function EdgeExplanationModal({
 
         .edge-modal-btn--cancel {
           background: transparent;
-          border: 1px solid #262626;
-          color: #737373;
+          border: 1px solid var(--border-default);
+          color: var(--text-muted);
         }
 
         .edge-modal-btn--cancel:hover {
-          border-color: #333;
-          color: #a3a3a3;
+          border-color: var(--border-default);
+          color: var(--text-secondary);
         }
 
         .edge-modal-btn--submit {
-          background: #262626;
+          background: var(--border-default);
           border: 1px solid transparent;
-          color: #525252;
+          color: var(--text-secondary);
           cursor: default;
         }
 
         .edge-modal-btn--submit.active {
-          background: #333;
-          color: #e5e5e5;
+          background: var(--border-default);
+          color: var(--text-primary);
           cursor: pointer;
         }
 
         .edge-modal-btn--submit.active:hover {
-          background: #555;
+          background: var(--accent-dark);
         }
 
         @keyframes edgeBackdropIn {

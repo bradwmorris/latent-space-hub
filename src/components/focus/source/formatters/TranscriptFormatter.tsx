@@ -158,7 +158,7 @@ export default function TranscriptFormatter({ content, onTextSelect, highlighted
   if (segments.length === 0) {
     return (
       <div style={{
-        color: '#555',
+        color: 'var(--accent-dark)',
         fontSize: '15px',
         fontStyle: 'italic',
         textAlign: 'center',
@@ -196,7 +196,7 @@ export default function TranscriptFormatter({ content, onTextSelect, highlighted
             <span style={{
               fontSize: '11px',
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, monospace',
-              color: '#555',
+              color: 'var(--accent-dark)',
             }}>
               {segment.timestamp}
             </span>
@@ -204,7 +204,7 @@ export default function TranscriptFormatter({ content, onTextSelect, highlighted
               <span style={{
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#888',
+                color: 'var(--accent-primary)',
               }}>
                 {segment.speaker}
               </span>

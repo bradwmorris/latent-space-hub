@@ -22,7 +22,7 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        color: '#666',
+        color: 'var(--accent-dark)',
         fontSize: '13px'
       }}>
         No nodes match the current filters
@@ -49,8 +49,8 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '16px',
-                background: '#0a0a0a',
-                border: '1px solid #1a1a1a',
+                background: 'var(--bg-base)',
+                border: '1px solid var(--bg-elevated)',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -58,13 +58,13 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                 minHeight: '140px'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#111';
-                e.currentTarget.style.borderColor = '#333';
+                e.currentTarget.style.background = 'var(--bg-surface)';
+                e.currentTarget.style.borderColor = 'var(--border-default)';
                 e.currentTarget.style.transform = 'translateY(-2px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#0a0a0a';
-                e.currentTarget.style.borderColor = '#1a1a1a';
+                e.currentTarget.style.background = 'var(--bg-base)';
+                e.currentTarget.style.borderColor = 'var(--bg-elevated)';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
@@ -81,16 +81,16 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: '#1a1a1a',
+                  background: 'var(--bg-elevated)',
                   borderRadius: '6px',
                   flexShrink: 0
                 }}>
-                  <File size={14} color="#666" />
+                  <File size={14} color="var(--accent-dark)" />
                 </div>
                 <div style={{
                   fontSize: '13px',
                   fontWeight: 500,
-                  color: '#e5e5e5',
+                  color: 'var(--text-primary)',
                   lineHeight: '1.3',
                   overflow: 'hidden',
                   display: '-webkit-box',
@@ -106,7 +106,7 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                 <div style={{
                   flex: 1,
                   fontSize: '11px',
-                  color: '#666',
+                  color: 'var(--accent-dark)',
                   lineHeight: '1.5',
                   overflow: 'hidden',
                   display: '-webkit-box',
@@ -131,10 +131,10 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                       key={dim}
                       style={{
                         padding: '2px 6px',
-                        background: '#1a1a1a',
+                        background: 'var(--bg-elevated)',
                         borderRadius: '3px',
                         fontSize: '10px',
-                        color: '#888'
+                        color: 'var(--accent-primary)'
                       }}
                     >
                       {dim}
@@ -144,7 +144,7 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                     <span style={{
                       padding: '2px 6px',
                       fontSize: '10px',
-                      color: '#555'
+                      color: 'var(--accent-dark)'
                     }}>
                       +{node.dimensions.length - 3}
                     </span>

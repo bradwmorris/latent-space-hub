@@ -89,6 +89,7 @@ export interface HubMetadata {
 export interface MemberMetadata {
   discord_id: string;
   discord_handle: string;
+  avatar_url?: string;
   joined_at: string;
   last_active?: string;
   interaction_count?: number;

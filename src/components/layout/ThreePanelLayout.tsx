@@ -69,9 +69,9 @@ function TypeNodeList({
     return (
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#444', fontSize: '13px', flexDirection: 'column', gap: '6px',
+        color: 'var(--text-muted)', fontSize: '13px', flexDirection: 'column', gap: '6px',
       }}>
-        <div style={{ color: '#555' }}>Select a type from the left panel</div>
+        <div style={{ color: 'var(--accent-dark)' }}>Select a type from the left panel</div>
         <div style={{ fontSize: '12px', color: '#3a3a3a' }}>or switch to Feed or Map view</div>
       </div>
     );
@@ -79,7 +79,7 @@ function TypeNodeList({
 
   if (loading) {
     return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '13px' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
         Loading...
       </div>
     );
@@ -89,7 +89,7 @@ function TypeNodeList({
     return (
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#444', fontSize: '13px',
+        color: 'var(--text-muted)', fontSize: '13px',
       }}>
         No {selectedType} nodes yet
       </div>
@@ -104,12 +104,12 @@ function TypeNodeList({
         display: 'flex',
         alignItems: 'baseline',
         justifyContent: 'space-between',
-        borderBottom: '1px solid #1a1a1a',
+        borderBottom: '1px solid var(--bg-elevated)',
       }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: '#999', textTransform: 'capitalize' }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
           {selectedType}
         </span>
-        <span style={{ fontSize: '11px', color: '#444' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
           {nodes.length} node{nodes.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -137,10 +137,10 @@ function TypeNodeList({
                 display: 'flex',
                 gap: '12px',
                 padding: '12px 24px',
-                background: isHovered ? '#161616' : 'transparent',
+                background: isHovered ? 'var(--bg-hover)' : 'transparent',
                 border: 'none',
-                borderBottom: '1px solid #161616',
-                color: '#ccc',
+                borderBottom: '1px solid var(--bg-hover)',
+                color: 'var(--text-primary)',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'background 0.12s ease',
@@ -159,7 +159,7 @@ function TypeNodeList({
                     objectFit: 'cover',
                     borderRadius: '4px',
                     flexShrink: 0,
-                    background: '#1a1a1a',
+                    background: 'var(--bg-elevated)',
                     marginTop: '2px',
                   }}
                 />
@@ -171,7 +171,7 @@ function TypeNodeList({
               <div style={{
                 fontSize: '13px',
                 fontWeight: 500,
-                color: isHovered ? '#fff' : '#e0e0e0',
+                color: isHovered ? 'var(--text-primary)' : '#e0e0e0',
                 lineHeight: 1.4,
                 transition: 'color 0.12s ease',
               }}>
@@ -182,7 +182,7 @@ function TypeNodeList({
               {node.description && (
                 <div style={{
                   fontSize: '12px',
-                  color: '#666',
+                  color: 'var(--accent-dark)',
                   lineHeight: 1.4,
                   overflow: 'hidden',
                   display: '-webkit-box',
@@ -203,7 +203,7 @@ function TypeNodeList({
               }}>
                 {/* Date */}
                 {formattedDate && (
-                  <span style={{ fontSize: '11px', color: '#444' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                     {formattedDate}
                   </span>
                 )}
@@ -212,7 +212,7 @@ function TypeNodeList({
                 {edgeCount > 0 && (
                   <span style={{
                     fontSize: '11px',
-                    color: '#444',
+                    color: 'var(--text-muted)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '3px',
@@ -230,11 +230,11 @@ function TypeNodeList({
                         key={dim}
                         style={{
                           fontSize: '10px',
-                          color: '#555',
-                          background: '#1a1a1a',
+                          color: 'var(--accent-dark)',
+                          background: 'var(--bg-elevated)',
                           padding: '1px 6px',
                           borderRadius: '3px',
-                          border: '1px solid #222',
+                          border: '1px solid var(--bg-elevated)',
                           whiteSpace: 'nowrap',
                         }}
                       >
@@ -535,7 +535,7 @@ export default function ThreePanelLayout() {
         display: 'flex',
         height: '100vh',
         width: '100vw',
-        background: '#0a0a0a',
+        background: 'var(--bg-base)',
         overflow: 'hidden',
       }}
     >
@@ -587,7 +587,7 @@ export default function ThreePanelLayout() {
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            background: '#111',
+            background: 'var(--bg-surface)',
             margin: '0 8px 8px 0',
             borderRadius: '8px',
           }}

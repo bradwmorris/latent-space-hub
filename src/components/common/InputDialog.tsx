@@ -87,7 +87,7 @@ export default function InputDialog({
           width: '380px',
           maxWidth: '100%',
           background: '#121212',
-          border: '1px solid #2a2a2a',
+          border: '1px solid var(--border-default)',
           borderRadius: '8px',
           padding: '24px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)'
@@ -96,7 +96,7 @@ export default function InputDialog({
         <div style={{ 
           fontSize: '15px', 
           fontWeight: 600, 
-          color: '#e5e5e5', 
+          color: 'var(--text-primary)', 
           marginBottom: '12px',
           letterSpacing: '0.01em',
           fontFamily: 'inherit'
@@ -123,10 +123,10 @@ export default function InputDialog({
           style={{
             width: '100%',
             padding: '10px 12px',
-            background: '#0a0a0a',
-            border: '1px solid #2a2a2a',
+            background: 'var(--bg-base)',
+            border: '1px solid var(--border-default)',
             borderRadius: '6px',
-            color: '#e5e5e5',
+            color: 'var(--text-primary)',
             fontSize: '13px',
             marginBottom: '24px',
             outline: 'none',
@@ -137,7 +137,7 @@ export default function InputDialog({
             e.target.style.borderColor = '#3a3a3a';
           }}
           onBlur={(e) => {
-            e.target.style.borderColor = '#2a2a2a';
+            e.target.style.borderColor = 'var(--border-default)';
           }}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
@@ -146,9 +146,9 @@ export default function InputDialog({
             style={{
               padding: '10px 16px',
               borderRadius: '8px',
-              border: '1px solid #1f1f1f',
+              border: '1px solid var(--bg-elevated)',
               background: 'transparent',
-              color: '#94a3b8',
+              color: 'var(--text-secondary)',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               fontSize: '11px',
@@ -157,14 +157,14 @@ export default function InputDialog({
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#0f0f0f';
-              e.currentTarget.style.borderColor = '#2a2a2a';
-              e.currentTarget.style.color = '#cbd5f5';
+              e.currentTarget.style.background = 'var(--bg-surface)';
+              e.currentTarget.style.borderColor = 'var(--border-default)';
+              e.currentTarget.style.color = 'var(--accent-brand-muted)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = '#1f1f1f';
-              e.currentTarget.style.color = '#94a3b8';
+              e.currentTarget.style.borderColor = 'var(--bg-elevated)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
             }}
           >
             {cancelLabel}
@@ -175,9 +175,9 @@ export default function InputDialog({
             style={{
               padding: '10px 16px',
               borderRadius: '8px',
-              border: '1px solid #555',
-              background: inputValue.trim() ? '#1a1a1a' : '#0f0f0f',
-              color: inputValue.trim() ? '#ccc' : '#4a4a4a',
+              border: '1px solid var(--accent-dark)',
+              background: inputValue.trim() ? 'var(--bg-elevated)' : 'var(--bg-surface)',
+              color: inputValue.trim() ? 'var(--text-primary)' : '#4a4a4a',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               fontSize: '11px',
@@ -187,16 +187,16 @@ export default function InputDialog({
             }}
             onMouseEnter={(e) => {
               if (inputValue.trim()) {
-                e.currentTarget.style.background = '#2a2a2a';
-                e.currentTarget.style.borderColor = '#aaa';
-                e.currentTarget.style.color = '#e5e5e5';
+                e.currentTarget.style.background = 'var(--border-default)';
+                e.currentTarget.style.borderColor = 'var(--accent-light)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }
             }}
             onMouseLeave={(e) => {
               if (inputValue.trim()) {
-                e.currentTarget.style.background = '#1a1a1a';
-                e.currentTarget.style.borderColor = '#555';
-                e.currentTarget.style.color = '#ccc';
+                e.currentTarget.style.background = 'var(--bg-elevated)';
+                e.currentTarget.style.borderColor = 'var(--accent-dark)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }
             }}
           >

@@ -5,7 +5,8 @@
     "graph-bot-polish",
     "evals-dashboard",
     "member-nodes",
-    "visual-pizazz"
+    "visual-pizazz",
+    "member-profiles"
   ],
   "projects": {
     "bot-polish-v2": {
@@ -91,6 +92,22 @@
         { "done": true, "text": "Part 5: Polish stat counters — weight, hover effects, selected border" },
         { "done": true, "text": "Part 6: Terminal-style loading/empty states (block characters)" },
         { "done": true, "text": "Part 7: Visual QA — build + type-check pass" }
+      ]
+    },
+    "member-profiles": {
+      "id": "member-profiles",
+      "title": "Member profiles — Discord avatars + profile card display in hub",
+      "status": "ready",
+      "type": "feature",
+      "priority": "high",
+      "prd": "docs/development/prd-23-member-profiles.md",
+      "notes": "Two changes: (1) Bot captures Discord avatar URL in metadata on /join and refreshes on each interaction. (2) Hub FocusPanel renders a member profile card (avatar, role, company, location, interests, stats) when viewing member nodes. Data already exists in metadata — just not displayed.",
+      "tasks": [
+        { "done": false, "text": "Part 1: Add avatar_url capture to /join + post-interaction update in latent-space-bots" },
+        { "done": false, "text": "Part 2: Add avatar_url to MemberMetadata type in latent-space-hub" },
+        { "done": false, "text": "Part 3: Build MemberProfileCard component in FocusPanel" },
+        { "done": false, "text": "Part 4: Backfill avatar URLs for existing member nodes" },
+        { "done": false, "text": "Part 5: End-to-end test — /join, see avatar + profile in hub" }
       ]
     },
     "graph-bot-polish": {

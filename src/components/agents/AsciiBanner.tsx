@@ -52,9 +52,9 @@ export default function AsciiBanner({ helperName, displayName }: AsciiBannerProp
         letterSpacing: '0.15em',
         textTransform: 'uppercase'
       }}>
-        <span style={{ color: '#2a2a2a' }}>━━━</span>
+        <span style={{ color: 'var(--border-default)' }}>━━━</span>
         <span style={{ color: '#353535', margin: '0 8px' }}>ready</span>
-        <span style={{ color: '#2a2a2a' }}>━━━</span>
+        <span style={{ color: 'var(--border-default)' }}>━━━</span>
       </div>
       
       <style jsx>{`

@@ -50,7 +50,7 @@ export default function AsciiHeader({ totalNodes, totalEdges, totalChunks, total
       {/* System status line */}
       <div style={{
         fontSize: '11px',
-        color: '#555',
+        color: 'var(--accent-dark)',
         fontVariantNumeric: 'tabular-nums',
         display: 'flex',
         alignItems: 'center',

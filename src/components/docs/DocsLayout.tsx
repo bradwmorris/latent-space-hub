@@ -78,8 +78,8 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#0a0a0a',
-      color: '#ccc',
+      background: 'var(--bg-base)',
+      color: 'var(--text-primary)',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
       {/* Top bar */}
@@ -90,7 +90,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
         background: 'rgba(10, 10, 10, 0.85)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #1a1a1a',
+        borderBottom: '1px solid var(--bg-elevated)',
         padding: '14px 24px',
         display: 'flex',
         alignItems: 'center',
@@ -103,7 +103,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#888',
+              color: 'var(--accent-primary)',
               textDecoration: 'none',
               fontSize: '13px',
               fontFamily: "'JetBrains Mono', monospace",
@@ -112,11 +112,11 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
             <ArrowLeft size={14} />
             <span>Hub</span>
           </a>
-          <span style={{ color: '#333' }}>/</span>
+          <span style={{ color: 'var(--border-default)' }}>/</span>
           <span style={{
             fontSize: '13px',
             fontWeight: 600,
-            color: '#999',
+            color: 'var(--text-secondary)',
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
             fontFamily: "'JetBrains Mono', monospace",
@@ -132,7 +132,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
             display: 'none',
             background: 'none',
             border: 'none',
-            color: '#888',
+            color: 'var(--accent-primary)',
             cursor: 'pointer',
             padding: '4px',
           }}
@@ -176,7 +176,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   cursor: 'pointer',
                   fontSize: '13px',
                   lineHeight: 1.4,
-                  color: activeSection === s.id ? '#e5e5e5' : '#666',
+                  color: activeSection === s.id ? 'var(--text-primary)' : 'var(--accent-dark)',
                   fontWeight: activeSection === s.id ? 500 : 400,
                   transition: 'all 0.15s',
                   fontFamily: "'Inter', -apple-system, sans-serif",
@@ -197,8 +197,8 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
               top: '57px',
               left: 0,
               right: 0,
-              background: '#111',
-              borderBottom: '1px solid #1a1a1a',
+              background: 'var(--bg-surface)',
+              borderBottom: '1px solid var(--bg-elevated)',
               padding: '12px 24px',
               zIndex: 99,
               display: 'flex',
@@ -218,7 +218,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   borderRadius: '4px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  color: activeSection === s.id ? '#e5e5e5' : '#888',
+                  color: activeSection === s.id ? 'var(--text-primary)' : 'var(--accent-primary)',
                   fontWeight: activeSection === s.id ? 500 : 400,
                 }}
               >
@@ -242,7 +242,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
           <div style={{ marginBottom: '36px' }}>
             <p style={{
               fontSize: '15px',
-              color: '#999',
+              color: 'var(--text-secondary)',
               lineHeight: 1.6,
               margin: 0,
             }}>
@@ -264,7 +264,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                       style={{
                         fontSize: '22px',
                         fontWeight: 600,
-                        color: '#f0f0f0',
+                        color: 'var(--text-primary)',
                         margin: '56px 0 18px 0',
                         paddingTop: '20px',
                         scrollMarginTop: '80px',
@@ -279,7 +279,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   <h2 style={{
                     fontSize: '16px',
                     fontWeight: 600,
-                    color: '#ddd',
+                    color: 'var(--text-primary)',
                     margin: '32px 0 12px 0',
                   }}>
                     {children}
@@ -289,7 +289,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   <h3 style={{
                     fontSize: '15px',
                     fontWeight: 600,
-                    color: '#ccc',
+                    color: 'var(--text-primary)',
                     margin: '24px 0 10px 0',
                   }}>
                     {children}
@@ -322,7 +322,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   if (isInline) {
                     return (
                       <code style={{
-                        background: '#1a1a1a',
+                        background: 'var(--bg-elevated)',
                         padding: '2px 7px',
                         borderRadius: '4px',
                         fontSize: '13px',
@@ -334,13 +334,13 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   return (
                     <code style={{
                       display: 'block',
-                      background: '#111',
+                      background: 'var(--bg-surface)',
                       padding: '16px',
                       borderRadius: '8px',
                       fontSize: '13px',
                       overflowX: 'auto',
                       margin: '0 0 16px 0',
-                      color: '#aaa',
+                      color: 'var(--accent-light)',
                       whiteSpace: 'pre-wrap',
                       border: '1px solid #1e1e1e',
                       fontFamily: "'JetBrains Mono', monospace",
@@ -351,7 +351,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   <pre style={{ margin: '0 0 16px 0' }}>{children}</pre>
                 ),
                 strong: ({ children }) => (
-                  <strong style={{ color: '#e5e5e5', fontWeight: 600 }}>{children}</strong>
+                  <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>
                 ),
                 em: ({ children }) => (
                   <em style={{ color: '#bbb', fontStyle: 'italic' }}>{children}</em>
@@ -368,7 +368,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                     borderLeft: '3px solid #a78bfa',
                     paddingLeft: '16px',
                     margin: '0 0 16px 0',
-                    color: '#999',
+                    color: 'var(--text-secondary)',
                   }}>{children}</blockquote>
                 ),
                 img: ({ src, alt }) => {
@@ -380,7 +380,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                       style={{
                         maxWidth: isAvatar ? '100px' : '100%',
                         borderRadius: isAvatar ? '50%' : '10px',
-                        border: isAvatar ? '2px solid #2a2a2a' : '1px solid #1e1e1e',
+                        border: isAvatar ? '2px solid var(--border-default)' : '1px solid #1e1e1e',
                         margin: isAvatar ? '0 0 12px 0' : '8px 0 20px 0',
                       }}
                     />
@@ -401,8 +401,8 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   <th style={{
                     textAlign: 'left',
                     padding: '10px 14px',
-                    borderBottom: '1px solid #2a2a2a',
-                    color: '#888',
+                    borderBottom: '1px solid var(--border-default)',
+                    color: 'var(--accent-primary)',
                     fontWeight: 500,
                     fontSize: '12px',
                     textTransform: 'uppercase',
@@ -414,7 +414,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                 td: ({ children }) => (
                   <td style={{
                     padding: '10px 14px',
-                    borderBottom: '1px solid #161616',
+                    borderBottom: '1px solid var(--bg-hover)',
                     color: '#b0b0b0',
                     verticalAlign: 'top',
                   }}>

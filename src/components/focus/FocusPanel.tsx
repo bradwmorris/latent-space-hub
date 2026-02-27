@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, type DragEvent } from 'react';
-import { Eye, Trash2, Link, Loader, Database, Check, RefreshCw, Pencil, X, Save, Plus } from 'lucide-react';
+import { Eye, Trash2, Link, Loader, Database, Check, RefreshCw, Pencil, X, Save, Plus, User } from 'lucide-react';
 import { parseAndRenderContent } from '@/components/helpers/NodeLabelRenderer';
 import MarkdownWithNodeTokens from '@/components/helpers/MarkdownWithNodeTokens';
 import FormattingToolbar from '@/components/focus/FormattingToolbar';
@@ -45,6 +45,150 @@ interface FocusPanelProps {
   highlightedPassage?: { nodeId: number; selectedText: string } | null;
 }
 
+type MemberProfileMetadata = {
+  discord_handle?: string;
+  avatar_url?: string;
+  joined_at?: string;
+  last_active?: string;
+  interaction_count?: number;
+  role?: string;
+  company?: string;
+  location?: string;
+  interests?: string[];
+};
+
+function asMemberProfileMetadata(metadata: unknown): MemberProfileMetadata | null {
+  if (!metadata || typeof metadata !== 'object') return null;
+  return metadata as MemberProfileMetadata;
+}
+
+function formatMemberDate(value?: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatRelativeTime(value?: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const diffMs = Date.now() - date.getTime();
+  const absMs = Math.abs(diffMs);
+  const isPast = diffMs >= 0;
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+  if (absMs < 60_000) return 'just now';
+  if (absMs < 3_600_000) {
+    const minutes = Math.round(absMs / 60_000);
+    return rtf.format(isPast ? -minutes : minutes, 'minute');
+  }
+  if (absMs < 86_400_000) {
+    const hours = Math.round(absMs / 3_600_000);
+    return rtf.format(isPast ? -hours : hours, 'hour');
+  }
+  const days = Math.round(absMs / 86_400_000);
+  return rtf.format(isPast ? -days : days, 'day');
+}
+
+function MemberProfileCard({ metadata }: { metadata: MemberProfileMetadata }) {
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const handle = metadata.discord_handle?.trim();
+  const roleCompany = [metadata.role, metadata.company].filter(Boolean).join(' at ');
+  const interests = (metadata.interests || []).map((i) => i.trim()).filter(Boolean).slice(0, 8);
+  const joinedLabel = formatMemberDate(metadata.joined_at);
+  const lastActiveLabel = formatRelativeTime(metadata.last_active);
+  const interactionsLabel = typeof metadata.interaction_count === 'number' ? metadata.interaction_count : null;
+
+  return (
+    <div style={{
+      marginBottom: '16px',
+      border: '1px solid var(--border-default)',
+      borderRadius: '10px',
+      background: 'var(--bg-surface)',
+      padding: '12px'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {!avatarFailed && metadata.avatar_url ? (
+          <img
+            src={metadata.avatar_url}
+            alt={handle ? `${handle} avatar` : 'Member avatar'}
+            onError={() => setAvatarFailed(true)}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '999px',
+              objectFit: 'cover',
+              border: '1px solid #2f2f2f',
+              flexShrink: 0
+            }}
+          />
+        ) : (
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '999px',
+            border: '1px solid #2f2f2f',
+            background: '#181818',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-muted)',
+            flexShrink: 0
+          }}>
+            <User size={20} />
+          </div>
+        )}
+
+        <div style={{ minWidth: 0 }}>
+          {handle && (
+            <div style={{ color: '#9ca3af', fontSize: '12px' }}>
+              @{handle}
+            </div>
+          )}
+          {roleCompany && (
+            <div style={{ color: 'var(--text-primary)', fontSize: '12px', marginTop: '2px' }}>
+              {roleCompany}
+            </div>
+          )}
+          {metadata.location && (
+            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '2px' }}>
+              {metadata.location}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {interests.length > 0 && (
+        <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {interests.map((interest) => (
+            <span
+              key={interest}
+              style={{
+                border: '1px solid #2f2f2f',
+                background: '#171717',
+                color: '#c5c5c5',
+                borderRadius: '999px',
+                fontSize: '10px',
+                padding: '2px 8px'
+              }}
+            >
+              {interest}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div style={{ marginTop: '10px', borderTop: '1px solid var(--bg-elevated)', paddingTop: '8px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+        {joinedLabel && <span style={{ color: '#9ca3af', fontSize: '11px' }}>Joined: {joinedLabel}</span>}
+        {lastActiveLabel && <span style={{ color: '#9ca3af', fontSize: '11px' }}>Last active: {lastActiveLabel}</span>}
+        {interactionsLabel !== null && <span style={{ color: '#9ca3af', fontSize: '11px' }}>Interactions: {interactionsLabel}</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeClick, onTabClose, refreshTrigger, onOpenInOtherSlot, hideTabBar, onTextSelect, highlightedPassage }: FocusPanelProps) {
   const [nodesData, setNodesData] = useState<Record<number, Node>>({});
 
@@ -61,6 +205,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
   
   const activeNodeId = activeTab;
   const currentNode = activeNodeId !== null ? nodesData[activeNodeId] : undefined;
+  const currentMemberMetadata =
+    currentNode?.node_type === 'member' ? asMemberProfileMetadata(currentNode.metadata) : null;
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(null);
 
@@ -1255,7 +1401,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
 
   const renderConnectionsBody = () => {
     if (!activeTab) {
-      return <div style={{ color: '#777', fontSize: '12px' }}>Open a node to manage connections.</div>;
+      return <div style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Open a node to manage connections.</div>;
     }
 
     return (
@@ -1266,13 +1412,13 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
             display: 'flex',
             alignItems: 'center',
             gap: '16px',
-            background: '#141414',
+            background: 'var(--bg-hover)',
             padding: '16px 20px',
             borderRadius: '12px',
-            border: '1px solid #262626',
+            border: '1px solid var(--border-default)',
             boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.02)'
           }}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="#525252" style={{ flexShrink: 0 }}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--text-secondary)" style={{ flexShrink: 0 }}>
               <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
             </svg>
             <input
@@ -1286,7 +1432,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 background: 'none',
                 border: 'none',
                 outline: 'none',
-                color: '#fafafa',
+                color: 'var(--text-primary)',
                 fontSize: '16px',
                 fontFamily: 'inherit',
                 fontWeight: 400
@@ -1298,8 +1444,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
           {nodeSearchSuggestions.length > 0 && (
             <div style={{
               marginTop: '8px',
-              background: '#141414',
-              border: '1px solid #262626',
+              background: 'var(--bg-hover)',
+              border: '1px solid var(--border-default)',
               borderRadius: '12px',
               maxHeight: '240px',
               overflowY: 'auto',
@@ -1312,8 +1458,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   style={{
                     padding: '10px 14px',
                     cursor: 'pointer',
-                    borderBottom: index < nodeSearchSuggestions.length - 1 ? '1px solid #1f1f1f' : 'none',
-                    background: index === selectedSearchIndex ? '#1a1a1a' : 'transparent',
+                    borderBottom: index < nodeSearchSuggestions.length - 1 ? '1px solid var(--bg-elevated)' : 'none',
+                    background: index === selectedSearchIndex ? 'var(--bg-elevated)' : 'transparent',
                     transition: 'background 100ms ease',
                     display: 'flex',
                     alignItems: 'center',
@@ -1321,7 +1467,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   }}
                   onMouseEnter={(e) => {
                     if (index !== selectedSearchIndex) {
-                      e.currentTarget.style.background = '#1a1a1a';
+                      e.currentTarget.style.background = 'var(--bg-elevated)';
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -1336,8 +1482,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     justifyContent: 'center',
                     fontSize: '9px',
                     fontWeight: 600,
-                    color: '#0a0a0a',
-                    background: '#333',
+                    color: 'var(--bg-base)',
+                    background: 'var(--border-default)',
                     padding: '3px 6px',
                     borderRadius: '6px',
                     minWidth: '24px',
@@ -1349,7 +1495,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   </span>
                   <span style={{
                     fontSize: '13px',
-                    color: '#e5e5e5',
+                    color: 'var(--text-primary)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -1358,7 +1504,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     {suggestion.title}
                   </span>
                   {index === selectedSearchIndex && (
-                    <span style={{ color: '#525252', fontSize: '13px' }}>↵</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>↵</span>
                   )}
                 </div>
               ))}
@@ -1369,15 +1515,15 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
 
         {/* Existing Connections */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          <div style={{ fontSize: '12px', color: '#737373', marginBottom: '12px', letterSpacing: '0.02em' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.02em' }}>
             Existing Connections
           </div>
           {loadingEdges.has(activeTab) ? (
-            <div style={{ color: '#777', fontSize: '12px', fontStyle: 'italic' }}>Loading connections…</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>Loading connections…</div>
           ) : (() => {
             const list = edgesData[activeTab] || [];
             if (list.length === 0) {
-              return <div style={{ color: '#777', fontSize: '12px', fontStyle: 'italic' }}>No connections yet. Search above to add one.</div>;
+              return <div style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>No connections yet. Search above to add one.</div>;
             }
             const visible = edgesExpanded[activeTab] ? list : list.slice(0, 5);
             return (
@@ -1389,7 +1535,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         {/* Direction arrow: → if current node is FROM (outgoing), ← if current node is TO (incoming) */}
                         <span style={{
                           fontSize: '12px',
-                          color: connection.edge.from_node_id === activeTab ? '#aaa' : '#777',
+                          color: connection.edge.from_node_id === activeTab ? 'var(--accent-light)' : 'var(--text-muted)',
                           fontWeight: 600,
                           width: '16px',
                           textAlign: 'center'
@@ -1400,8 +1546,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           display: 'inline-block',
                           fontSize: '10px',
                           fontWeight: 700,
-                          color: '#000',
-                          background: '#333',
+                          color: 'var(--bg-base)',
+                          background: 'var(--border-default)',
                           padding: '2px 6px',
                           borderRadius: '6px',
                           minWidth: '20px',
@@ -1410,7 +1556,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         }}>
                           {connection.connected_node.id}
                         </span>
-                        <span style={{ color: '#f8fafc', fontSize: '13px', fontWeight: 500 }}>{connection.connected_node.title}</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>{connection.connected_node.title}</span>
                       </div>
                       {edgeEditingId === connection.edge.id ? (
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -1429,9 +1575,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             style={{
                               flex: 1,
                               fontSize: '11px',
-                              color: '#ddd',
+                              color: 'var(--text-primary)',
                               background: 'transparent',
-                              border: '1px solid #1a1a1a',
+                              border: '1px solid var(--bg-elevated)',
                               borderRadius: '0',
                               padding: '4px',
                               outline: 'none',
@@ -1445,9 +1591,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             disabled={edgeSavingId === connection.edge.id}
                             style={{
                               fontSize: '10px',
-                              color: edgeSavingId === connection.edge.id ? '#555' : '#999',
+                              color: edgeSavingId === connection.edge.id ? 'var(--accent-dark)' : 'var(--text-secondary)',
                               background: 'transparent',
-                              border: '1px solid #222',
+                              border: '1px solid var(--bg-elevated)',
                               borderRadius: '2px',
                               padding: '3px 6px',
                               cursor: edgeSavingId === connection.edge.id ? 'not-allowed' : 'pointer'
@@ -1460,7 +1606,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             disabled={edgeSavingId === connection.edge.id}
                             style={{
                               fontSize: '10px',
-                              color: '#666',
+                              color: 'var(--accent-dark)',
                               background: 'transparent',
                               border: 'none',
                               padding: '3px 4px',
@@ -1475,9 +1621,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           {typeof connection.edge.context?.type === 'string' && (
                             <span style={{
                               fontSize: '10px',
-                              color: '#a3a3a3',
-                              background: '#1f1f1f',
-                              border: '1px solid #262626',
+                              color: 'var(--text-secondary)',
+                              background: 'var(--bg-elevated)',
+                              border: '1px solid var(--border-default)',
                               padding: '2px 6px',
                               borderRadius: '999px',
                               textTransform: 'none'
@@ -1488,7 +1634,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           {connection.edge.context?.explanation ? (
                             <span
                               style={{
-                                color: '#94a3b8',
+                                color: 'var(--text-secondary)',
                                 fontSize: '12px',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -1500,20 +1646,20 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               — {connection.edge.context.explanation}
                             </span>
                           ) : (
-                            <span style={{ color: '#64748b', fontSize: '12px', fontStyle: 'italic' }}>No explanation</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>No explanation</span>
                           )}
                           <button
                             onClick={() => startEditEdgeExplanation(connection.edge.id, connection.edge.context?.explanation)}
                             style={{
                               fontSize: '11px',
-                              color: '#94a3b8',
+                              color: 'var(--text-secondary)',
                               background: 'transparent',
                               border: 'none',
                               cursor: 'pointer',
                               textDecoration: 'underline'
                             }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#cbd5f5'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-brand-muted)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                           >
                             edit
                           </button>
@@ -1524,7 +1670,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                       onClick={() => deleteEdge(connection.edge.id)}
                       disabled={deletingEdge === connection.edge.id}
                       style={{
-                        color: deletingEdge === connection.edge.id ? '#64748b' : '#94a3b8',
+                        color: deletingEdge === connection.edge.id ? 'var(--text-muted)' : 'var(--text-secondary)',
                         fontSize: '12px',
                         background: 'transparent',
                         border: 'none',
@@ -1534,12 +1680,12 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                       }}
                       onMouseEnter={(e) => {
                         if (deletingEdge !== connection.edge.id) {
-                          e.currentTarget.style.color = '#dc2626';
+                          e.currentTarget.style.color = 'var(--error)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (deletingEdge !== connection.edge.id) {
-                          e.currentTarget.style.color = '#94a3b8';
+                          e.currentTarget.style.color = 'var(--text-secondary)';
                         }
                       }}
                     >
@@ -1553,14 +1699,14 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                       onClick={() => setEdgesExpanded(prev => ({ ...prev, [activeTab]: !prev[activeTab] }))}
                       style={{
                         fontSize: '9px',
-                        color: '#666',
+                        color: 'var(--accent-dark)',
                         background: 'transparent',
                         border: 'none',
                         cursor: 'pointer',
                         transition: 'color 0.2s'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#999'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
                     >
                       {edgesExpanded[activeTab] ? 'show less' : `show ${list.length - 5} more`}
                     </button>
@@ -1621,8 +1767,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
       {!hideTabBar && (
         <div style={{
           display: 'flex',
-          borderBottom: '1px solid #1a1a1a',
-          background: '#0f0f0f',
+          borderBottom: '1px solid var(--bg-elevated)',
+          background: 'var(--bg-surface)',
           flexShrink: 0,
           overflowX: 'auto',
           overflowY: 'hidden'
@@ -1631,7 +1777,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
             <div style={{
               padding: '10px 16px',
               fontSize: '12px',
-              color: '#666'
+              color: 'var(--accent-dark)'
             }}>
               No tabs open
             </div>
@@ -1658,9 +1804,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    borderRight: '1px solid #1a1a1a',
-                    background: isActive ? '#121212' : '#0f0f0f',
-                    borderBottom: isActive ? '2px solid #666' : 'none',
+                    borderRight: '1px solid var(--bg-elevated)',
+                    background: isActive ? '#121212' : 'var(--bg-surface)',
+                    borderBottom: isActive ? '2px solid var(--accent-dark)' : 'none',
                     paddingBottom: isActive ? '0' : '2px',
                     minWidth: '120px',
                     maxWidth: '200px',
@@ -1674,7 +1820,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                       padding: '8px 12px',
                       fontSize: '12px',
                       fontFamily: 'inherit',
-                      color: isActive ? '#fff' : '#999',
+                      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                       background: 'transparent',
                       border: 'none',
                       cursor: 'pointer',
@@ -1694,14 +1840,14 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     style={{
                       padding: '4px 8px',
                       fontSize: '14px',
-                      color: '#666',
+                      color: 'var(--accent-dark)',
                       background: 'transparent',
                       border: 'none',
                       cursor: 'pointer',
                       transition: 'color 0.2s'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#666'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-dark)'; }}
                   >
                     ×
                   </button>
@@ -1721,7 +1867,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
       }}>
         {!activeTab ? (
           <div style={{
-            color: '#666',
+            color: 'var(--accent-dark)',
             fontSize: '13px',
             textAlign: 'center',
             marginTop: '40px'
@@ -1730,13 +1876,13 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
           </div>
         ) : loadingNodes.has(activeTab) ? (
           <div style={{
-            color: '#666',
+            color: 'var(--accent-dark)',
             fontSize: '13px'
           }}>
             Loading...
           </div>
         ) : !currentNode ? (
-          <div style={{ color: '#666', fontSize: '13px' }}>Node not found.</div>
+          <div style={{ color: 'var(--accent-dark)', fontSize: '13px' }}>Node not found.</div>
         ) : nodesData[activeTab] ? (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* URL Row - Above Title */}
@@ -1754,7 +1900,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
 
                 if (embeddingNode === activeTab || chunkStatus === 'chunking') {
                   return (
-                    <Loader size={12} className="animate-spin" style={{ color: '#facc15', flexShrink: 0 }} />
+                    <Loader size={12} className="animate-spin" style={{ color: 'var(--warning)', flexShrink: 0 }} />
                   );
                 }
 
@@ -1768,7 +1914,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         gap: '4px',
                         padding: '2px 6px',
                         fontSize: '10px',
-                        color: '#ef4444',
+                        color: 'var(--error)',
                         background: 'transparent',
                         border: '1px solid #7f1d1d',
                         borderRadius: '4px',
@@ -1800,7 +1946,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                       color: '#3b82f6',
                       fontSize: '11px',
                       background: 'transparent',
-                      border: '1px solid #1a1a1a',
+                      border: '1px solid var(--bg-elevated)',
                       borderRadius: '4px',
                       padding: '4px 6px',
                       fontFamily: 'inherit',
@@ -1837,7 +1983,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   <span
                     onClick={() => startEdit('link', '')}
                     style={{
-                      color: '#555',
+                      color: 'var(--accent-dark)',
                       fontSize: '11px',
                       cursor: 'pointer',
                       fontStyle: 'italic'
@@ -1868,8 +2014,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 }}
                 style={{
                   display: 'inline-block',
-                  background: '#333',
-                  color: '#0a0a0a',
+                  background: 'var(--border-default)',
+                  color: 'var(--bg-base)',
                   fontSize: '10px',
                   fontWeight: 600,
                   padding: '2px 6px',
@@ -1912,9 +2058,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   style={{
                     fontSize: '20px',
                     fontWeight: 'bold',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     background: 'transparent',
-                    border: '1px solid #1a1a1a',
+                    border: '1px solid var(--bg-elevated)',
                     borderRadius: '0',
                     padding: '4px 8px',
                     fontFamily: 'inherit',
@@ -1938,7 +2084,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   style={{
                     fontSize: '20px',
                     fontWeight: 'bold',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontFamily: 'inherit',
                     cursor: isReadOnly ? 'default' : 'pointer',
                     padding: '4px 8px',
@@ -1959,7 +2105,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     })
                   }}
                   onMouseEnter={isReadOnly ? undefined : (e) => {
-                    e.currentTarget.style.borderColor = '#1a1a1a';
+                    e.currentTarget.style.borderColor = 'var(--bg-elevated)';
                   }}
                   onMouseLeave={isReadOnly ? undefined : (e) => {
                     e.currentTarget.style.borderColor = 'transparent';
@@ -1967,7 +2113,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   title={titleExpanded[activeTab] ? undefined : (nodesData[activeTab].title || 'Untitled')}
                 >
                   {nodesData[activeTab].title || 'Untitled'}
-                  {savingField === 'title' && <span style={{ color: '#555', fontSize: '10px', marginLeft: '6px' }}>saving...</span>}
+                  {savingField === 'title' && <span style={{ color: 'var(--accent-dark)', fontSize: '10px', marginLeft: '6px' }}>saving...</span>}
                 </h1>
               )}
 
@@ -1981,21 +2127,21 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   padding: '4px 8px',
                   fontSize: '10px',
                   fontWeight: 500,
-                  color: '#999',
+                  color: 'var(--text-secondary)',
                   background: 'transparent',
-                  border: '1px solid #333',
+                  border: '1px solid var(--border-default)',
                   borderRadius: '4px',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#1a1a1a';
-                  e.currentTarget.style.borderColor = '#555';
+                  e.currentTarget.style.background = 'var(--bg-elevated)';
+                  e.currentTarget.style.borderColor = 'var(--accent-dark)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.borderColor = '#444';
+                  e.currentTarget.style.borderColor = 'var(--text-muted)';
                 }}
                 title="Connections"
               >
@@ -2017,9 +2163,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: '4px',
-                    color: deletingNode === activeTab ? '#994444' : '#525252',
+                    color: deletingNode === activeTab ? '#994444' : 'var(--text-secondary)',
                     background: 'transparent',
-                    border: '1px solid #262626',
+                    border: '1px solid var(--border-default)',
                     borderRadius: '4px',
                     cursor: deletingNode === activeTab ? 'wait' : 'pointer',
                     transition: 'all 0.2s',
@@ -2027,15 +2173,15 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   }}
                   onMouseEnter={(e) => {
                     if (deletingNode !== activeTab) {
-                      e.currentTarget.style.color = '#dc2626';
-                      e.currentTarget.style.borderColor = '#dc2626';
+                      e.currentTarget.style.color = 'var(--error)';
+                      e.currentTarget.style.borderColor = 'var(--error)';
                       e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (deletingNode !== activeTab) {
-                      e.currentTarget.style.color = '#525252';
-                      e.currentTarget.style.borderColor = '#262626';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                      e.currentTarget.style.borderColor = 'var(--border-default)';
                       e.currentTarget.style.background = 'transparent';
                     }
                   }}
@@ -2045,6 +2191,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 </button>
               )}
             </div>
+
+            {currentMemberMetadata && (
+              <MemberProfileCard metadata={currentMemberMetadata} />
+            )}
 
             {/* Dimensions Section */}
             <div style={{ marginBottom: '16px' }}>
@@ -2113,7 +2263,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 alignItems: 'center',
                 gap: '0',
                 marginBottom: '12px',
-                borderBottom: '1px solid #1a1a1a'
+                borderBottom: '1px solid var(--bg-elevated)'
               }}>
                 <button
                   onClick={() => { setActiveContentTab('notes'); setDescEditMode(false); setSourceEditMode(false); }}
@@ -2121,10 +2271,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     padding: '8px 16px',
                     fontSize: '11px',
                     fontWeight: activeContentTab === 'notes' ? 600 : 400,
-                    color: activeContentTab === 'notes' ? '#e5e5e5' : '#666',
+                    color: activeContentTab === 'notes' ? 'var(--text-primary)' : 'var(--accent-dark)',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: activeContentTab === 'notes' ? '2px solid #e5e5e5' : '2px solid transparent',
+                    borderBottom: activeContentTab === 'notes' ? '2px solid var(--text-primary)' : '2px solid transparent',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     marginBottom: '-1px'
@@ -2138,10 +2288,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     padding: '8px 16px',
                     fontSize: '11px',
                     fontWeight: activeContentTab === 'desc' ? 600 : 400,
-                    color: activeContentTab === 'desc' ? '#e5e5e5' : '#666',
+                    color: activeContentTab === 'desc' ? 'var(--text-primary)' : 'var(--accent-dark)',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: activeContentTab === 'desc' ? '2px solid #e5e5e5' : '2px solid transparent',
+                    borderBottom: activeContentTab === 'desc' ? '2px solid var(--text-primary)' : '2px solid transparent',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     marginBottom: '-1px'
@@ -2155,10 +2305,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     padding: '8px 16px',
                     fontSize: '11px',
                     fontWeight: activeContentTab === 'source' ? 600 : 400,
-                    color: activeContentTab === 'source' ? '#e5e5e5' : '#666',
+                    color: activeContentTab === 'source' ? 'var(--text-primary)' : 'var(--accent-dark)',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: activeContentTab === 'source' ? '2px solid #e5e5e5' : '2px solid transparent',
+                    borderBottom: activeContentTab === 'source' ? '2px solid var(--text-primary)' : '2px solid transparent',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     marginBottom: '-1px'
@@ -2179,9 +2329,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         gap: '4px',
                         padding: '4px 8px',
                         fontSize: '10px',
-                        color: '#888',
+                        color: 'var(--accent-primary)',
                         background: 'transparent',
-                        border: '1px solid #2a2a2a',
+                        border: '1px solid var(--border-default)',
                         borderRadius: '4px',
                         cursor: 'pointer'
                       }}
@@ -2198,9 +2348,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         gap: '4px',
                         padding: '4px 8px',
                         fontSize: '10px',
-                        color: '#888',
+                        color: 'var(--accent-primary)',
                         background: 'transparent',
-                        border: '1px solid #2a2a2a',
+                        border: '1px solid var(--border-default)',
                         borderRadius: '4px',
                         cursor: 'pointer'
                       }}
@@ -2223,9 +2373,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         gap: '4px',
                         padding: '4px 8px',
                         fontSize: '10px',
-                        color: '#999',
+                        color: 'var(--text-secondary)',
                         background: 'transparent',
-                        border: '1px solid #333',
+                        border: '1px solid var(--border-default)',
                         borderRadius: '4px',
                         cursor: 'pointer'
                       }}
@@ -2242,9 +2392,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         gap: '4px',
                         padding: '4px 8px',
                         fontSize: '10px',
-                        color: '#888',
+                        color: 'var(--accent-primary)',
                         background: 'transparent',
-                        border: '1px solid #2a2a2a',
+                        border: '1px solid var(--border-default)',
                         borderRadius: '4px',
                         cursor: 'pointer'
                       }}
@@ -2275,7 +2425,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <div style={{
                         fontSize: '11px',
-                        color: '#f59e0b',
+                        color: 'var(--warning)',
                         marginBottom: '8px',
                         padding: '8px',
                         background: '#1a1500',
@@ -2299,11 +2449,11 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           }}
                           disabled={descSaving}
                           style={{
-                            color: '#e5e5e5',
+                            color: 'var(--text-primary)',
                             fontSize: '15px',
                             lineHeight: '1.7',
                             background: 'transparent',
-                            border: '1px solid #2a2a2a',
+                            border: '1px solid var(--border-default)',
                             borderRadius: '4px',
                             padding: '12px',
                             fontFamily: 'inherit',
@@ -2322,7 +2472,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           bottom: '12px',
                           right: '12px',
                           fontSize: '10px',
-                          color: descEditValue.length >= 260 ? '#f59e0b' : '#555'
+                          color: descEditValue.length >= 260 ? 'var(--warning)' : 'var(--accent-dark)'
                         }}>
                           {descEditValue.length}/280
                         </span>
@@ -2345,7 +2495,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               gap: '4px',
                               padding: '6px 10px',
                               fontSize: '10px',
-                              color: '#f59e0b',
+                              color: 'var(--warning)',
                               background: 'transparent',
                               border: '1px solid #3d3500',
                               borderRadius: '4px',
@@ -2368,9 +2518,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               gap: '4px',
                               padding: '6px 12px',
                               fontSize: '11px',
-                              color: '#888',
+                              color: 'var(--accent-primary)',
                               background: 'transparent',
-                              border: '1px solid #2a2a2a',
+                              border: '1px solid var(--border-default)',
                               borderRadius: '4px',
                               cursor: 'pointer'
                             }}
@@ -2387,8 +2537,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               gap: '4px',
                               padding: '6px 12px',
                               fontSize: '11px',
-                              color: '#000',
-                              background: '#333',
+                              color: 'var(--bg-base)',
+                              background: 'var(--border-default)',
                               border: 'none',
                               borderRadius: '4px',
                               cursor: 'pointer',
@@ -2404,7 +2554,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   ) : nodesData[activeTab]?.description ? (
                     <div
                       style={{
-                        color: '#e5e5e5',
+                        color: 'var(--text-primary)',
                         fontSize: '15px',
                         lineHeight: '1.7',
                         padding: '4px',
@@ -2418,13 +2568,13 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     <div
                       onClick={startDescEdit}
                       style={{
-                        color: '#555',
+                        color: 'var(--accent-dark)',
                         fontSize: '12px',
                         fontStyle: 'italic',
                         cursor: 'pointer',
                         padding: '8px',
                         minHeight: '100px',
-                        border: '1px dashed #1a1a1a',
+                        border: '1px dashed var(--bg-elevated)',
                         borderRadius: '4px',
                         display: 'flex',
                         alignItems: 'center',
@@ -2433,8 +2583,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         flex: 1,
                         transition: 'border-color 0.15s'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border-default)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--bg-elevated)'; }}
                     >
                       Click to add a description...
                     </div>
@@ -2497,11 +2647,11 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           }}
                           disabled={notesSaving}
                           style={{
-                            color: '#e5e5e5',
+                            color: 'var(--text-primary)',
                             fontSize: '15px',
                             lineHeight: '1.7',
                             background: 'transparent',
-                            border: '1px solid #2a2a2a',
+                            border: '1px solid var(--border-default)',
                             borderRadius: '4px',
                             padding: '12px',
                             fontFamily: 'inherit',
@@ -2520,8 +2670,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             position: 'absolute',
                             top: '50px',
                             left: '12px',
-                            background: '#1a1a1a',
-                            border: '1px solid #333',
+                            background: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-default)',
                             borderRadius: '6px',
                             zIndex: 1000,
                             maxHeight: '200px',
@@ -2530,11 +2680,11 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
                           }}>
                             {mentionQuery.trim().length < 2 ? (
-                              <div style={{ padding: '8px 12px', fontSize: '12px', color: '#666' }}>
+                              <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--accent-dark)' }}>
                                 Type at least 2 characters to search...
                               </div>
                             ) : mentionResults.length === 0 ? (
-                              <div style={{ padding: '8px 12px', fontSize: '12px', color: '#666' }}>
+                              <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--accent-dark)' }}>
                                 No nodes found
                               </div>
                             ) : (
@@ -2549,13 +2699,13 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                                   style={{
                                     padding: '8px 12px',
                                     fontSize: '13px',
-                                    color: '#ddd',
+                                    color: 'var(--text-primary)',
                                     cursor: 'pointer',
-                                    background: idx === mentionIndex ? '#252525' : 'transparent',
-                                    borderBottom: idx < mentionResults.length - 1 ? '1px solid #2a2a2a' : 'none'
+                                    background: idx === mentionIndex ? 'var(--bg-hover)' : 'transparent',
+                                    borderBottom: idx < mentionResults.length - 1 ? '1px solid var(--border-default)' : 'none'
                                   }}
                                 >
-                                  <span style={{ color: '#888', marginRight: '8px', fontWeight: 600 }}>{n.id}</span>
+                                  <span style={{ color: 'var(--accent-primary)', marginRight: '8px', fontWeight: 600 }}>{n.id}</span>
                                   <span>{n.title.length > 50 ? n.title.slice(0, 50) + '…' : n.title}</span>
                                 </div>
                               ))
@@ -2582,7 +2732,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                                 gap: '4px',
                                 padding: '6px 10px',
                                 fontSize: '10px',
-                                color: '#f59e0b',
+                                color: 'var(--warning)',
                                 background: 'transparent',
                                 border: '1px solid #3d3500',
                                 borderRadius: '4px',
@@ -2606,9 +2756,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               gap: '4px',
                               padding: '6px 12px',
                               fontSize: '11px',
-                              color: '#888',
+                              color: 'var(--accent-primary)',
                               background: 'transparent',
-                              border: '1px solid #2a2a2a',
+                              border: '1px solid var(--border-default)',
                               borderRadius: '4px',
                               cursor: 'pointer'
                             }}
@@ -2625,8 +2775,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               gap: '4px',
                               padding: '6px 12px',
                               fontSize: '11px',
-                              color: '#000',
-                              background: '#333',
+                              color: 'var(--bg-base)',
+                              background: 'var(--border-default)',
                               border: 'none',
                               borderRadius: '4px',
                               cursor: 'pointer',
@@ -2647,7 +2797,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           border: '1px solid #3d3500',
                           borderRadius: '4px'
                         }}>
-                          <div style={{ fontSize: '12px', color: '#f59e0b', marginBottom: '8px' }}>
+                          <div style={{ fontSize: '12px', color: 'var(--warning)', marginBottom: '8px' }}>
                             This will overwrite your source content and update what search uses.
                           </div>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -2656,9 +2806,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               style={{
                                 padding: '4px 10px',
                                 fontSize: '11px',
-                                color: '#888',
+                                color: 'var(--accent-primary)',
                                 background: 'transparent',
-                                border: '1px solid #2a2a2a',
+                                border: '1px solid var(--border-default)',
                                 borderRadius: '4px',
                                 cursor: 'pointer'
                               }}
@@ -2670,8 +2820,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               style={{
                                 padding: '4px 10px',
                                 fontSize: '11px',
-                                color: '#000',
-                                background: '#f59e0b',
+                                color: 'var(--bg-base)',
+                                background: 'var(--warning)',
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -2687,7 +2837,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   ) : nodesData[activeTab]?.notes ? (
                     <div
                       style={{
-                        color: '#e5e5e5',
+                        color: 'var(--text-primary)',
                         fontSize: '15px',
                         lineHeight: '1.7',
                         padding: '4px',
@@ -2704,13 +2854,13 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     <div
                       onClick={startNotesEdit}
                       style={{
-                        color: '#555',
+                        color: 'var(--accent-dark)',
                         fontSize: '12px',
                         fontStyle: 'italic',
                         cursor: 'pointer',
                         padding: '8px',
                         minHeight: '200px',
-                        border: '1px dashed #1a1a1a',
+                        border: '1px dashed var(--bg-elevated)',
                         borderRadius: '4px',
                         display: 'flex',
                         alignItems: 'center',
@@ -2720,12 +2870,12 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         transition: 'all 0.2s'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = '#2a2a2a';
-                        e.currentTarget.style.color = '#666';
+                        e.currentTarget.style.borderColor = 'var(--border-default)';
+                        e.currentTarget.style.color = 'var(--accent-dark)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = '#1a1a1a';
-                        e.currentTarget.style.color = '#555';
+                        e.currentTarget.style.borderColor = 'var(--bg-elevated)';
+                        e.currentTarget.style.color = 'var(--accent-dark)';
                       }}
                     >
                       Click to add notes...
@@ -2741,7 +2891,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <div style={{
                         fontSize: '11px',
-                        color: '#f59e0b',
+                        color: 'var(--warning)',
                         marginBottom: '8px',
                         padding: '8px',
                         background: '#1a1500',
@@ -2760,11 +2910,11 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         }}
                         disabled={sourceSaving}
                         style={{
-                          color: '#ccc',
+                          color: 'var(--text-primary)',
                           fontSize: '12px',
                           lineHeight: '1.5',
                           background: 'transparent',
-                          border: '1px solid #2a2a2a',
+                          border: '1px solid var(--border-default)',
                           borderRadius: '4px',
                           padding: '12px',
                           fontFamily: 'monospace',
@@ -2792,9 +2942,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             gap: '4px',
                             padding: '6px 12px',
                             fontSize: '11px',
-                            color: '#888',
+                            color: 'var(--accent-primary)',
                             background: 'transparent',
-                            border: '1px solid #2a2a2a',
+                            border: '1px solid var(--border-default)',
                             borderRadius: '4px',
                             cursor: 'pointer'
                           }}
@@ -2811,8 +2961,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             gap: '4px',
                             padding: '6px 12px',
                             fontSize: '11px',
-                            color: '#000',
-                            background: '#333',
+                            color: 'var(--bg-base)',
+                            background: 'var(--border-default)',
                             border: 'none',
                             borderRadius: '4px',
                             cursor: 'pointer',
@@ -2837,9 +2987,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         {/* Raw / Reader toggle */}
                         <div style={{
                           display: 'flex',
-                          background: '#111',
+                          background: 'var(--bg-surface)',
                           borderRadius: '4px',
-                          border: '1px solid #222',
+                          border: '1px solid var(--bg-elevated)',
                           overflow: 'hidden',
                         }}>
                           <button
@@ -2848,8 +2998,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               padding: '4px 10px',
                               fontSize: '10px',
                               fontWeight: 500,
-                              color: sourceReaderMode === 'raw' ? '#fff' : '#666',
-                              background: sourceReaderMode === 'raw' ? '#2a2a2a' : 'transparent',
+                              color: sourceReaderMode === 'raw' ? 'var(--text-primary)' : 'var(--accent-dark)',
+                              background: sourceReaderMode === 'raw' ? 'var(--border-default)' : 'transparent',
                               border: 'none',
                               cursor: 'pointer',
                               transition: 'all 0.15s ease',
@@ -2863,8 +3013,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               padding: '4px 10px',
                               fontSize: '10px',
                               fontWeight: 500,
-                              color: sourceReaderMode === 'reader' ? '#fff' : '#666',
-                              background: sourceReaderMode === 'reader' ? '#2a2a2a' : 'transparent',
+                              color: sourceReaderMode === 'reader' ? 'var(--text-primary)' : 'var(--accent-dark)',
+                              background: sourceReaderMode === 'reader' ? 'var(--border-default)' : 'transparent',
                               border: 'none',
                               cursor: 'pointer',
                               transition: 'all 0.15s ease',
@@ -2884,19 +3034,19 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               gap: '4px',
                               padding: '4px 8px',
                               fontSize: '10px',
-                              color: '#666',
+                              color: 'var(--accent-dark)',
                               background: 'transparent',
-                              border: '1px solid #222',
+                              border: '1px solid var(--bg-elevated)',
                               borderRadius: '4px',
                               cursor: 'pointer',
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.color = '#888';
-                              e.currentTarget.style.borderColor = '#333';
+                              e.currentTarget.style.color = 'var(--accent-primary)';
+                              e.currentTarget.style.borderColor = 'var(--border-default)';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.color = '#666';
-                              e.currentTarget.style.borderColor = '#222';
+                              e.currentTarget.style.color = 'var(--accent-dark)';
+                              e.currentTarget.style.borderColor = 'var(--bg-elevated)';
                             }}
                           >
                             <Pencil size={10} />
@@ -2917,12 +3067,12 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           ) : (
                             <div
                               style={{
-                                color: '#ccc',
+                                color: 'var(--text-primary)',
                                 fontSize: '12px',
                                 lineHeight: '1.5',
                                 padding: '12px',
-                                background: '#0a0a0a',
-                                border: '1px solid #1a1a1a',
+                                background: 'var(--bg-base)',
+                                border: '1px solid var(--bg-elevated)',
                                 borderRadius: '4px',
                                 fontFamily: 'monospace',
                                 whiteSpace: 'pre-wrap',
@@ -2936,12 +3086,12 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           <div
                             onClick={isReadOnly ? undefined : startSourceEdit}
                             style={{
-                              color: '#555',
+                              color: 'var(--accent-dark)',
                               fontSize: '12px',
                               fontStyle: 'italic',
                               cursor: isReadOnly ? 'default' : 'pointer',
                               padding: '12px',
-                              border: '1px dashed #1a1a1a',
+                              border: '1px dashed var(--bg-elevated)',
                               borderRadius: '4px',
                               textAlign: 'center',
                               height: '100%',
@@ -2962,7 +3112,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
           </div>
         ) : (
           <div style={{
-            color: '#666',
+            color: 'var(--accent-dark)',
             fontSize: '13px'
           }}>
             Node not found
@@ -3015,13 +3165,13 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
               display: 'flex',
               alignItems: 'center',
               gap: '16px',
-              background: '#141414',
-              border: '1px solid #262626',
+              background: 'var(--bg-hover)',
+              border: '1px solid var(--border-default)',
               borderRadius: '16px',
               padding: '20px 24px',
               boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px -12px rgba(0, 0, 0, 0.6)'
             }}>
-              <svg width="22" height="22" viewBox="0 0 20 20" fill="#525252" style={{ flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="var(--text-secondary)" style={{ flexShrink: 0 }}>
                 <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
               </svg>
               <input
@@ -3044,7 +3194,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   background: 'none',
                   border: 'none',
                   outline: 'none',
-                  color: '#fafafa',
+                  color: 'var(--text-primary)',
                   fontSize: '18px',
                   fontFamily: 'inherit',
                   fontWeight: 400
@@ -3055,12 +3205,12 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '4px 8px',
-                background: '#262626',
+                background: 'var(--border-default)',
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontFamily: 'inherit',
-                color: '#737373',
-                border: '1px solid #333'
+                color: 'var(--text-muted)',
+                border: '1px solid var(--border-default)'
               }}>
                 esc
               </kbd>
@@ -3072,13 +3222,13 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: '#141414',
-              border: '1px solid #262626',
+              background: 'var(--bg-hover)',
+              border: '1px solid var(--border-default)',
               borderRadius: '16px',
               padding: '20px 24px',
               boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px -12px rgba(0, 0, 0, 0.6)'
             }}>
-              <span style={{ color: '#fafafa', fontSize: '18px', fontWeight: 500 }}>Connections</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 500 }}>Connections</span>
               <kbd
                 onClick={() => setShowConnectionsModal(false)}
                 style={{
@@ -3086,12 +3236,12 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   alignItems: 'center',
                   justifyContent: 'center',
                   padding: '4px 8px',
-                  background: '#262626',
+                  background: 'var(--border-default)',
                   borderRadius: '6px',
                   fontSize: '11px',
                   fontFamily: 'inherit',
-                  color: '#737373',
-                  border: '1px solid #333',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border-default)',
                   cursor: 'pointer'
                 }}>
                 esc
@@ -3103,8 +3253,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
           {!isReadOnly && nodeSearchSuggestions.length > 0 && (
             <div style={{
               marginTop: '8px',
-              background: '#141414',
-              border: '1px solid #262626',
+              background: 'var(--bg-hover)',
+              border: '1px solid var(--border-default)',
               borderRadius: '16px',
               overflow: 'hidden',
               boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px -12px rgba(0, 0, 0, 0.6)',
@@ -3123,15 +3273,15 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   style={{
                     padding: '10px 16px',
                     cursor: 'pointer',
-                    borderBottom: index < nodeSearchSuggestions.length - 1 ? '1px solid #1f1f1f' : 'none',
-                    background: index === selectedSearchIndex ? '#1a1a1a' : 'transparent',
+                    borderBottom: index < nodeSearchSuggestions.length - 1 ? '1px solid var(--bg-elevated)' : 'none',
+                    background: index === selectedSearchIndex ? 'var(--bg-elevated)' : 'transparent',
                     transition: 'background 100ms ease',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#1a1a1a';
+                    e.currentTarget.style.background = 'var(--bg-elevated)';
                   }}
                   onMouseLeave={(e) => {
                     if (index !== selectedSearchIndex) {
@@ -3145,8 +3295,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     justifyContent: 'center',
                     fontSize: '9px',
                     fontWeight: 600,
-                    color: '#0a0a0a',
-                    background: '#333',
+                    color: 'var(--bg-base)',
+                    background: 'var(--border-default)',
                     padding: '3px 6px',
                     borderRadius: '6px',
                     minWidth: '24px',
@@ -3158,7 +3308,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   </span>
                   <span style={{
                     fontSize: '13px',
-                    color: '#e5e5e5',
+                    color: 'var(--text-primary)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -3167,7 +3317,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                     {suggestion.title}
                   </span>
                   {index === selectedSearchIndex && (
-                    <span style={{ color: '#525252', fontSize: '13px' }}>↵</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>↵</span>
                   )}
                 </div>
               ))}
@@ -3179,10 +3329,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
             <div style={{
               marginTop: '8px',
               padding: '24px',
-              background: '#141414',
-              border: '1px solid #262626',
+              background: 'var(--bg-hover)',
+              border: '1px solid var(--border-default)',
               borderRadius: '16px',
-              color: '#525252',
+              color: 'var(--text-secondary)',
               fontSize: '14px',
               textAlign: 'center'
             }}>
@@ -3194,8 +3344,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
           {!nodeSearchQuery && (
             <div style={{
               marginTop: '16px',
-              background: '#141414',
-              border: '1px solid #262626',
+              background: 'var(--bg-hover)',
+              border: '1px solid var(--border-default)',
               borderRadius: '16px',
               overflow: 'hidden',
               boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 24px -8px rgba(0, 0, 0, 0.4)',
@@ -3206,9 +3356,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
             }}>
               <div style={{
                 padding: '12px 16px',
-                borderBottom: '1px solid #1f1f1f',
+                borderBottom: '1px solid var(--bg-elevated)',
                 fontSize: '12px',
-                color: '#737373',
+                color: 'var(--text-muted)',
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 fontWeight: 600
@@ -3217,11 +3367,11 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
               </div>
               <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
                 {loadingEdges.has(activeTab) ? (
-                  <div style={{ padding: '24px', color: '#666', fontSize: '13px', textAlign: 'center' }}>
+                  <div style={{ padding: '24px', color: 'var(--accent-dark)', fontSize: '13px', textAlign: 'center' }}>
                     Loading...
                   </div>
                 ) : (edgesData[activeTab] || []).length === 0 ? (
-                  <div style={{ padding: '32px 24px', color: '#525252', fontSize: '14px', textAlign: 'center' }}>
+                  <div style={{ padding: '32px 24px', color: 'var(--text-secondary)', fontSize: '14px', textAlign: 'center' }}>
                     {isReadOnly ? 'No connections.' : 'No connections yet. Search above to add one.'}
                   </div>
                 ) : (
@@ -3231,7 +3381,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                         key={connection.id}
                         style={{
                           padding: '10px 16px',
-                          borderBottom: '1px solid #1f1f1f',
+                          borderBottom: '1px solid var(--bg-elevated)',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '6px'
@@ -3242,7 +3392,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                           {/* Direction arrow: → if current node is FROM (outgoing), ← if current node is TO (incoming) */}
                           <span style={{
                             fontSize: '14px',
-                            color: connection.edge.from_node_id === activeTab ? '#aaa' : '#777',
+                            color: connection.edge.from_node_id === activeTab ? 'var(--accent-light)' : 'var(--text-muted)',
                             fontWeight: 600,
                             width: '18px',
                             textAlign: 'center',
@@ -3256,8 +3406,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             justifyContent: 'center',
                             fontSize: '10px',
                             fontWeight: 600,
-                            color: '#0a0a0a',
-                            background: '#333',
+                            color: 'var(--bg-base)',
+                            background: 'var(--border-default)',
                             padding: '3px 6px',
                             borderRadius: '6px',
                             minWidth: '24px',
@@ -3272,14 +3422,14 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             style={{
                               flex: 1,
                               fontSize: '13px',
-                              color: '#e5e5e5',
+                              color: 'var(--text-primary)',
                               cursor: 'pointer',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap'
                             }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#e5e5e5'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = '#e5e5e5'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
                           >
                             {connection.connected_node.title}
                           </span>
@@ -3292,7 +3442,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                                 padding: '6px',
                                 background: 'transparent',
                                 border: 'none',
-                                color: '#525252',
+                                color: 'var(--text-secondary)',
                                 cursor: deletingEdge === connection.edge.id ? 'not-allowed' : 'pointer',
                                 borderRadius: '6px',
                                 display: 'flex',
@@ -3301,8 +3451,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                                 transition: 'all 0.15s ease',
                                 opacity: deletingEdge === connection.edge.id ? 0.5 : 1
                               }}
-                              onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = '#1f1f1f'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.color = '#525252'; e.currentTarget.style.background = 'transparent'; }}
+                              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--error)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'transparent'; }}
                             >
                               <Trash2 size={14} />
                             </button>
@@ -3328,9 +3478,9 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               style={{
                                 flex: 1,
                                 fontSize: '11px',
-                                color: '#e5e5e5',
-                                background: '#0a0a0a',
-                                border: '1px solid #333',
+                                color: 'var(--text-primary)',
+                                background: 'var(--bg-base)',
+                                border: '1px solid var(--border-default)',
                                 borderRadius: '6px',
                                 padding: '6px 8px',
                                 outline: 'none',
@@ -3341,10 +3491,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               onClick={() => saveEdgeExplanation(connection.edge.id, connection.edge.context)}
                               style={{
                                 padding: '5px 10px',
-                                background: '#333',
+                                background: 'var(--border-default)',
                                 border: 'none',
                                 borderRadius: '6px',
-                                color: '#0a0a0a',
+                                color: 'var(--bg-base)',
                                 fontSize: '11px',
                                 fontWeight: 600,
                                 cursor: 'pointer'
@@ -3356,10 +3506,10 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               onClick={cancelEditEdgeExplanation}
                               style={{
                                 padding: '5px 10px',
-                                background: '#262626',
+                                background: 'var(--border-default)',
                                 border: 'none',
                                 borderRadius: '6px',
-                                color: '#999',
+                                color: 'var(--text-secondary)',
                                 fontSize: '11px',
                                 fontWeight: 600,
                                 cursor: 'pointer'
@@ -3373,7 +3523,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                             onClick={() => startEditEdgeExplanation(connection.edge.id, connection.edge.context?.explanation as string | undefined)}
                             style={{
                               fontSize: '12px',
-                              color: connection.edge.context?.explanation ? '#888' : '#525252',
+                              color: connection.edge.context?.explanation ? 'var(--accent-primary)' : 'var(--text-secondary)',
                               cursor: 'pointer',
                               padding: '4px 0',
                               fontStyle: connection.edge.context?.explanation ? 'normal' : 'italic',
@@ -3381,15 +3531,15 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                               alignItems: 'center',
                               gap: '8px'
                             }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#aaa'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = connection.edge.context?.explanation ? '#888' : '#525252'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-light)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = connection.edge.context?.explanation ? 'var(--accent-primary)' : 'var(--text-secondary)'; }}
                           >
                             {typeof connection.edge.context?.type === 'string' && (
                               <span style={{
                                 fontSize: '10px',
-                                color: '#a3a3a3',
-                                background: '#0f0f0f',
-                                border: '1px solid #262626',
+                                color: 'var(--text-secondary)',
+                                background: 'var(--bg-surface)',
+                                border: '1px solid var(--border-default)',
                                 padding: '2px 6px',
                                 borderRadius: '999px',
                                 flexShrink: 0
@@ -3455,8 +3605,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
           position: 'fixed',
           top: contextMenu.y,
           left: contextMenu.x,
-          background: '#1a1a1a',
-          border: '1px solid #2a2a2a',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border-default)',
           borderRadius: '6px',
           padding: '4px',
           zIndex: 9999,
@@ -3480,18 +3630,18 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
               background: 'transparent',
               border: 'none',
               borderRadius: '4px',
-              color: '#ccc',
+              color: 'var(--text-primary)',
               fontSize: '12px',
               cursor: 'pointer',
               textAlign: 'left',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#2a2a2a';
-              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.background = 'var(--border-default)';
+              e.currentTarget.style.color = 'var(--text-primary)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#ccc';
+              e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
             <span style={{ fontSize: '14px' }}>↗</span>
@@ -3512,18 +3662,18 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
             background: 'transparent',
             border: 'none',
             borderRadius: '4px',
-            color: '#ccc',
+            color: 'var(--text-primary)',
             fontSize: '12px',
             cursor: 'pointer',
             textAlign: 'left',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#2a2a2a';
-            e.currentTarget.style.color = '#fff';
+            e.currentTarget.style.background = 'var(--border-default)';
+            e.currentTarget.style.color = 'var(--text-primary)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = '#ccc';
+            e.currentTarget.style.color = 'var(--text-primary)';
           }}
         >
           <span style={{ fontSize: '14px' }}>×</span>

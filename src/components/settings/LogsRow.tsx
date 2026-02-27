@@ -60,15 +60,15 @@ export default function LogsRow({ log, isEven }: LogsRowProps) {
       <tr
         onClick={() => setExpanded(!expanded)}
         style={{
-          background: isEven ? '#0f0f0f' : '#141414',
+          background: isEven ? 'var(--bg-surface)' : 'var(--bg-hover)',
           cursor: 'pointer',
-          borderBottom: '1px solid #2a2a2a'
+          borderBottom: '1px solid var(--border-default)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#1a1a1a';
+          e.currentTarget.style.background = 'var(--bg-elevated)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = isEven ? '#0f0f0f' : '#141414';
+          e.currentTarget.style.background = isEven ? 'var(--bg-surface)' : 'var(--bg-hover)';
         }}
       >
         <td style={{ padding: '12px 16px', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', width: '60px' }}>
@@ -86,7 +86,7 @@ export default function LogsRow({ log, isEven }: LogsRowProps) {
         <td style={{ padding: '12px 16px', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
           <div>{log.summary || '-'}</div>
           {metrics && (
-            <div style={{ marginTop: '6px', fontSize: '10px', color: '#888', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ marginTop: '6px', fontSize: '10px', color: 'var(--accent-primary)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               {metrics.trace_id && (
                 <span title={`Trace: ${metrics.trace_id}`}>
                   🔗 {metrics.trace_id.substring(0, 8)}
@@ -120,11 +120,11 @@ export default function LogsRow({ log, isEven }: LogsRowProps) {
         </td>
       </tr>
       {expanded && (
-        <tr style={{ background: '#0a0a0a', borderTop: '1px solid #333', borderBottom: '1px solid #333' }}>
+        <tr style={{ background: 'var(--bg-base)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)' }}>
           <td colSpan={6} style={{ padding: '16px 24px' }}>
             {metrics?.system_message && (
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--accent-primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   System Message
                 </div>
                 <pre
@@ -136,10 +136,10 @@ export default function LogsRow({ log, isEven }: LogsRowProps) {
                     wordBreak: 'break-word',
                     margin: 0,
                     color: '#60a5fa',
-                    background: '#0f0f0f',
+                    background: 'var(--bg-surface)',
                     padding: '12px',
                     borderRadius: '4px',
-                    border: '1px solid #1f1f1f',
+                    border: '1px solid var(--bg-elevated)',
                     maxHeight: '300px',
                     overflow: 'auto'
                   }}
@@ -149,7 +149,7 @@ export default function LogsRow({ log, isEven }: LogsRowProps) {
               </div>
             )}
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--accent-primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Snapshot JSON
               </div>
               <pre
@@ -166,10 +166,10 @@ export default function LogsRow({ log, isEven }: LogsRowProps) {
             </div>
             {log.enriched_summary && (
               <div>
-                <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--accent-primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Enriched Summary
                 </div>
-                <div style={{ fontSize: '12px', color: '#ccc', lineHeight: '1.6' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.6' }}>
                   {log.enriched_summary}
                 </div>
               </div>

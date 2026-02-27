@@ -123,8 +123,8 @@ export default function LeftTypePanel({
         style={{
           width: '48px',
           height: '100%',
-          background: '#0a0a0a',
-          borderRight: '1px solid #1a1a1a',
+          background: 'var(--bg-base)',
+          borderRight: '1px solid var(--bg-elevated)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -142,7 +142,7 @@ export default function LeftTypePanel({
             borderRadius: '6px',
             border: 'none',
             background: 'transparent',
-            color: '#666',
+            color: 'var(--accent-dark)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -160,7 +160,7 @@ export default function LeftTypePanel({
             borderRadius: '6px',
             border: 'none',
             background: 'transparent',
-            color: '#666',
+            color: 'var(--accent-dark)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -180,7 +180,7 @@ export default function LeftTypePanel({
                 borderRadius: '6px',
                 border: 'none',
                 background: 'transparent',
-                color: '#666',
+                color: 'var(--accent-dark)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -201,7 +201,7 @@ export default function LeftTypePanel({
             borderRadius: '6px',
             border: 'none',
             background: 'transparent',
-            color: '#666',
+            color: 'var(--accent-dark)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -221,7 +221,7 @@ export default function LeftTypePanel({
               borderRadius: '6px',
               border: 'none',
               background: 'transparent',
-              color: '#666',
+              color: 'var(--accent-dark)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -242,8 +242,8 @@ export default function LeftTypePanel({
       style={{
         width: '260px',
         height: '100%',
-        background: '#0a0a0a',
-        borderRight: '1px solid #1a1a1a',
+        background: 'var(--bg-base)',
+        borderRight: '1px solid var(--bg-elevated)',
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
@@ -257,7 +257,7 @@ export default function LeftTypePanel({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid #1a1a1a',
+          borderBottom: '1px solid var(--bg-elevated)',
         }}
       >
         <span
@@ -281,7 +281,7 @@ export default function LeftTypePanel({
             borderRadius: '6px',
             border: 'none',
             background: 'transparent',
-            color: '#666',
+            color: 'var(--accent-dark)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -306,9 +306,9 @@ export default function LeftTypePanel({
             flex: 1,
             height: '30px',
             borderRadius: '6px',
-            border: '1px solid #1a1a1a',
-            background: '#111',
-            color: '#666',
+            border: '1px solid var(--bg-elevated)',
+            background: 'var(--bg-surface)',
+            color: 'var(--accent-dark)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -319,7 +319,7 @@ export default function LeftTypePanel({
         >
           <Search size={12} />
           <span>Search</span>
-          <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#444' }}>&#8984;K</span>
+          <span style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--text-muted)' }}>&#8984;K</span>
         </button>
         {!isReadOnly && (
           <button
@@ -329,9 +329,9 @@ export default function LeftTypePanel({
               width: '30px',
               height: '30px',
               borderRadius: '6px',
-              border: '1px solid #1a1a1a',
-              background: '#111',
-              color: '#666',
+              border: '1px solid var(--bg-elevated)',
+              background: 'var(--bg-surface)',
+              color: 'var(--accent-dark)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -373,10 +373,10 @@ export default function LeftTypePanel({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: isSelected ? '#151515' : (isHovered ? '#0f0f0f' : 'transparent'),
+                  background: isSelected ? 'var(--bg-hover)' : (isHovered ? 'var(--bg-surface)' : 'transparent'),
                   border: 'none',
                   borderLeft: isSelected ? '2px solid var(--accent-brand)' : '2px solid transparent',
-                  color: isDimmed ? '#444' : (isSelected ? '#e5e5e5' : '#999'),
+                  color: isDimmed ? 'var(--text-muted)' : (isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'),
                   cursor: 'pointer',
                   fontSize: '13px',
                   textAlign: 'left',
@@ -387,16 +387,16 @@ export default function LeftTypePanel({
                 aria-label={`${label}, ${count} nodes`}
               >
                 {isExpanded ? (
-                  <ChevronDown size={14} style={{ flexShrink: 0, color: '#555' }} />
+                  <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--accent-dark)' }} />
                 ) : (
-                  <ChevronRight size={14} style={{ flexShrink: 0, color: '#555' }} />
+                  <ChevronRight size={14} style={{ flexShrink: 0, color: 'var(--accent-dark)' }} />
                 )}
                 <Icon size={14} style={{ flexShrink: 0 }} aria-hidden="true" />
                 <span style={{ flex: 1 }}>{label}</span>
                 <span
                   style={{
                     fontSize: '11px',
-                    color: isDimmed ? '#333' : '#555',
+                    color: isDimmed ? 'var(--border-default)' : 'var(--accent-dark)',
                     fontVariantNumeric: 'tabular-nums',
                   }}
                 >
@@ -409,14 +409,14 @@ export default function LeftTypePanel({
                 <div style={{ paddingLeft: '20px' }}>
                   {isLoading && (
                     <div style={{
-                      padding: '8px 12px', color: '#444', fontSize: '11px',
+                      padding: '8px 12px', color: 'var(--text-muted)', fontSize: '11px',
                       animation: 'blockPulse 1.5s ease-in-out infinite',
                     }}>
                       {'▓▒░'} loading {'░▒▓'}
                     </div>
                   )}
                   {!isLoading && nodes.length === 0 && (
-                    <div style={{ padding: '8px 12px', color: '#333', fontSize: '11px' }}>
+                    <div style={{ padding: '8px 12px', color: 'var(--border-default)', fontSize: '11px' }}>
                       {'── no nodes ──'}
                     </div>
                   )}
@@ -430,9 +430,9 @@ export default function LeftTypePanel({
                         width: '100%',
                         padding: '4px 12px',
                         display: 'block',
-                        background: hoveredNode === node.id ? '#111' : 'transparent',
+                        background: hoveredNode === node.id ? 'var(--bg-surface)' : 'transparent',
                         border: 'none',
-                        color: '#aaa',
+                        color: 'var(--accent-light)',
                         cursor: 'pointer',
                         fontSize: '12px',
                         textAlign: 'left',
@@ -457,7 +457,7 @@ export default function LeftTypePanel({
       <div
         style={{
           padding: '8px 12px',
-          borderTop: '1px solid #1a1a1a',
+          borderTop: '1px solid var(--bg-elevated)',
           display: 'flex',
           flexDirection: 'column',
           gap: '2px',
@@ -471,7 +471,7 @@ export default function LeftTypePanel({
             borderRadius: '6px',
             border: 'none',
             background: 'transparent',
-            color: '#666',
+            color: 'var(--accent-dark)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -493,7 +493,7 @@ export default function LeftTypePanel({
               borderRadius: '6px',
               border: 'none',
               background: 'transparent',
-              color: '#666',
+              color: 'var(--accent-dark)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
