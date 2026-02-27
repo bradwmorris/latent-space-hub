@@ -3,6 +3,7 @@
     "bot-polish-v2",
     "setup-handover",
     "graph-bot-polish",
+    "evals-dashboard",
     "member-nodes",
     "visual-pizazz"
   ],
@@ -40,6 +41,20 @@
         { "done": false, "text": "Brad: Test full ingestion pipeline" },
         { "done": false, "text": "Brad: Switch to live channels + redeploy" },
         { "done": false, "text": "Brad: Delete test channel, confirm first real ingestion" }
+      ]
+    },
+    "evals-dashboard": {
+      "id": "evals-dashboard",
+      "title": "Evals dashboard — log and review Slop's Discord interactions with full tool traces",
+      "status": "ready",
+      "type": "feature",
+      "priority": "high",
+      "prd": "docs/development/prd-21-evals-dashboard.md",
+      "notes": "Fix broken bot logging (column mismatch), capture tool calls + MCP operations + timing, build /evals dashboard to review traces. Uses existing chats table — no migration needed.",
+      "tasks": [
+        { "done": false, "text": "Part 1: Rewrite bot logging — align to chats schema, capture tool calls + timing" },
+        { "done": false, "text": "Part 2: Build /evals dashboard — list view + expanded trace view" },
+        { "done": false, "text": "Part 3: API route — paginated queries with filters" }
       ]
     },
     "member-nodes": {

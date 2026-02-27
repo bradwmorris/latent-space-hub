@@ -1,376 +1,354 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import type { EvalTrace } from '@/services/evals/evalsStore';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-type Props = {
-  traces: EvalTrace[];
-  scenarioList: Array<{
-    id: string;
-    name: string;
-    description?: string;
-    tools?: string[];
-    enabled?: boolean;
-    notes?: string;
-  }>;
+type ToolCall = {
+  tool: string;
+  args: Record<string, unknown>;
+  result: unknown;
+  duration_ms: number;
+  error?: string;
 };
 
-function formatPreview(text: string | null, max = 80) {
-  if (!text) return '';
-  const compact = text.replace(/\s+/g, ' ').trim();
-  return compact.length > max ? `${compact.slice(0, max)}...` : compact;
-}
+type TraceMetadata = {
+  discord_user_id?: string;
+  discord_username?: string;
+  discord_channel_id?: string;
+  discord_message_id?: string;
+  retrieval_method?: string;
+  context_node_ids?: number[];
+  tool_calls?: ToolCall[];
+  member_id?: number | null;
+  model?: string;
+  is_slash_command?: boolean;
+  slash_command?: string | null;
+  is_kickoff?: boolean;
+  response_length?: number;
+  latency_ms?: number;
+};
 
-function statusLabel(success: number | null) {
-  if (success === null) return 'n/a';
-  return success ? 'success' : 'fail';
-}
+type Trace = {
+  id: number;
+  user_message: string | null;
+  assistant_message: string | null;
+  thread_id: string | null;
+  helper_name: string | null;
+  agent_type: string | null;
+  metadata: TraceMetadata | null;
+  created_at: string | null;
+};
 
-function badgeStyle(kind: 'success' | 'fail' | 'neutral') {
-  const base = { display: 'inline-block', padding: '2px 8px', borderRadius: 999, fontSize: 12 };
-  if (kind === 'success') return { ...base, background: '#e6f4ea', color: '#146c2e' };
-  if (kind === 'fail') return { ...base, background: '#fdecea', color: '#b42318' };
-  return { ...base, background: '#f2f2f2', color: '#333' };
-}
+type ApiResponse = {
+  traces: Trace[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
 
-function prettyJson(value: string | null) {
-  if (!value) return '';
+const FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'slash', label: 'Slash commands' },
+  { value: 'kickoff', label: 'Kickoffs' },
+  { value: 'tools', label: 'With tools' },
+] as const;
+
+function formatTime(iso: string | null): string {
+  if (!iso) return '—';
   try {
-    return JSON.stringify(JSON.parse(value), null, 2);
+    const d = new Date(iso);
+    return d.toLocaleString('en-AU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   } catch {
-    return value;
+    return iso;
   }
 }
 
-export default function EvalsClient({ traces, scenarioList }: Props) {
-  const [openTraceId, setOpenTraceId] = useState<string | null>(traces[0]?.chat.trace_id || null);
-  const [comments, setComments] = useState<Record<string, string>>(() => {
-    const initial: Record<string, string> = {};
-    traces.forEach((trace) => {
-      if (trace.comment) {
-        initial[trace.chat.trace_id] = trace.comment;
-      }
-    });
-    return initial;
-  });
-  const [sourceFilter, setSourceFilter] = useState<string>('all'); // 'all' | 'live' | 'scenario'
-  const [scenarioFilter, setScenarioFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchFilter, setSearchFilter] = useState<string>('');
+function truncate(text: string | null, max = 80): string {
+  if (!text) return '—';
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return clean.length > max ? `${clean.slice(0, max)}...` : clean;
+}
 
-  const rows = useMemo(() => {
-    return traces.map((trace) => {
-      const { chat, toolCalls } = trace;
-      const status = statusLabel(chat.success);
-      const isLive = !chat.scenario_id;
-      return {
-        trace,
-        id: chat.trace_id,
-        source: isLive ? 'live' : 'scenario',
-        scenario: chat.scenario_id || '—',
-        model: chat.model || 'n/a',
-        latency: chat.latency_ms ?? 'n/a',
-        tokens: `${chat.input_tokens ?? 0}/${chat.output_tokens ?? 0} (${chat.total_tokens ?? 0})`,
-        cost: chat.estimated_cost_usd ?? null,
-        cache: chat.cache_hit == null ? 'n/a' : chat.cache_hit ? 'hit' : 'miss',
-        cacheTokens: `${chat.cache_read_tokens ?? 0}/${chat.cache_write_tokens ?? 0}`,
-        toolCount: toolCalls.length,
-        status,
-        userPreview: formatPreview(chat.user_message),
-        timestamp: chat.ts,
-        mode: chat.mode || 'n/a',
-        workflow: chat.workflow_key || '—',
-      };
-    });
-  }, [traces]);
+export default function EvalsClient() {
+  const [traces, setTraces] = useState<Trace[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  const filteredRows = useMemo(() => {
-    return rows.filter((row) => {
-      if (sourceFilter !== 'all' && row.source !== sourceFilter) return false;
-      if (scenarioFilter !== 'all' && row.scenario !== scenarioFilter) return false;
-      if (statusFilter !== 'all' && row.status !== statusFilter) return false;
-      if (searchFilter.trim()) {
-        const needle = searchFilter.toLowerCase();
-        if (!row.userPreview.toLowerCase().includes(needle)) return false;
-      }
-      return true;
-    });
-  }, [rows, sourceFilter, scenarioFilter, statusFilter, searchFilter]);
+  const fetchTraces = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: '25', filter });
+      if (search) params.set('search', search);
+      const res = await fetch(`/api/evals?${params}`);
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data: ApiResponse = await res.json();
+      setTraces(data.traces);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+    } catch (err) {
+      console.error('Failed to fetch traces:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filter, search]);
 
-  const openTrace = traces.find((trace) => trace.chat.trace_id === openTraceId) || traces[0];
+  useEffect(() => { fetchTraces(); }, [fetchTraces]);
+
+  const handleSearch = () => {
+    setPage(1);
+    setSearch(searchInput);
+  };
+
+  const expanded = useMemo(() => traces.find((t) => t.id === expandedId) || null, [traces, expandedId]);
 
   return (
-    <div>
-      <div style={{ marginBottom: 24, border: '1px solid #ddd', borderRadius: 8, background: '#fff', padding: 16 }}>
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>Scenario Set</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>
-                <th style={{ padding: '6px 6px' }}>ID</th>
-                <th style={{ padding: '6px 6px' }}>Name</th>
-                <th style={{ padding: '6px 6px' }}>Description</th>
-                <th style={{ padding: '6px 6px' }}>Tools</th>
-                <th style={{ padding: '6px 6px' }}>Enabled</th>
-                <th style={{ padding: '6px 6px' }}>Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scenarioList.map((scenario) => (
-                <tr key={scenario.id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '6px 6px' }}>{scenario.id}</td>
-                  <td style={{ padding: '6px 6px' }}>{scenario.name}</td>
-                  <td style={{ padding: '6px 6px', color: '#555' }}>{scenario.description || '—'}</td>
-                  <td style={{ padding: '6px 6px', color: '#555' }}>{scenario.tools?.join(', ') || '—'}</td>
-                  <td style={{ padding: '6px 6px' }}>{scenario.enabled === false ? 'no' : 'yes'}</td>
-                  <td style={{ padding: '6px 6px', color: '#555' }}>{scenario.notes || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div style={{ height: '100vh', overflowY: 'auto', background: '#0a0a0a', color: '#e0e0e0', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+      <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#a78bfa', marginBottom: 4 }}>
+            Evals — Slop Discord Traces
+          </h1>
+          <div style={{ fontSize: 13, color: '#666' }}>
+            {total} trace{total !== 1 ? 's' : ''} logged
+          </div>
         </div>
-      </div>
 
-      <div style={{ overflowX: 'auto' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
-          <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span>Source</span>
-            <select
-              value={sourceFilter}
-              onChange={(event) => setSourceFilter(event.target.value)}
-              style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid #ddd', fontWeight: 500 }}
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => { setFilter(f.value); setPage(1); }}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 6,
+                border: filter === f.value ? '1px solid #a78bfa' : '1px solid #333',
+                background: filter === f.value ? '#1e1b2e' : '#111',
+                color: filter === f.value ? '#a78bfa' : '#999',
+                cursor: 'pointer',
+                fontSize: 12,
+                fontFamily: 'inherit',
+              }}
             >
-              <option value="all">All</option>
-              <option value="live">🟢 Live Runs</option>
-              <option value="scenario">🔬 Scenarios</option>
-            </select>
-          </label>
-          <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span>Scenario</span>
-            <select
-              value={scenarioFilter}
-              onChange={(event) => setScenarioFilter(event.target.value)}
-              style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid #ddd' }}
-            >
-              <option value="all">All</option>
-              {Array.from(new Set(rows.filter(row => row.scenario !== '—').map(row => row.scenario))).map((scenario) => (
-                <option key={scenario} value={scenario}>{scenario}</option>
-              ))}
-            </select>
-          </label>
-          <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span>Status</span>
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid #ddd' }}
-            >
-              <option value="all">All</option>
-              <option value="success">Success</option>
-              <option value="fail">Fail</option>
-              <option value="n/a">N/A</option>
-            </select>
-          </label>
-          <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span>Search</span>
+              {f.label}
+            </button>
+          ))}
+          <div style={{ display: 'flex', gap: 4 }}>
             <input
-              value={searchFilter}
-              onChange={(event) => setSearchFilter(event.target.value)}
-              placeholder="User input contains..."
-              style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid #ddd', minWidth: 240 }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Search messages..."
+              style={{
+                padding: '5px 10px', borderRadius: 6, border: '1px solid #333',
+                background: '#111', color: '#ccc', fontSize: 12, fontFamily: 'inherit', minWidth: 200,
+              }}
             />
-          </label>
+            <button
+              onClick={handleSearch}
+              style={{
+                padding: '5px 10px', borderRadius: 6, border: '1px solid #333',
+                background: '#111', color: '#999', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+              }}
+            >
+              Go
+            </button>
+          </div>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>
-              <th style={{ padding: '8px 6px' }}>Source</th>
-              <th style={{ padding: '8px 6px' }}>Scenario</th>
-              <th style={{ padding: '8px 6px' }}>Status</th>
-              <th style={{ padding: '8px 6px' }}>Latency</th>
-              <th style={{ padding: '8px 6px' }}>Tokens</th>
-              <th style={{ padding: '8px 6px' }}>Cost</th>
-              <th style={{ padding: '8px 6px' }}>Cache</th>
-              <th style={{ padding: '8px 6px' }}>Tools</th>
-              <th style={{ padding: '8px 6px' }}>Model</th>
-              <th style={{ padding: '8px 6px' }}>Mode</th>
-              <th style={{ padding: '8px 6px' }}>Workflow</th>
-              <th style={{ padding: '8px 6px' }}>User Input</th>
-              <th style={{ padding: '8px 6px' }}>Time</th>
-              <th style={{ padding: '8px 6px' }}>Comment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRows.map((row) => {
-              const isOpen = row.id === openTraceId;
-              const statusKind = row.status === 'success' ? 'success' : row.status === 'fail' ? 'fail' : 'neutral';
-              const commentValue = comments[row.id] || '';
-              return (
-                <tr
-                  key={row.id}
-                  onClick={() => setOpenTraceId(row.id)}
-                  style={{
-                    cursor: 'pointer',
-                    background: isOpen ? '#eef4ff' : '#fff',
-                    borderBottom: '1px solid #eee',
-                  }}
-                >
-                  <td style={{ padding: '8px 6px' }}>
-                    <span style={{
-                      ...badgeStyle(row.source === 'live' ? 'success' : 'neutral'),
-                      fontSize: 11,
-                    }}>
-                      {row.source === 'live' ? '🟢 Live' : '🔬 Scenario'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '8px 6px' }}>{row.scenario}</td>
-                  <td style={{ padding: '8px 6px' }}><span style={badgeStyle(statusKind)}>{row.status}</span></td>
-                  <td style={{ padding: '8px 6px' }}>{row.latency} ms</td>
-                  <td style={{ padding: '8px 6px' }}>{row.tokens}</td>
-                  <td style={{ padding: '8px 6px' }}>{row.cost == null ? 'n/a' : `$${row.cost.toFixed(4)}`}</td>
-                  <td style={{ padding: '8px 6px' }}>{row.cache} ({row.cacheTokens})</td>
-                  <td style={{ padding: '8px 6px' }}>{row.toolCount}</td>
-                  <td style={{ padding: '8px 6px' }}>{row.model}</td>
-                  <td style={{ padding: '8px 6px' }}>{row.mode}</td>
-                  <td style={{ padding: '8px 6px' }}>{row.workflow}</td>
-                  <td style={{ padding: '8px 6px', color: '#555' }}>{row.userPreview}</td>
-                  <td style={{ padding: '8px 6px', color: '#666' }}>{row.timestamp}</td>
-                  <td style={{ padding: '8px 6px' }}>
-                    <textarea
-                      value={commentValue}
-                      onChange={(event) => {
-                        const nextValue = event.target.value;
-                        setComments((prev) => ({ ...prev, [row.id]: nextValue }));
-                      }}
-                      onBlur={async (event) => {
-                        const nextValue = event.target.value;
-                        try {
-                          await fetch('/api/evals/comment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              traceId: row.id,
-                              scenarioId: row.scenario,
-                              comment: nextValue,
-                            }),
-                          });
-                        } catch {
-                          // Ignore failures in the UI, keep local state.
-                        }
-                      }}
-                      onClick={(event) => event.stopPropagation()}
-                      rows={2}
-                      style={{
-                        width: 220,
-                        resize: 'vertical',
-                        fontFamily: 'inherit',
-                        fontSize: 12,
-                        padding: 6,
-                        borderRadius: 6,
-                        border: '1px solid #ddd',
-                      }}
-                      placeholder="Add notes..."
-                    />
-                  </td>
+
+        {/* Table */}
+        <div style={{ border: '1px solid #222', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+          {loading ? (
+            <div style={{ padding: 24, textAlign: 'center', color: '#555' }}>Loading...</div>
+          ) : traces.length === 0 ? (
+            <div style={{ padding: 24, textAlign: 'center', color: '#555' }}>No traces found. Slop hasn&apos;t logged any Discord interactions yet.</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #222', background: '#111' }}>
+                  <th style={th}>Time</th>
+                  <th style={th}>User</th>
+                  <th style={th}>Type</th>
+                  <th style={th}>Message</th>
+                  <th style={th}>Tools</th>
+                  <th style={th}>Retrieval</th>
+                  <th style={th}>Latency</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {openTrace ? (
-        <div style={{ marginTop: 24, border: '1px solid #ddd', borderRadius: 8, background: '#fff', padding: 16 }}>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
-            <div><strong>Source:</strong> {openTrace.chat.scenario_id ? '🔬 Scenario' : '🟢 Live Run'}</div>
-            <div><strong>Scenario:</strong> {openTrace.chat.scenario_id || '—'}</div>
-            <div><strong>Trace:</strong> {openTrace.chat.trace_id}</div>
-            <div><strong>Helper:</strong> {openTrace.chat.helper_name || 'n/a'}</div>
-            <div><strong>Model:</strong> {openTrace.chat.model || 'n/a'}</div>
-            <div><strong>Mode:</strong> {openTrace.chat.mode || 'n/a'}</div>
-            <div><strong>Workflow:</strong> {openTrace.chat.workflow_key || '—'}</div>
-            <div><strong>Latency:</strong> {openTrace.chat.latency_ms ?? 'n/a'} ms</div>
-            <div><strong>Tokens:</strong> {openTrace.chat.input_tokens ?? 0}/{openTrace.chat.output_tokens ?? 0} (total {openTrace.chat.total_tokens ?? 0})</div>
-            <div><strong>Cost:</strong> {openTrace.chat.estimated_cost_usd == null ? 'n/a' : `$${openTrace.chat.estimated_cost_usd.toFixed(4)}`}</div>
-            <div><strong>Cache:</strong> {openTrace.chat.cache_hit == null ? 'n/a' : openTrace.chat.cache_hit ? 'hit' : 'miss'} (read {openTrace.chat.cache_read_tokens ?? 0} / write {openTrace.chat.cache_write_tokens ?? 0})</div>
-            <div><strong>Tools:</strong> {openTrace.toolCalls.length}</div>
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <div><strong>Comment:</strong></div>
-            <div style={{ color: '#555' }}>{comments[openTrace.chat.trace_id] || '—'}</div>
-          </div>
-
-          <details open>
-            <summary style={{ cursor: 'pointer', marginBottom: 8 }}><strong>System Message</strong></summary>
-            <pre style={{ whiteSpace: 'pre-wrap' }}>{openTrace.chat.system_message || 'n/a'}</pre>
-          </details>
-
-          <div style={{ marginTop: 16 }}>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Trace Steps</div>
-            {[
-              {
-                type: 'chat',
-                ts: openTrace.chat.ts,
-                title: 'LLM Chat',
-                spanId: openTrace.chat.span_id,
-                parentSpanId: null,
-                latency: openTrace.chat.latency_ms,
-                success: openTrace.chat.success,
-                content: (
-                  <>
-                    <div><strong>User</strong></div>
-                    <pre style={{ whiteSpace: 'pre-wrap' }}>{openTrace.chat.user_message}</pre>
-                    <div><strong>Assistant</strong></div>
-                    <pre style={{ whiteSpace: 'pre-wrap' }}>{openTrace.chat.assistant_message}</pre>
-                  </>
-                ),
-              },
-              ...openTrace.toolCalls.map((tool) => ({
-                type: 'tool',
-                ts: tool.ts,
-                title: `Tool: ${tool.tool_name}`,
-                spanId: tool.span_id,
-                parentSpanId: tool.parent_span_id,
-                latency: tool.latency_ms,
-                success: tool.success,
-                content: (
-                  <>
-                    <div><strong>Args</strong></div>
-                    <pre style={{ whiteSpace: 'pre-wrap' }}>{prettyJson(tool.args_json)}</pre>
-                    <div><strong>Result</strong></div>
-                    <pre style={{ whiteSpace: 'pre-wrap' }}>{prettyJson(tool.result_json)}</pre>
-                    {tool.error ? (
-                      <>
-                        <div><strong>Error</strong></div>
-                        <pre style={{ whiteSpace: 'pre-wrap' }}>{tool.error}</pre>
-                      </>
-                    ) : null}
-                  </>
-                ),
-              })),
-            ].sort((a, b) => a.ts.localeCompare(b.ts)).map((step, index) => {
-              const stepStatus = statusLabel(step.success);
-              const stepKind = stepStatus === 'success' ? 'success' : stepStatus === 'fail' ? 'fail' : 'neutral';
-              return (
-                <div key={`${openTrace.chat.trace_id}-${step.type}-${index}`} style={{ borderTop: '1px solid #eee', paddingTop: 12, marginTop: 12 }}>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div><strong>Step {index + 1}:</strong> {step.title}</div>
-                    <span style={badgeStyle(stepKind)}>{stepStatus}</span>
-                    <div style={{ color: '#666' }}>{step.ts}</div>
-                  </div>
-                  <div style={{ marginTop: 6, color: '#555' }}>
-                    <div><strong>Span:</strong> {step.spanId || 'n/a'}</div>
-                    {step.parentSpanId ? <div><strong>Parent Span:</strong> {step.parentSpanId}</div> : null}
-                    <div><strong>Latency:</strong> {step.latency ?? 'n/a'} ms</div>
-                  </div>
-                  <div style={{ marginTop: 8 }}>{step.content}</div>
-                </div>
-              );
-            })}
-          </div>
+              </thead>
+              <tbody>
+                {traces.map((trace) => {
+                  const m = trace.metadata;
+                  const toolCount = m?.tool_calls?.length || 0;
+                  const isExpanded = expandedId === trace.id;
+                  return (
+                    <tr
+                      key={trace.id}
+                      onClick={() => setExpandedId(isExpanded ? null : trace.id)}
+                      style={{
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #1a1a1a',
+                        background: isExpanded ? '#1a1528' : 'transparent',
+                      }}
+                    >
+                      <td style={td}>{formatTime(trace.created_at)}</td>
+                      <td style={td}>
+                        <span style={{ color: '#a78bfa' }}>@{m?.discord_username || '?'}</span>
+                      </td>
+                      <td style={td}>
+                        {m?.is_kickoff ? (
+                          <span style={badge('#2d1f0a', '#f59e0b')}>kickoff</span>
+                        ) : m?.is_slash_command ? (
+                          <span style={badge('#0a2d1f', '#34d399')}>/{m.slash_command}</span>
+                        ) : (
+                          <span style={badge('#1a1a1a', '#666')}>message</span>
+                        )}
+                      </td>
+                      <td style={{ ...td, maxWidth: 400 }}>{truncate(trace.user_message)}</td>
+                      <td style={td}>
+                        {toolCount > 0 ? (
+                          <span style={badge('#1e1b2e', '#a78bfa')}>{toolCount}</span>
+                        ) : (
+                          <span style={{ color: '#444' }}>0</span>
+                        )}
+                      </td>
+                      <td style={td}>
+                        <span style={{ color: '#666' }}>{m?.retrieval_method || '—'}</span>
+                      </td>
+                      <td style={td}>
+                        {m?.latency_ms != null ? `${(m.latency_ms / 1000).toFixed(1)}s` : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
-      ) : null}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, alignItems: 'center', marginBottom: 24 }}>
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              style={paginationBtn(page <= 1)}
+            >
+              prev
+            </button>
+            <span style={{ fontSize: 12, color: '#666' }}>
+              page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              style={paginationBtn(page >= totalPages)}
+            >
+              next
+            </button>
+          </div>
+        )}
+
+        {/* Expanded Trace Detail */}
+        {expanded && <TraceDetail trace={expanded} />}
+      </div>
     </div>
   );
+}
+
+function TraceDetail({ trace }: { trace: Trace }) {
+  const m = trace.metadata;
+  const toolCalls = m?.tool_calls || [];
+
+  return (
+    <div style={{ border: '1px solid #222', borderRadius: 8, background: '#111', padding: 20 }}>
+      {/* Trace header */}
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16, fontSize: 12 }}>
+        <div><span style={{ color: '#666' }}>Trace</span> <span style={{ color: '#a78bfa' }}>#{trace.id}</span></div>
+        <div><span style={{ color: '#666' }}>Time</span> {formatTime(trace.created_at)}</div>
+        <div><span style={{ color: '#666' }}>User</span> <span style={{ color: '#a78bfa' }}>@{m?.discord_username || '?'}</span> <span style={{ color: '#555' }}>({m?.discord_user_id})</span></div>
+        <div><span style={{ color: '#666' }}>Latency</span> {m?.latency_ms != null ? `${(m.latency_ms / 1000).toFixed(2)}s` : '—'}</div>
+        <div><span style={{ color: '#666' }}>Model</span> {m?.model || '—'}</div>
+        <div><span style={{ color: '#666' }}>Retrieval</span> {m?.retrieval_method || '—'}</div>
+        {m?.member_id && <div><span style={{ color: '#666' }}>Member</span> node #{m.member_id}</div>}
+        {m?.context_node_ids && m.context_node_ids.length > 0 && (
+          <div><span style={{ color: '#666' }}>Context nodes</span> {m.context_node_ids.join(', ')}</div>
+        )}
+      </div>
+
+      {/* User message */}
+      <Section title="User Message">
+        <pre style={preStyle}>{trace.user_message || '—'}</pre>
+      </Section>
+
+      {/* Tool calls */}
+      {toolCalls.length > 0 && (
+        <Section title={`Tool Calls (${toolCalls.length})`}>
+          {toolCalls.map((tc, idx) => (
+            <div key={idx} style={{ marginBottom: idx < toolCalls.length - 1 ? 12 : 0, paddingBottom: idx < toolCalls.length - 1 ? 12 : 0, borderBottom: idx < toolCalls.length - 1 ? '1px solid #1a1a1a' : 'none' }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, fontSize: 12 }}>
+                <span style={{ color: '#a78bfa', fontWeight: 600 }}>{idx + 1}. {tc.tool}</span>
+                <span style={{ color: '#555' }}>{tc.duration_ms}ms</span>
+                {tc.error && <span style={badge('#2d0a0a', '#f87171')}>error</span>}
+              </div>
+              <div style={{ fontSize: 11 }}>
+                <div style={{ color: '#666', marginBottom: 2 }}>Args:</div>
+                <pre style={{ ...preStyle, fontSize: 11, marginBottom: 6 }}>{JSON.stringify(tc.args, null, 2)}</pre>
+                {tc.error ? (
+                  <>
+                    <div style={{ color: '#f87171', marginBottom: 2 }}>Error:</div>
+                    <pre style={{ ...preStyle, fontSize: 11, color: '#f87171' }}>{tc.error}</pre>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ color: '#666', marginBottom: 2 }}>Result:</div>
+                    <pre style={{ ...preStyle, fontSize: 11 }}>{typeof tc.result === 'string' ? tc.result : JSON.stringify(tc.result, null, 2)}</pre>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </Section>
+      )}
+
+      {/* Response */}
+      <Section title="Response">
+        <pre style={preStyle}>{trace.assistant_message || '—'}</pre>
+      </Section>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, borderBottom: '1px solid #1a1a1a', paddingBottom: 4 }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// Styles
+const th: React.CSSProperties = { padding: '8px 10px', textAlign: 'left', color: '#555', fontWeight: 500, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' };
+const td: React.CSSProperties = { padding: '8px 10px', verticalAlign: 'top' };
+const preStyle: React.CSSProperties = { whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, padding: 10, background: '#0a0a0a', borderRadius: 4, fontSize: 12, lineHeight: 1.5, color: '#ccc', maxHeight: 300, overflowY: 'auto' };
+
+function badge(bg: string, color: string): React.CSSProperties {
+  return { display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontSize: 11, background: bg, color, fontFamily: 'inherit' };
+}
+
+function paginationBtn(disabled: boolean): React.CSSProperties {
+  return {
+    padding: '5px 14px', borderRadius: 6, border: '1px solid #333',
+    background: disabled ? '#0a0a0a' : '#111', color: disabled ? '#333' : '#999',
+    cursor: disabled ? 'default' : 'pointer', fontSize: 12, fontFamily: 'inherit',
+  };
 }
