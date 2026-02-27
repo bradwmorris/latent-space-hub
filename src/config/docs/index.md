@@ -1,109 +1,110 @@
 ---
 title: Latent Space Hub
-description: A knowledge graph of the entire Latent Space universe — every podcast, article, and AI News digest, structured, connected, and searchable.
+description: The knowledge graph for the Latent Space community — every podcast, article, and AI News digest, structured, connected, and searchable.
 ---
 
-# What Is the Latent Space Hub?
+# What Is This?
 
-The Latent Space Hub is a knowledge graph of the entire Latent Space universe — every podcast episode, article, AI News digest, conference talk, paper club session, and builders club meetup — structured, connected, and searchable.
+A knowledge graph of the entire [Latent Space](https://www.latent.space/) universe. Every podcast episode, Substack article, AI News digest, conference talk, paper club session, and builders club meetup — structured into nodes, connected by edges, and searchable down to the transcript level.
 
-It's not a static archive. It's a living graph where content is connected by who appeared, what topics were covered, and which ideas build on or contradict each other. New content is ingested automatically within an hour of publication.
-
-Full transcripts, not just titles. You can search for what was actually *said*.
-
-### By the Numbers
-
-- **3,800+ nodes** across 8 content categories
-- **7,500+ edges** connecting them
-- **35,000+ chunks** of searchable full-text content
-- **Covering June 2023 to present**, continuously updated
+New content is automatically ingested within an hour of publication — chunked, embedded, entity-extracted, and wired into the existing graph. You can search for what was actually *said*, not just titles.
 
 ---
 
-# Browse the Web App
+# The Web App
 
 **[latent-space-hub.vercel.app](https://latent-space-hub.vercel.app/)**
 
+![Dashboard](/images/docs/dashboard.png)
+
 ### Dashboard
 
-The landing page. Eight category cards with preview items showing the latest content. Click any category to browse.
+The landing page. Category cards show counts and the latest items. Click any card to browse.
 
 ### Categories
 
 | Category | What's in it |
 |----------|-------------|
-| **Podcast** | Latent Space podcast episodes with full transcripts |
-| **Article** | Blog posts from the latent.space Substack |
+| **Podcast** | Latent Space episodes with full transcripts |
+| **Article** | latent.space Substack posts |
 | **AI News** | Daily AINews digests from smol.ai |
 | **Builders Club** | Community meetup recordings |
 | **Paper Club** | Deep-dive paper discussions |
-| **Workshop** | Conference talks and tutorials (AI Engineer events) |
+| **Workshop** | AI Engineer conference talks and tutorials |
 | **Guest** | People who appear on or create LS content |
-| **Entity** | Organizations (OpenAI, Anthropic) and technical topics (RAG, agents, MCP) |
+| **Entity** | Organizations and technical topics |
 
 Content categories sort by most recent. Guest and Entity sort by most connected.
 
+### Views
+
+- **Dashboard** — category cards with stats and previews
+- **Type** — browse a single category with sidebar listing and detail panel
+- **Feed** — chronological feed across all categories (list, grid, or kanban)
+- **Map** — interactive graph visualization
+
 ### Search
 
-`Cmd+K` to search across everything. Finds episodes, guests, topics, and articles by name.
+`Cmd+K` opens global search across all categories.
 
-### Map
-
-Visual graph view. See how everything connects. Larger nodes have more connections.
+![Search](/images/docs/search.png)
 
 ### Focus Panel
 
-Click any node to see its full details: description, notes, connections, source links, and dimensions.
+Click any node to see its details: description, notes, connections, source links, and dimensions.
 
 ---
 
-# Talk to Slop in Discord
+# Slop — The Discord Bot
 
 ![Slop](/images/docs/slop-avatar.png)
 
-Slop is an AI bot in the Latent Space Discord with full access to the knowledge graph.
+Slop is an AI bot in the Latent Space Discord backed by the full knowledge graph. It searches transcripts, articles, and AINews in real time — then gives opinionated, source-grounded responses.
 
-### What Slop Does
+### What It Does
 
-- Answers questions about anything covered in Latent Space content
-- Searches the full graph — transcripts, articles, AINews — not just titles
-- Gives opinionated, provocative takes grounded in the actual content
-- Cites specific episodes, articles, and dates
-- Connects dots across the graph — "this contradicts what X said in episode Y three months ago"
+- Searches full transcripts and articles, not just titles
+- Gives opinionated takes grounded in actual sources
+- Links directly to episodes, articles, and AINews in every response
+- Connects dots across the graph
+- Remembers your interests if you `/join`
 
-### How to Talk to Slop
+### Commands
 
-| Method | What it does |
+| Method | What happens |
 |--------|-------------|
-| **@ mention Slop** | Mention @Slop in any channel. A thread is created and Slop responds with graph-backed context. Follow-up in the thread to continue the conversation. |
-| `/tldr <query>` | Get a concise TLDR on any topic from the knowledge graph. |
-| `/wassup` | See what's new and interesting in Latent Space. |
+| **@Slop** | Mention Slop in any allowed channel. A thread is created and Slop responds with graph-backed context. Follow-up in the thread. |
+| `/tldr <query>` | Concise summary on any topic from the knowledge graph. |
+| `/wassup` | What's new and interesting in Latent Space right now. |
+| `/join` | Create your member profile. Slop remembers your interests over time. |
 
-Slop always links to sources — every response referencing an episode, article, or AINews issue includes a direct link to the original content.
+### Member Memory
 
-### The #yap Feed
+When you `/join`, Slop creates a member node tied to your Discord account. From then on, Slop checks your profile before responding, logs a one-line summary of each interaction, tracks your interests and activity, and creates connections between your profile and the content it retrieves for you. All of this happens silently after Slop responds.
 
-When new content drops — a new podcast episode, article, or AINews digest — the hub posts an announcement and Slop automatically kicks off a discussion in **#yap**. It digs into the graph, surfaces the most interesting connections and insights, and links back to the source. Community jumps in from there.
+### Auto-Discussions
 
-![Announcement and discussion kickoff in Discord](/images/docs/discord-kickoff.jpg)
+When new content drops, the hub posts an announcement and Slop kicks off a discussion thread — surfacing connections and insights from the graph.
 
-### Slop's Personality
+![Discussion kickoff in Discord](/images/docs/discord-kickoff.jpg)
 
-Slop is not a polite assistant. It's opinionated, provocative, and occasionally unhinged — but always grounded in the knowledge base. It exists to spark discussion, not to give safe answers.
+### Personality
 
-![Slop responding to a discussion kickoff](/images/docs/slop-response.jpg)
+Slop is not a polite assistant. Opinionated, provocative, occasionally unhinged — but always grounded in the knowledge base. It exists to spark discussion, not give safe answers.
+
+![Slop responding to a discussion](/images/docs/slop-response.jpg)
 
 ---
 
 # Connect Your AI Agent (MCP)
 
-Plug your AI agent directly into the knowledge graph via Model Context Protocol.
+Plug any AI agent into the knowledge graph via the [Model Context Protocol](https://modelcontextprotocol.io/).
 
 **Works with:** Claude Code, Cursor, Windsurf, or any MCP-compatible agent.
 
-### Setup (2 minutes)
+### Setup
 
-Add to your MCP config:
+Add to your MCP config (Claude Code: `~/.claude.json`, Cursor: `.cursor/mcp.json`):
 
 ```json
 {
@@ -124,11 +125,11 @@ Restart your agent. The `ls_*` tools are now available.
 
 ### What Your Agent Can Do
 
-- Search across all Latent Space content — episodes, articles, transcripts, AINews
+- Search across all content — episodes, articles, transcripts, AINews
 - Find connections between guests, topics, and episodes
-- Run custom queries against the graph
-- Read full source material (transcripts, articles)
-- Explore dimensions and learning paths
+- Read full source material (transcripts, articles, papers)
+- Run custom SQL queries against the graph
+- Explore dimensions and content guides
 
 ### Example Prompts
 
@@ -136,73 +137,86 @@ Restart your agent. The `ls_*` tools are now available.
 - "What has Andrej Karpathy talked about on the podcast?"
 - "Find episodes that discuss RAG vs fine-tuning"
 - "What were the key themes in AINews this month?"
-- "Trace the connections between LangChain and the agents discussion"
+- "Who are the most connected guests in the knowledge graph?"
 
-### Available Tools
+### Tools
 
 | Tool | What it does |
 |------|-------------|
-| `ls_search_nodes` | Search by title, description, topic |
-| `ls_search_content` | Deep search through full transcripts and articles |
-| `ls_get_context` | Get a graph overview (stats, top nodes, dimensions) |
-| `ls_get_nodes` | Load full node details by ID |
-| `ls_query_edges` | Find connections between nodes |
-| `ls_sqlite_query` | Custom SQL for advanced queries |
-| `ls_read_guide` | Read built-in navigation guides |
+| `ls_search_nodes` | Search nodes by title, description, topic. Filter by type or date. |
+| `ls_search_content` | Deep search through full transcripts and articles. |
+| `ls_get_context` | Graph overview — stats, top nodes, dimensions. |
+| `ls_get_nodes` | Load full node details by ID. |
+| `ls_query_edges` | Find all connections for a specific node. |
+| `ls_sqlite_query` | Run read-only SQL for advanced queries. |
+| `ls_read_guide` | Read built-in navigation guides. |
+| `ls_list_dimensions` | List all dimensions with node counts. |
+
+---
+
+# Evals
+
+Every Slop interaction is traced and logged — MCP tool calls, retrieval method, response latency, Discord context.
+
+**URL:** [/evals](/evals)
+
+![Evals Dashboard](/images/docs/evals-dashboard.png)
+
+Each trace captures the user's message, Slop's response, every MCP tool call with timing, the retrieval method used, total latency, and Discord context. Filter by slash commands, kickoffs, or interactions with tool calls. Click any row to expand the full trace.
 
 ---
 
 # How It Works
 
-The hub is open source. Here's what's under the hood.
-
 ### The Pipeline
 
-Every hour, the system checks for new content from four sources: the Latent Space podcast (YouTube), the latent.space Substack, AINews digests (GitHub), and LatentSpaceTV. When something new is found:
+Every hour, the system checks four sources:
 
-1. **Pull the content** — grab the transcript or article text
-2. **Break it into chunks** — split into searchable pieces (~2,000 characters each)
-3. **Generate embeddings** — create vector representations for semantic search
-4. **Extract entities** — use Claude to identify people, companies, and topics mentioned
-5. **Connect everything** — link the new content to related episodes, guests, and concepts already in the graph
-6. **Announce it** — post to Discord so the community knows
+| Source | Type | Method |
+|--------|------|--------|
+| Latent Space Podcast | YouTube | RSS + transcript extraction |
+| latent.space Substack | Blog posts | RSS + article scraping |
+| AINews (smol.ai) | GitHub markdown | GitHub API + markdown parsing |
+| LatentSpaceTV | YouTube | RSS + transcript extraction |
 
-If there's no new content, nothing happens. No spam.
+When something new is found:
 
-### The Architecture
+1. **Extract** — pull the transcript or article text
+2. **Chunk** — split into ~2,000-character pieces
+3. **Embed** — generate vectors via OpenAI `text-embedding-3-small`
+4. **Extract entities** — Claude identifies people, companies, and topics
+5. **Connect** — link to related nodes already in the graph
+6. **Detect companions** — pair matching podcasts and articles
+7. **Announce** — post to Discord + kick off Slop discussion
 
-Four cloud services, no self-hosted infrastructure:
+No new content? Nothing happens.
 
-| Service | What it does |
-|---------|-------------|
-| **Vercel** | Hosts the web app and runs the hourly ingestion cron jobs. Also sends Discord webhook messages when new content is ingested. |
-| **Turso** | Cloud-hosted SQLite database. Stores all nodes, edges, chunks, and embeddings. Single shared database — the web app, the bot, and MCP all read from the same source of truth. |
-| **Railway** | Runs the Slop bot as an always-on process. Connected to Discord 24/7 via WebSocket. Read-only access to the database. |
-| **OpenRouter** | LLM routing for Slop. Model-agnostic — the underlying model (Claude, GPT, etc.) can be swapped via config without code changes. |
+### Architecture
 
-### The Database
+Four cloud services, no self-hosted infrastructure.
 
-Everything lives in a single Turso (cloud SQLite) database:
+| Service | Role |
+|---------|------|
+| **Vercel** | Web app (read-only) + hourly ingestion cron + Discord announcements |
+| **Turso** | Cloud SQLite — single shared database for web app, bot, and MCP |
+| **Railway** | Slop bot — always-on Discord gateway |
+| **OpenRouter** | LLM routing for Slop (currently Claude Sonnet 4.6, swappable via config) |
 
-- **Nodes** — every episode, article, person, company, topic (~3,800)
-- **Edges** — connections between nodes ("appeared on", "mentioned in", "related to") (~7,500)
-- **Chunks** — the actual text content, broken into searchable pieces (~35,000)
-- **Embeddings** — 1536-dimensional vectors for AI-powered semantic search
+### Search
 
-### Search & Indexing
+Three indexing layers, all automatic:
 
-Three layers of indexing make content searchable the moment it's ingested:
+- **Full-text (FTS5)** — keyword search with BM25 ranking
+- **Vector embeddings** — semantic search by meaning, not just keywords
+- **B-tree indexes** — fast filtering by date, type, and connections
 
-1. **Full-text search (FTS5)** — keyword search with BM25 relevance ranking. A virtual table mirrors every chunk and stays in sync automatically via database triggers. When you search for "scaling laws", this finds every chunk containing those exact words.
-
-2. **Vector embeddings** — semantic search that finds content by meaning, not just keywords. Every chunk is embedded into a 1536-dimension vector using OpenAI's `text-embedding-3-small`. Searching for "how to make models smaller" finds content about distillation, quantization, and pruning — even if those exact words aren't in the query.
-
-3. **B-tree indexes** — standard database indexes on dates, types, dimensions, and edge connections for fast filtering.
-
-The default search mode is **hybrid** — it runs vector and full-text search in parallel and merges results using Reciprocal Rank Fusion (RRF). Content that scores well on both keyword match and semantic similarity rises to the top. If any layer fails, the system degrades gracefully: hybrid, then vector-only, then FTS-only, then basic text matching.
+Default mode is **hybrid** — vector + FTS in parallel, merged via Reciprocal Rank Fusion. Degrades gracefully if any layer fails.
 
 ### Open Source
 
-The web app, ingestion pipeline, and MCP server are all in the [latent-space-hub](https://github.com/bradwmorris/latent-space-hub) repo. The Discord bots live in a separate [latent-space-bots](https://github.com/bradwmorris/latent-space-bots) repo.
+| Repo | What's in it |
+|------|-------------|
+| [latent-space-hub](https://github.com/bradwmorris/latent-space-hub) | Web app, ingestion pipeline, MCP server, evals |
+| [latent-space-bots](https://github.com/bradwmorris/latent-space-bots) | Discord bot (Slop) — personas, MCP client, member memory |
 
 Built with Next.js 15, TypeScript, Turso, and the Vercel AI SDK. Forked from [RA-H](https://github.com/bradwmorris/ra-h_os), a local-first personal knowledge graph.
