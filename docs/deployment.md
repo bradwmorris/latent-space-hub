@@ -6,7 +6,7 @@
 |---------|------|-------|
 | Web App | Next.js frontend + API | Vercel (readonly mode) |
 | Database | Turso cloud SQLite | `latentspace-bradwmorris.aws-us-east-2.turso.io` |
-| Discord Bots | Sig & Slop | Railway |
+| Discord Bot | Slop | Railway |
 | MCP Server | NPX package | npm registry (`latent-space-hub-mcp`) |
 
 ## Vercel Deployment
@@ -22,7 +22,7 @@ The web app deploys to Vercel from the `main` branch.
 Read-only mode is for public access. Writes happen via:
 - The ingestion pipeline (admin, uses Turso credentials directly)
 - MCP tools (with appropriate auth)
-- Discord bots (read-only — they don't write to the KB)
+- Discord bot member-memory flow (via MCP tool calls from bot runtime)
 
 ## Vercel Cron Jobs
 
@@ -76,11 +76,15 @@ The bot uses **OpenRouter** for LLM calls — a single API that routes to many m
 
 | Variable | Purpose |
 |----------|---------|
-| `DISCORD_TOKEN` | Discord bot token (tied to the bot application, not the server) |
-| `TURSO_DATABASE_URL` | Turso database URL (read-only access) |
+| `BOT_TOKEN_SLOP` | Discord bot token for Slop |
+| `BOT_APP_ID_SLOP` | Discord application ID for slash command registration |
+| `DISCORD_TEST_GUILD_ID` | Optional guild ID for test-only slash command registration |
+| `TURSO_DATABASE_URL` | Turso database URL |
 | `TURSO_AUTH_TOKEN` | Turso auth token |
 | `OPENROUTER_API_KEY` | LLM API access (model-agnostic) |
 | `ALLOWED_CHANNEL_IDS` | Comma-separated Discord channel IDs where the bot can respond |
+| `SLOP_MODEL` | OpenRouter model name for Slop |
+| `LS_HUB_MCP_SERVER_PATH` | Optional local override path for MCP server script |
 
 ### Webhook vs bot
 

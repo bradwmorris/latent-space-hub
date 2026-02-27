@@ -26,6 +26,7 @@ Mention @Slop in any channel. A thread is created and Slop responds with graph-b
 |---------|-------------|
 | `/tldr <query>` | Get a concise TLDR on any topic from the knowledge graph |
 | `/wassup` | See what's new and interesting in Latent Space |
+| `/join` | Add yourself as a member node so Slop remembers your interests over time |
 
 ### Automated Feed
 
@@ -35,10 +36,11 @@ and links back to the original sources. Community jumps in from there.
 
 ## How It Works
 
-1. Your question is used to search the graph (vector + full-text hybrid search)
+1. Your question is routed through MCP graph tools (`ls_search_content`, `ls_get_nodes`, `ls_sqlite_query`)
 2. Relevant content (transcripts, articles, notes) is retrieved with source links
 3. Slop generates a response grounded in that content
-4. Response includes direct links to every source referenced
+4. If you joined, member context is used to personalize responses
+5. After response, member notes/metadata/edges are updated in the graph (non-blocking)
 
 ## Source Linking
 

@@ -1,6 +1,6 @@
 # Discord Bot — Slop
 
-Slop is an AI bot in the Latent Space Discord, backed by the full knowledge graph. Opinionated, provocative, always grounded in the actual content.
+Slop is the Latent Space Discord bot backed by the full knowledge graph. It is opinionated, source-grounded, and now member-aware.
 
 ## What Slop Does
 
@@ -33,6 +33,20 @@ Mention @Slop anywhere in allowed channels. Slop creates a thread (`Slop: [topic
 |---------|-------------|
 | `/tldr <query>` | Get a concise TLDR on any topic from the knowledge graph |
 | `/wassup` | See what's new and interesting in Latent Space |
+| `/join` | Create your member profile node so Slop remembers your interests over time |
+
+## Member Memory
+
+When a user runs `/join`, Slop creates a `member` node in the graph with Discord metadata.
+
+On later interactions:
+
+1. Slop looks up the member profile and injects member context into prompt construction.
+2. After responding, Slop appends a one-line interaction summary to member notes.
+3. Slop updates metadata (`last_active`, `interaction_count`, `interests`).
+4. Slop creates member → content edges for retrieved items from that interaction.
+
+All of this is non-blocking after response delivery.
 
 ## Source Linking
 
@@ -46,18 +60,19 @@ Discord Gateway
          │
     Single discord.js process
          │
-    ┌────┴─────┐
-    │  Turso   │  (read-only connection)
-    │  KB      │  Hybrid search (vector + FTS)
-    └──────────┘
+    MCP stdio client
+         │
+    latent-space-hub-mcp
+         │
+       Turso KB
          │
     OpenRouter → Claude Sonnet 4.6
 ```
 
 - **Repo:** `latent-space-bots` (separate from this repo)
 - **Runtime:** Single Discord.js process, single bot user
-- **KB access:** Read-only Turso connection (same database as the web app)
-- **Search:** Hybrid vector + FTS for content retrieval
+- **KB access:** MCP tools (`latent-space-hub-mcp`) from bot runtime
+- **Search:** MCP `ls_search_content` + `ls_get_nodes` + latest-node SQL path
 - **LLM:** Claude Sonnet 4.6 via OpenRouter (model swappable via `SLOP_MODEL` env var)
 - **Persona:** Defined in `personas/slop.soul.md`
 - **Pattern:** Thread-per-conversation — each user question creates a thread
@@ -65,12 +80,10 @@ Discord Gateway
 ## How Slop Connects to the KB
 
 1. User asks a question via slash command or @mention
-2. Bot extracts the query and runs hybrid search (vector + FTS) against chunks
-3. Top results assembled into context with markdown source links
-4. Context + persona prompt + user question → LLM call via OpenRouter
+2. Bot queries graph context through MCP tools
+3. Bot optionally loads guide context (`ls_read_guide`) and member context
+4. Retrieved graph context + persona + member context + user question → LLM call via OpenRouter
 5. Response posted to Discord thread with source links and model badge
-
-The bot does **not** use the MCP server — it connects directly to Turso via the shared service layer for lower latency.
 
 ## Hosting
 

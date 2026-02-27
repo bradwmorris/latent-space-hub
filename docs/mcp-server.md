@@ -2,6 +2,8 @@
 
 The Latent Space Hub exposes its entire knowledge graph via the [Model Context Protocol](https://modelcontextprotocol.io/). Any MCP-compatible AI agent — Claude Code, Cursor, Windsurf, custom agents — can search, read, and contribute to the graph.
 
+The Discord bot (`latent-space-bots`) also uses this MCP tool surface (via stdio) for graph retrieval and member-memory writes.
+
 ## Quick Start
 
 ### Option 1: NPX (standalone)

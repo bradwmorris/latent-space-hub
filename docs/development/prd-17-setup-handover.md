@@ -1,5 +1,8 @@
 # PRD 17: Setup & Handover
 
+**Status:** completed
+**Completed:** 2026-02-27
+
 ## Background
 
 Everything is built and deployed. This is the handover checklist for getting the bot and webhooks live in the Latent Space Discord server.
@@ -80,8 +83,19 @@ No further owner action needed.
 - [ ] Test channel created with webhook
 - [ ] Test webhook post works
 - [ ] @Slop responds in test channel
+- [ ] `/join` works in test channel and creates a member node
+- [ ] Member follow-up interactions update notes/interests/edges
 - [ ] Full ingestion pipeline posts announcement + yap
 - [ ] Webhook URLs swapped to live channels
 - [ ] Vercel + Railway redeployed with live env vars
 - [ ] Test channel deleted
 - [ ] First real content ingestion posts correctly
+
+---
+
+## Completion Notes (2026-02-27)
+
+- Slop is MCP-first for graph operations.
+- Member nodes are live (`node_type = 'member'`, dimension `member`).
+- `/join` is live.
+- Post-response member memory updates are live (notes + metadata + member→content edges).

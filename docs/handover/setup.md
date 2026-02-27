@@ -55,11 +55,14 @@ Railway cloud hosting, runs the Slop bot as an always-on service.
 
 The bot connects to Discord via the Discord gateway (a persistent WebSocket connection — it's "logged in" 24/7). When someone @mentions Slop, the bot:
 - Receives the message from Discord
-- Queries the Turso database for relevant content
+- Queries the graph through MCP tools (`latent-space-hub-mcp`)
 - Sends context to an LLM to generate a response
 - Posts the reply back to Discord in a thread
 
-The bot is **read-only** on the database. It can search and read but never modifies the knowledge graph.
+The bot is now **member-aware**:
+- `/join` creates a member node in the graph
+- Post-response updates append member notes + metadata (`interaction_count`, `interests`, `last_active`)
+- Member → content edges are created from retrieval results
 
 Railway is separate from Vercel because Discord bots need to stay connected permanently. Vercel is designed for short-lived request/response — great for web apps, not for a bot that needs to be online 24/7.
 
@@ -131,7 +134,7 @@ The cron is managed by Vercel — it's configured in the project settings and ru
               │  (database)  │       │  (LLM API)   │
               └──────┬───────┘       └──────┬───────┘
                      │                      │
-        reads & writes │ reads only          │ Slop sends
+        reads & writes │ MCP read/write      │ Slop sends
                   ┌────┴──────┐             │ queries
                   │           │             │
            ┌──────┴──────┐   ┌──────┴───────┴──┐
@@ -158,10 +161,11 @@ The cron is managed by Vercel — it's configured in the project settings and ru
 When someone @mentions Slop or new content triggers a discussion:
 
 1. Slop receives the message from Discord
-2. Searches the knowledge graph (vector similarity + full-text search)
-3. Finds relevant episodes, articles, guests, and connections
-4. Sends the results + Slop's personality prompt to a model via OpenRouter
+2. Retrieves graph context via MCP tools
+3. Merges retrieval + guide context + member context into prompt assembly
+4. Sends grounded context + persona prompt to a model via OpenRouter
 5. Posts a response grounded in actual Latent Space content — with specific references
+6. Fire-and-forget member graph updates run after response delivery
 
 Slop isn't making things up. Every answer is backed by real content from the graph. The model can be swapped anytime (Claude, GPT, etc.) — the knowledge base stays the same.
 
@@ -302,8 +306,15 @@ These are updated in Vercel and Railway after receiving the webhook URLs and bot
 | Variable | Value |
 |----------|-------|
 | `ALLOWED_CHANNEL_IDS` | Channel IDs from the live server (comma-separated) |
+| `BOT_TOKEN_SLOP` | Bot token for Slop |
+| `BOT_APP_ID_SLOP` | App ID for slash command registration |
+| `OPENROUTER_API_KEY` | LLM API key |
+| `TURSO_DATABASE_URL` | Turso DB URL |
+| `TURSO_AUTH_TOKEN` | Turso token |
+| `SLOP_MODEL` | Model name (optional override) |
+| `LS_HUB_MCP_SERVER_PATH` | Optional local override for MCP server script |
 
-The bot token (`DISCORD_TOKEN`) stays the same — it's tied to the bot application, not the server.
+The bot token is now `BOT_TOKEN_SLOP` (not `DISCORD_TOKEN`).
 
 ---
 
@@ -312,6 +323,8 @@ The bot token (`DISCORD_TOKEN`) stays the same — it's tied to the bot applicat
 - [ ] Slop appears in server member list
 - [ ] Test webhook posts to `#bot-testing`
 - [ ] @Slop mention in `#bot-testing` gets a threaded response
+- [ ] `/join` creates a member node for a test user
+- [ ] Follow-up messages update member notes/interests and create member→content edges
 - [ ] Full ingestion pipeline triggers announcement + yap messages
 - [ ] Webhook URLs swapped to live channels
 - [ ] Vercel redeployed with live env vars

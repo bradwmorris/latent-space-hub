@@ -129,9 +129,10 @@ npx tsx scripts/ingest.ts --dry-run
 ### Bots not responding
 
 1. Check bot process is running on Railway
-2. Verify `DISCORD_TOKEN` is valid
+2. Verify `BOT_TOKEN_SLOP` is valid
 3. Check Turso connection — bots need `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`
 4. Check `OPENROUTER_API_KEY` for LLM access
+5. If MCP client init fails, verify `latent-space-hub-mcp` is installed or set `LS_HUB_MCP_SERVER_PATH`
 
 ### Bots responding with errors
 

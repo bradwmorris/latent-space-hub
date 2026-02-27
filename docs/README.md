@@ -19,7 +19,7 @@ A knowledge graph for the Latent Space universe — podcasts, articles, AI News,
 | Doc | Description |
 |-----|-------------|
 | [MCP Server](./mcp-server.md) | External agent setup, all tools, example workflows |
-| [Bots](./bots.md) | Sig & Slop — Discord bot architecture and commands |
+| [Bots](./bots.md) | Slop bot architecture, commands, member memory flow |
 | [Ingestion](./ingestion.md) | Content pipeline, sources, extractors, Quick Add |
 | [Search](./search.md) | Vector, FTS5, hybrid search, fallback chain |
 

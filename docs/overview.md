@@ -13,7 +13,7 @@ Content sources          AI enrichment            Three interfaces
 ─────────────────       ──────────────────       ──────────────────
 YouTube transcripts  →  Embeddings (1536d)    →  Web App (dashboard)
 Substack articles    →  Entity extraction     →  MCP Server (agents)
-GitHub (AINews)      →  Auto-edges            →  Discord Bots (Sig & Slop)
+GitHub (AINews)      →  Auto-edges            →  Discord Bot (Slop)
 ```
 
 1. **Content goes in** — Auto-ingestion pipeline polls RSS feeds and GitHub hourly, extracts from YouTube, Substack, and GitHub
@@ -37,11 +37,10 @@ npx latent-space-hub-mcp
 
 See [MCP Server docs](./mcp-server.md) for setup.
 
-### 3. Discord Bots — Sig & Slop
+### 3. Discord Bot — Slop
 
-Two AI personalities backed by the knowledge base:
-- **Sig (Signal)** — Precise, factual, citation-heavy. The reliable answer bot.
-- **Slop (Entropy)** — Opinionated, provocative, connects unexpected dots. The debate starter.
+Slop is the active bot backed by the graph:
+- **Slop** — Opinionated, provocative, source-grounded, and member-aware (`/join` creates member memory profiles).
 
 See [Bots docs](./bots.md) for details.
 
@@ -80,7 +79,7 @@ Forked from [RA-H Open Source](https://github.com/bradwmorris/ra-h_os) — a loc
 | **[Categories](./categories.md)** | The 8 content categories |
 | **[Schema](./schema.md)** | Database tables and relationships |
 | **[MCP Server](./mcp-server.md)** | External agent setup and tools |
-| **[Bots](./bots.md)** | Sig & Slop — Discord bot architecture |
+| **[Bots](./bots.md)** | Slop bot architecture, commands, member memory |
 | **[Ingestion](./ingestion.md)** | Content pipeline and sources |
 | **[Search](./search.md)** | Vector, FTS, and hybrid search |
 | **[Architecture](./architecture.md)** | Codebase map and patterns |
