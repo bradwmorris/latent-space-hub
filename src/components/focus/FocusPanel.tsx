@@ -1995,13 +1995,46 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
               </div>
             </div>
 
-            {/* Title Row - Node ID, Title, Connections, Trash */}
+            {/* Title Row - Avatar (members), Node ID, Title, Connections, Trash */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               marginBottom: '8px'
             }}>
+              {/* Member Avatar in title row */}
+              {currentMemberMetadata && (
+                currentMemberMetadata.avatar_url ? (
+                  <img
+                    src={currentMemberMetadata.avatar_url}
+                    alt={currentMemberMetadata.discord_handle ? `${currentMemberMetadata.discord_handle} avatar` : 'Member avatar'}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '999px',
+                      objectFit: 'cover',
+                      border: '1px solid #2f2f2f',
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '999px',
+                    border: '1px solid #2f2f2f',
+                    background: '#181818',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)',
+                    flexShrink: 0,
+                  }}>
+                    <User size={16} />
+                  </div>
+                )
+              )}
+
               {/* Node ID - Draggable */}
               <span
                 draggable

@@ -125,6 +125,8 @@ function TypeNodeList({
             ? (node.event_date ? formatAbsoluteDate(dateStr) : formatRelativeDate(dateStr))
             : '';
           const thumb = getYouTubeThumbnail(node.link);
+          const isMember = node.node_type === 'member';
+          const memberAvatar = isMember ? (node.metadata as any)?.avatar_url : null;
 
           return (
             <button
@@ -144,10 +146,10 @@ function TypeNodeList({
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'background 0.12s ease',
-                alignItems: 'flex-start',
+                alignItems: isMember ? 'center' : 'flex-start',
               }}
             >
-              {/* Thumbnail */}
+              {/* Thumbnail (podcasts) */}
               {thumb && (
                 <img
                   src={thumb}
@@ -163,6 +165,42 @@ function TypeNodeList({
                     marginTop: '2px',
                   }}
                 />
+              )}
+
+              {/* Avatar (members) */}
+              {isMember && (
+                memberAvatar ? (
+                  <img
+                    src={memberAvatar}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      objectFit: 'cover',
+                      borderRadius: '999px',
+                      flexShrink: 0,
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid #2f2f2f',
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '999px',
+                    flexShrink: 0,
+                    background: '#181818',
+                    border: '1px solid #2f2f2f',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)',
+                    fontSize: '16px',
+                  }}>
+                    {node.title?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )
               )}
 
               {/* Text content */}
