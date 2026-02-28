@@ -11,6 +11,7 @@
 
 import { nodeService, edgeService } from '@/services/database';
 import { Node } from '@/types/database';
+import { autoEmbedQueue } from '@/services/embedding/autoEmbedQueue';
 
 // Entity-like dimensions where we expect to find referenceable entities
 const ENTITY_DIMENSIONS = ['people', 'companies', 'organizations', 'books', 'papers', 'articles', 'podcasts', 'creators'];
@@ -227,6 +228,14 @@ export async function runAutoEdgeCreation(nodeId: number): Promise<void> {
     // Create edges
     const edgesCreated = await createAutoEdges(nodeId, matches);
     console.log(`[autoEdge] Created ${edgesCreated} auto-edges for node ${nodeId}`);
+
+    // Enqueue matched entity nodes for embedding if they lack one
+    for (const [, entityNode] of matches) {
+      if (!entityNode.embedding_updated_at) {
+        autoEmbedQueue.enqueue(entityNode.id, { reason: 'auto_edge_entity' });
+        console.log(`[autoEdge] Enqueued entity node ${entityNode.id} (${entityNode.title}) for embedding`);
+      }
+    }
   } catch (error) {
     console.error(`[autoEdge] Error in auto-edge creation for node ${nodeId}:`, error);
   }

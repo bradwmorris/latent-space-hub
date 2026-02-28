@@ -61,8 +61,8 @@ export class NodeEmbedder {
         const vecJson = '[' + embedding.join(',') + ']';
 
         await sqlite.query(
-          'UPDATE nodes SET embedding = vector(?), embedding_text = ?, embedding_updated_at = datetime() WHERE id = ?',
-          [vecJson, text.slice(0, 2000), node.id]
+          'UPDATE nodes SET embedding = vector(?), embedding_vec = vector(?), embedding_text = ?, embedding_updated_at = datetime() WHERE id = ?',
+          [vecJson, vecJson, text.slice(0, 2000), node.id]
         );
 
         processed++;

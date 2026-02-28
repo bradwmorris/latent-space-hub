@@ -38,7 +38,8 @@ function loadConfig() {
   const tursoUrl = process.env.TURSO_DATABASE_URL || fileConfig.tursoUrl || fileConfig.turso_url;
   const tursoToken = process.env.TURSO_AUTH_TOKEN || fileConfig.tursoToken || fileConfig.turso_token;
   const guidesDir = process.env.LSH_GUIDES_DIR || fileConfig.guidesDir || DEFAULT_GUIDES_DIR;
-  return { tursoUrl, tursoToken, guidesDir };
+  const openAiApiKey = process.env.OPENAI_API_KEY || fileConfig.openAiApiKey || fileConfig.openai_api_key || null;
+  return { tursoUrl, tursoToken, guidesDir, openAiApiKey };
 }
 
 function failConfig(message) {
@@ -217,13 +218,17 @@ const updateNodeInputSchema = {
 };
 
 async function main() {
-  const { tursoUrl, tursoToken, guidesDir } = loadConfig();
+  const { tursoUrl, tursoToken, guidesDir, openAiApiKey } = loadConfig();
   if (!tursoUrl) {
     failConfig('Missing Turso URL.');
   }
 
   const db = createDbClient(tursoUrl, tursoToken);
   ensureDir(guidesDir);
+
+  // Initialize services layer for hybrid search (vector + FTS + fallback)
+  const { createLsHubServices } = require('./services/index.js');
+  const services = createLsHubServices({ db, tursoUrl, tursoToken });
 
   const server = new McpServer(
     { name: 'latent-space-hub-mcp', version: '0.1.0' },
@@ -301,7 +306,7 @@ async function main() {
     'ls_search_nodes',
     {
       title: 'Search nodes',
-      description: 'Keyword search across titles, descriptions, and notes.',
+      description: 'Hybrid search across nodes — uses vector similarity (when OpenAI key available) combined with keyword matching. Finds entities, guests, topics, and content nodes by meaning.',
       inputSchema: {
         query: z.string().min(1),
         limit: z.number().min(1).max(25).optional(),
@@ -313,78 +318,87 @@ async function main() {
       }
     },
     async ({ query, limit = 10, dimensions = [], node_type, event_after, event_before, sortBy = 'updated' }) => {
-      const safeLimit = Math.min(Math.max(limit, 1), 25);
-      const like = `%${query.trim()}%`;
-      const normalizedNodeType = typeof node_type === 'string' && node_type.trim() ? node_type.trim() : null;
-      const normalizedEventAfter =
-        typeof event_after === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(event_after.trim())
-          ? event_after.trim()
-          : null;
-      const normalizedEventBefore =
-        typeof event_before === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(event_before.trim())
-          ? event_before.trim()
-          : null;
+      // Use services layer for keyword search (it handles all filtering)
+      const keywordResult = await services.searchNodes(query, {
+        limit,
+        dimensions,
+        node_type,
+        event_after,
+        event_before,
+        sortBy
+      });
 
-      const args = [like, like, like];
-      let where = '(n.title LIKE ? OR n.description LIKE ? OR n.notes LIKE ?)';
+      // If OpenAI key available, also run node vector search and merge
+      let method = 'keyword';
+      let formatted = keywordResult.nodes;
 
-      if (dimensions.length > 0) {
-        const placeholders = dimensions.map(() => '?').join(',');
-        where += ` AND EXISTS (SELECT 1 FROM node_dimensions nd WHERE nd.node_id = n.id AND nd.dimension IN (${placeholders}))`;
-        args.push(...dimensions);
+      if (openAiApiKey) {
+        try {
+          const embedding = await services.nodeVectorSearch
+            ? null // will use queryKnowledgeContext pattern
+            : null;
+
+          // Use the maybeGetQueryEmbedding pattern from services
+          const { createLsHubServices: _ } = require('./services/index.js');
+          const fetch = globalThis.fetch;
+          let queryEmbedding = null;
+          try {
+            const r = await fetch('https://api.openai.com/v1/embeddings', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${openAiApiKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: 'text-embedding-3-small', input: query.trim() })
+            });
+            if (r.ok) {
+              const json = await r.json();
+              queryEmbedding = json?.data?.[0]?.embedding || null;
+            }
+          } catch {}
+
+          if (queryEmbedding) {
+            const vectorHits = await services.nodeVectorSearch(queryEmbedding, limit * 2).catch(() => []);
+
+            if (vectorHits.length > 0) {
+              // Merge vector results with keyword results using RRF
+              const keywordHits = formatted.map((n) => ({
+                source: 'keyword',
+                score: 0.5,
+                nodeId: n.id,
+                title: n.title,
+                description: n.description || '',
+                excerpt: (n.notes || '').slice(0, 700),
+                link: n.link || '',
+                eventDate: n.event_date || '',
+                nodeType: n.node_type || ''
+              }));
+
+              const merged = services.fuseHybrid(vectorHits, keywordHits, limit);
+              method = 'hybrid';
+
+              // Fetch dimensions for merged results
+              const mergedNodeIds = merged.map((h) => h.nodeId);
+              const dimMap = await fetchDimensionsByNodeIds(db, mergedNodeIds);
+
+              formatted = merged.map((hit) => ({
+                id: hit.nodeId,
+                title: hit.title,
+                notes: null,
+                description: hit.description || null,
+                link: hit.link || null,
+                node_type: hit.nodeType || null,
+                event_date: hit.eventDate || null,
+                dimensions: dimMap.get(hit.nodeId) || [],
+                updated_at: ''
+              }));
+            }
+          }
+        } catch {
+          // Vector search failed, keyword results stand
+        }
       }
-
-      if (normalizedNodeType) {
-        where += ' AND n.node_type = ?';
-        args.push(normalizedNodeType);
-      }
-
-      if (normalizedEventAfter) {
-        where += ' AND n.event_date IS NOT NULL AND n.event_date >= ?';
-        args.push(normalizedEventAfter);
-      }
-
-      if (normalizedEventBefore) {
-        where += ' AND n.event_date IS NOT NULL AND n.event_date <= ?';
-        args.push(normalizedEventBefore);
-      }
-
-      const orderBy =
-        sortBy === 'event_date' || normalizedEventAfter || normalizedEventBefore
-          ? 'n.event_date DESC NULLS LAST, n.updated_at DESC'
-          : 'n.updated_at DESC';
-
-      args.push(safeLimit);
-
-      const result = await runQuery(
-        db,
-        `SELECT n.id, n.title, n.notes, n.description, n.link, n.node_type, n.event_date, n.updated_at
-           FROM nodes n
-          WHERE ${where}
-          ORDER BY ${orderBy}
-          LIMIT ?`,
-        args
-      );
-
-      const nodes = result.rows || [];
-      const nodeIds = nodes.map((r) => Number(r.id));
-      const dimMap = await fetchDimensionsByNodeIds(db, nodeIds);
-
-      const formatted = nodes.map((row) => ({
-        id: Number(row.id),
-        title: String(row.title || ''),
-        notes: row.notes == null ? null : String(row.notes),
-        description: row.description == null ? null : String(row.description),
-        link: row.link == null ? null : String(row.link),
-        node_type: row.node_type == null ? null : String(row.node_type),
-        event_date: row.event_date == null ? null : String(row.event_date),
-        dimensions: dimMap.get(Number(row.id)) || [],
-        updated_at: String(row.updated_at || '')
-      }));
 
       return {
-        content: [{ type: 'text', text: `Found ${formatted.length} matching node(s).` }],
-        structuredContent: { count: formatted.length, nodes: formatted }
+        content: [{ type: 'text', text: `Found ${formatted.length} matching node(s) (${method}).` }],
+        structuredContent: { count: formatted.length, method, nodes: formatted }
       };
     }
   );
@@ -781,7 +795,7 @@ async function main() {
     'ls_search_content',
     {
       title: 'Search content',
-      description: 'Search chunk text (FTS preferred, LIKE fallback).',
+      description: 'Hybrid search over chunk text and nodes — uses vector similarity + FTS5 + keyword fallback with Reciprocal Rank Fusion. Finds relevant transcript passages, articles, and node content by meaning.',
       inputSchema: {
         query: z.string().min(1),
         limit: z.number().min(1).max(20).optional(),
@@ -789,66 +803,35 @@ async function main() {
       }
     },
     async ({ query, limit = 5, node_id }) => {
-      const safeLimit = Math.min(Math.max(limit, 1), 20);
-      let rows = [];
-
-      try {
-        const ftsArgs = [query.trim()];
-        let nodeFilter = '';
-        if (node_id) {
-          nodeFilter = 'AND c.node_id = ?';
-          ftsArgs.push(node_id);
-        }
-        ftsArgs.push(safeLimit);
-
-        const res = await runQuery(
-          db,
-          `SELECT c.node_id, n.title, c.id AS chunk_id, c.text, bm25(chunks_fts) AS score
-             FROM chunks_fts
-             JOIN chunks c ON c.id = chunks_fts.rowid
-             JOIN nodes n ON n.id = c.node_id
-            WHERE chunks_fts MATCH ? ${nodeFilter}
-            ORDER BY score
-            LIMIT ?`,
-          ftsArgs
-        );
-
-        rows = res.rows || [];
-      } catch {
-        const like = `%${query.trim()}%`;
-        const likeArgs = [like];
-        let where = 'WHERE c.text LIKE ?';
-        if (node_id) {
-          where += ' AND c.node_id = ?';
-          likeArgs.push(node_id);
-        }
-        likeArgs.push(safeLimit);
-
-        const res = await runQuery(
-          db,
-          `SELECT c.node_id, n.title, c.id AS chunk_id, c.text
-             FROM chunks c
-             JOIN nodes n ON n.id = c.node_id
-             ${where}
-            ORDER BY c.id DESC
-            LIMIT ?`,
-          likeArgs
-        );
-
-        rows = res.rows || [];
+      // If scoped to a specific node, use direct FTS/LIKE (no vector needed)
+      if (node_id) {
+        const scoped = await services.searchContent(query, { limit, node_id });
+        return {
+          content: [{ type: 'text', text: `Found ${scoped.count} matching chunk(s) in node ${node_id}.` }],
+          structuredContent: { count: scoped.count, method: 'scoped_fts', results: scoped.results }
+        };
       }
 
-      const results = rows.map((row) => ({
-        node_id: Number(row.node_id),
-        chunk_id: Number(row.chunk_id),
-        title: String(row.title || ''),
-        text: String(row.text || '').slice(0, 800),
-        score: row.score == null ? null : Number(row.score)
+      // Use the full hybrid search pipeline (vector + FTS + node fallback + RRF)
+      const result = await services.queryKnowledgeContext(query, {
+        limit,
+        openAiApiKey: openAiApiKey || undefined
+      });
+
+      const results = result.hits.map((hit) => ({
+        node_id: hit.nodeId,
+        title: hit.title,
+        description: hit.description || '',
+        text: hit.excerpt || '',
+        link: hit.link || '',
+        event_date: hit.eventDate || '',
+        node_type: hit.nodeType || '',
+        score: hit.score || 0
       }));
 
       return {
-        content: [{ type: 'text', text: `Found ${results.length} matching chunk(s).` }],
-        structuredContent: { count: results.length, results }
+        content: [{ type: 'text', text: `Found ${results.length} result(s) (${result.method}).` }],
+        structuredContent: { count: results.length, method: result.method, results }
       };
     }
   );

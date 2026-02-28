@@ -1,84 +1,51 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { chunkService } from '@/services/database/chunks';
-import { EmbeddingService } from '@/services/embeddings';
+import { searchService } from '@/services/database/search';
 
 export const searchContentEmbeddingsTool = tool({
-  description: 'Hybrid semantic + keyword search over node chunks. Uses vector similarity (vector_top_k) combined with FTS5 via Reciprocal Rank Fusion for best results.',
+  description: 'Two-phase semantic search: first finds relevant nodes by meaning, then drills into their chunks for detail. Uses vector similarity with FTS5 and keyword fallbacks.',
   inputSchema: z.object({
     query: z.string().describe('The search query to find semantically similar content'),
-    limit: z.number().min(1).max(20).default(5).describe('Maximum number of results to return (default: 5)'),
-    node_id: z.number().optional().describe('Optional: search within a specific node only'),
-    similarity_threshold: z.number().min(0.1).max(1.0).default(0.3).describe('Minimum similarity score (0.1-1.0, default: 0.3)')
+    limit: z.number().min(1).max(20).default(5).describe('Maximum number of chunk results to return (default: 5)'),
+    node_id: z.number().optional().describe('Optional: search within a specific node only (skips Phase 1 node search)'),
+    node_limit: z.number().min(1).max(20).default(10).describe('Maximum number of node results in Phase 1 (default: 10)'),
+    similarity_threshold: z.number().min(0.1).max(1.0).default(0.3).describe('Minimum similarity score (0.1-1.0, default: 0.3)'),
+    nodes_only: z.boolean().default(false).describe('If true, only search nodes (skip chunk drill-down)'),
   }),
-  execute: async ({ query, limit = 5, node_id, similarity_threshold = 0.3 }) => {
+  execute: async ({ query, limit = 5, node_id, node_limit = 10, similarity_threshold = 0.3, nodes_only = false }) => {
     const startTime = Date.now();
 
     try {
-      const searchNodeIds = node_id ? [node_id] : undefined;
-
-      // Try to generate embedding for hybrid search
-      let queryEmbedding: number[] | null = null;
-      let searchMethod = 'text_fallback';
-
-      try {
-        queryEmbedding = await EmbeddingService.generateQueryEmbedding(query);
-        if (!EmbeddingService.validateEmbedding(queryEmbedding)) {
-          queryEmbedding = null;
-        }
-      } catch {
-        // Embedding failed — will fall back gracefully below
-      }
-
-      let chunks: Array<{ id: number; node_id: number; chunk_idx?: number; text: string; similarity: number }>;
-
-      if (queryEmbedding) {
-        // Hybrid search (vector + FTS5 via RRF)
-        chunks = await chunkService.hybridSearch(
-          queryEmbedding,
-          query,
-          limit,
-          similarity_threshold,
-          searchNodeIds
-        );
-        searchMethod = chunks.length > 0 ? 'hybrid' : 'hybrid_empty';
-
-        // If hybrid returned nothing, try vector-only
-        if (chunks.length === 0) {
-          chunks = await chunkService.searchChunks(
-            queryEmbedding,
-            similarity_threshold,
-            limit,
-            searchNodeIds,
-            query
-          );
-          if (chunks.length > 0) searchMethod = 'vector';
-        }
-      } else {
-        // No embedding available — FTS only, then LIKE fallback
-        chunks = await chunkService.ftsSearch(query, limit, searchNodeIds);
-        searchMethod = chunks.length > 0 ? 'fts' : 'text_fallback';
-
-        if (chunks.length === 0) {
-          chunks = await chunkService.textSearchFallback(query, limit, searchNodeIds);
-          if (chunks.length > 0) searchMethod = 'text_fallback';
-        }
-      }
-
-      const searchTime = Date.now() - startTime;
+      const result = await searchService.twoPhaseSearch({
+        query,
+        nodeLimit: node_limit,
+        chunkLimit: limit,
+        similarityThreshold: similarity_threshold,
+        includeChunks: !nodes_only,
+        nodeIds: node_id ? [node_id] : undefined,
+      });
 
       let suggestions: string[] = [];
-      if (chunks.length === 0 && similarity_threshold > 0.3) {
+      if (result.nodes.length === 0 && result.chunks.length === 0 && similarity_threshold > 0.3) {
         suggestions.push(`No results at threshold ${similarity_threshold}. Try lowering to 0.3.`);
       }
-      if (chunks.length === 0 && searchNodeIds) {
-        suggestions.push('No results in specified node. Try searching across all nodes.');
+      if (result.chunks.length === 0 && node_id) {
+        suggestions.push('No chunks in specified node. Try searching across all nodes.');
       }
 
       return {
         success: true,
         data: {
-          chunks: chunks.map(chunk => ({
+          nodes: result.nodes.map(node => ({
+            id: node.id,
+            title: node.title,
+            description: node.description,
+            node_type: node.node_type,
+            event_date: node.event_date,
+            dimensions: node.dimensions,
+            similarity: node.similarity,
+          })),
+          chunks: result.chunks.map(chunk => ({
             id: chunk.id,
             node_id: chunk.node_id,
             chunk_idx: chunk.chunk_idx,
@@ -87,11 +54,13 @@ export const searchContentEmbeddingsTool = tool({
             similarity: chunk.similarity,
           })),
           query,
-          searched_nodes: searchNodeIds || 'all',
-          count: chunks.length,
+          searched_nodes: node_id ? [node_id] : 'all',
+          node_count: result.nodes.length,
+          chunk_count: result.chunks.length,
           similarity_threshold,
-          search_method: searchMethod,
-          search_time_ms: searchTime,
+          search_method: result.search_method,
+          phase2_ran: result.phase2_ran,
+          search_time_ms: result.search_time_ms,
           suggestions: suggestions.length > 0 ? suggestions : undefined
         }
       };

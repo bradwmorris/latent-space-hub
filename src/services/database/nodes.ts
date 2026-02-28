@@ -1,6 +1,7 @@
 import { getSQLiteClient } from './sqlite-client';
 import { Node, NodeFilters } from '@/types/database';
 import { eventBroadcaster } from '../events';
+import { vectorToJsonString } from '@/services/typescript/sqlite-vec';
 
 export class NodeService {
   async getNodes(filters: NodeFilters = {}): Promise<Node[]> {
@@ -254,6 +255,67 @@ export class NodeService {
 
   async searchNodes(searchTerm: string, limit = 50): Promise<Node[]> {
     return this.getNodes({ search: searchTerm, limit });
+  }
+
+  /**
+   * Search nodes by embedding similarity using Turso native vector_top_k()
+   * on the nodes_embedding_idx (over embedding_vec F32_BLOB column).
+   */
+  async searchNodesByVector(
+    queryEmbedding: number[],
+    similarityThreshold = 0.4,
+    matchCount = 10,
+    nodeType?: string,
+    dimensions?: string[]
+  ): Promise<Array<Node & { similarity: number }>> {
+    const sqlite = getSQLiteClient();
+    const vecJson = vectorToJsonString(queryEmbedding);
+
+    // Fetch more than needed so we can filter after
+    const fetchCount = matchCount * 3;
+
+    let sql = `
+      SELECT n.id, n.title, n.description, n.notes, n.link, n.node_type, n.event_date,
+             n.metadata, n.chunk_status, n.embedding_updated_at,
+             n.created_at, n.updated_at,
+             COALESCE((SELECT JSON_GROUP_ARRAY(d.dimension)
+                       FROM node_dimensions d WHERE d.node_id = n.id), '[]') as dimensions_json,
+             (SELECT COUNT(*) FROM edges WHERE from_node_id = n.id OR to_node_id = n.id) as edge_count,
+             (1.0 - vector_distance_cos(n.embedding_vec, vector(?))) as similarity
+      FROM vector_top_k('nodes_embedding_idx', vector(?), ?) AS vt
+      JOIN nodes n ON n.rowid = vt.id
+      WHERE 1=1
+    `;
+    const params: any[] = [vecJson, vecJson, fetchCount];
+
+    if (nodeType) {
+      sql += ` AND n.node_type = ?`;
+      params.push(nodeType);
+    }
+
+    if (dimensions && dimensions.length > 0) {
+      const placeholders = dimensions.map(() => '?').join(',');
+      sql += ` AND EXISTS (SELECT 1 FROM node_dimensions nd WHERE nd.node_id = n.id AND nd.dimension IN (${placeholders}))`;
+      params.push(...dimensions);
+    }
+
+    sql += ` ORDER BY similarity DESC`;
+
+    try {
+      const result = await sqlite.query<Node & { dimensions_json: string; similarity: number }>(sql, params);
+
+      return result.rows
+        .filter(row => row.similarity >= similarityThreshold)
+        .slice(0, matchCount)
+        .map(row => ({
+          ...row,
+          dimensions: JSON.parse(row.dimensions_json || '[]'),
+          metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+        }));
+    } catch (error) {
+      console.warn('Node vector search failed:', error);
+      return [];
+    }
   }
 
   async getNodeCount(): Promise<number> {

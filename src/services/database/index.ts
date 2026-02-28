@@ -3,6 +3,7 @@ export { nodeService, NodeService } from './nodes';
 export { chunkService, ChunkService } from './chunks';
 export { edgeService, EdgeService } from './edges';
 export { dimensionService, DimensionService } from './dimensionService';
+export { searchService, SearchService } from './search';
 // export { HelperService } from './helpers'; // Removed - migrated to JSON-based service
 
 // Types

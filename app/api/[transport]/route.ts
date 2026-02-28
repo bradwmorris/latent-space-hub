@@ -10,7 +10,7 @@
 import { createMcpHandler } from 'mcp-handler';
 import { z } from 'zod';
 
-import { nodeService, edgeService } from '@/services/database';
+import { nodeService, edgeService, searchService } from '@/services/database';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
 import { listGuides, readGuide } from '@/services/guides/guideService';
 
@@ -58,31 +58,31 @@ const handler = createMcpHandler(
     // READ TOOLS (always enabled)
     // ─────────────────────────────────────────────────────────────────────────────
 
-    // ls_search_nodes - Full-text search
+    // ls_search_nodes - Hybrid vector + keyword search
     server.registerTool(
       'ls_search_nodes',
       {
         title: 'Search Latent Space nodes',
-        description: 'Search the Latent Space knowledge graph by keyword. Returns matching nodes with title, description, dimensions.',
+        description: 'Hybrid search across the Latent Space knowledge graph — uses vector similarity (semantic meaning) with keyword fallback. Finds entities, guests, topics, and content nodes.',
         inputSchema: {
-          query: z.string().min(1).max(400).describe('Search query (keywords)'),
+          query: z.string().min(1).max(400).describe('Search query'),
           limit: z.number().min(1).max(50).optional().describe('Max results (default 20)'),
         },
       },
       async ({ query, limit = 20 }) => {
-        const filters: any = {
-          search: query.trim(),
-          limit: Math.min(Math.max(limit, 1), 50),
-        };
+        const safeLimit = Math.min(Math.max(limit, 1), 50);
 
-        const nodes = await nodeService.getNodes(filters);
+        const nodes = await searchService.searchNodes(query.trim(), {
+          limit: safeLimit,
+          similarityThreshold: 0.3,
+        });
 
         const summary = nodes.length === 0
           ? `No results found for "${query}".`
           : `Found ${nodes.length} result(s) for "${query}".`;
 
-        const nodeList = nodes.map((node: any) =>
-          `- #${node.id}: ${node.title} [${(node.dimensions || []).join(', ')}]`
+        const nodeList = nodes.map((node) =>
+          `- #${node.id}: ${node.title} [${(node.dimensions || []).join(', ')}] (sim: ${node.similarity.toFixed(3)})`
         ).join('\n');
 
         return {
@@ -138,76 +138,54 @@ const handler = createMcpHandler(
       }
     );
 
-    // ls_search_content - Search chunk text (FTS preferred, LIKE fallback)
+    // ls_search_content - Two-phase search (nodes + chunks)
     server.registerTool(
       'ls_search_content',
       {
-        title: 'Search Latent Space chunk content',
-        description: 'Search chunk text content. Uses FTS when available and falls back to LIKE.',
+        title: 'Search Latent Space content',
+        description: 'Two-phase hybrid search: finds relevant nodes by meaning first, then drills into their chunks for transcript/article text. Uses vector similarity + FTS5 + keyword fallback.',
         inputSchema: {
-          query: z.string().min(1).max(400).describe('Search query for chunk text'),
-          limit: z.number().min(1).max(20).optional().describe('Max results (default 5)'),
+          query: z.string().min(1).max(400).describe('Search query'),
+          limit: z.number().min(1).max(20).optional().describe('Max chunk results (default 5)'),
           node_id: z.number().int().positive().optional().describe('Optional node ID to scope the search'),
         },
       },
       async ({ query, limit = 5, node_id }) => {
-        const sqlite = getSQLiteClient();
         const safeLimit = Math.min(Math.max(limit, 1), 20);
-        let rows: any[] = [];
 
-        try {
-          const ftsArgs: any[] = [query.trim()];
-          let nodeFilter = '';
-          if (node_id) {
-            nodeFilter = 'AND c.node_id = ?';
-            ftsArgs.push(node_id);
-          }
-          ftsArgs.push(safeLimit);
+        const result = await searchService.twoPhaseSearch({
+          query: query.trim(),
+          nodeLimit: 10,
+          chunkLimit: safeLimit,
+          similarityThreshold: 0.3,
+          includeChunks: true,
+          nodeIds: node_id ? [node_id] : undefined,
+        });
 
-          const res = await sqlite.query(
-            `SELECT c.node_id, n.title, c.id AS chunk_id, c.text, bm25(chunks_fts) AS score
-               FROM chunks_fts
-               JOIN chunks c ON c.id = chunks_fts.rowid
-               JOIN nodes n ON n.id = c.node_id
-              WHERE chunks_fts MATCH ? ${nodeFilter}
-              ORDER BY score
-              LIMIT ?`,
-            ftsArgs
-          );
-          rows = res.rows || [];
-        } catch {
-          const like = `%${query.trim()}%`;
-          const likeArgs: any[] = [like];
-          let where = 'WHERE c.text LIKE ?';
-          if (node_id) {
-            where += ' AND c.node_id = ?';
-            likeArgs.push(node_id);
-          }
-          likeArgs.push(safeLimit);
+        const nodesSummary = result.nodes.length > 0
+          ? result.nodes.map((n) => `- #${n.id}: ${n.title} (sim: ${n.similarity.toFixed(3)})`).join('\n')
+          : '';
 
-          const res = await sqlite.query(
-            `SELECT c.node_id, n.title, c.id AS chunk_id, c.text
-               FROM chunks c
-               JOIN nodes n ON n.id = c.node_id
-               ${where}
-              ORDER BY c.id DESC
-              LIMIT ?`,
-            likeArgs
-          );
-          rows = res.rows || [];
-        }
+        const chunksSummary = result.chunks.length > 0
+          ? result.chunks.map((c) => `[Node ${c.node_id}] ${c.text.slice(0, 300)}`).join('\n---\n')
+          : 'No matching chunks found.';
 
-        const results = rows.map((row: any) => ({
-          node_id: Number(row.node_id),
-          chunk_id: Number(row.chunk_id),
-          title: String(row.title || ''),
-          text: String(row.text || '').slice(0, 800),
-          score: row.score == null ? null : Number(row.score),
-        }));
+        const text = nodesSummary
+          ? `Matched ${result.nodes.length} node(s) (${result.search_method}):\n${nodesSummary}\n\n${result.chunks.length} chunk(s):\n${chunksSummary}`
+          : `${result.chunks.length} result(s) (${result.search_method}):\n${chunksSummary}`;
 
         return {
-          content: [{ type: 'text', text: `Found ${results.length} matching chunk(s).` }],
-          structuredContent: { count: results.length, results },
+          content: [{ type: 'text', text }],
+          structuredContent: {
+            method: result.search_method,
+            node_count: result.nodes.length,
+            chunk_count: result.chunks.length,
+            nodes: result.nodes,
+            chunks: result.chunks.map((c) => ({
+              ...c,
+              text: c.text.slice(0, 800),
+            })),
+          },
         };
       }
     );

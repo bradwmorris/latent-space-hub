@@ -259,6 +259,20 @@ async function migrate() {
     `INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')`,
     'Rebuilt FTS5 index from existing chunks'
   );
+
+  // 15. Add F32_BLOB(1536) column for node vector search
+  // nodes.embedding is typed as BLOB which Turso cannot index with libsql_vector_idx.
+  // We add a properly-typed column and will backfill via vector() function.
+  await safeAlter(
+    `ALTER TABLE nodes ADD COLUMN embedding_vec F32_BLOB(1536)`,
+    'Added nodes.embedding_vec (F32_BLOB for vector indexing)'
+  );
+
+  // 16. Vector index on nodes.embedding_vec (Turso native)
+  await safeExec(
+    `CREATE INDEX IF NOT EXISTS nodes_embedding_idx ON nodes (libsql_vector_idx(embedding_vec, 'metric=cosine', 'compress_neighbors=float8', 'max_neighbors=20'))`,
+    'Created vector index on nodes.embedding_vec'
+  );
 }
 
 // ─── Backfill node_type from dimensions ──────────────────────────────────────

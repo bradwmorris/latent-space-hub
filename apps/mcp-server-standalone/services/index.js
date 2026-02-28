@@ -285,6 +285,31 @@ function createLsHubServices(options = {}) {
     }));
   }
 
+  async function nodeVectorSearch(queryEmbedding, limit) {
+    const vecJson = vectorToJsonString(queryEmbedding);
+    const result = await execute(
+      "SELECT n.id AS node_id, n.title, coalesce(n.description, '') AS description, " +
+        "coalesce(n.notes, '') AS notes, coalesce(n.link, '') AS link, coalesce(n.event_date, '') AS event_date, coalesce(n.node_type, '') AS node_type, " +
+        "(1.0 - vector_distance_cos(n.embedding_vec, vector(?))) AS score " +
+        "FROM vector_top_k('nodes_embedding_idx', vector(?), ?) AS vt " +
+        "JOIN nodes n ON n.rowid = vt.id " +
+        'ORDER BY score DESC',
+      [vecJson, vecJson, limit]
+    );
+
+    return (result.rows || []).map((row) => ({
+      source: 'node_vector',
+      score: Number(row.score || 0),
+      nodeId: Number(row.node_id),
+      title: String(row.title || 'Untitled'),
+      description: String(row.description || ''),
+      excerpt: String(row.notes || '').slice(0, 700),
+      link: String(row.link || ''),
+      eventDate: String(row.event_date || ''),
+      nodeType: String(row.node_type || '')
+    }));
+  }
+
   async function nodeTextFallback(query, limit) {
     const like = `%${String(query).toLowerCase()}%`;
     const result = await execute(
@@ -345,10 +370,16 @@ function createLsHubServices(options = {}) {
     const eventBefore = normalizeIsoDate(options.event_before);
     const sortBy = normalizeSortBy(options.sortBy);
     const embedding = await maybeGetQueryEmbedding(query, options.openAiApiKey, options.embeddingModel);
+
+    // Phase 1: Search chunks (vector + FTS)
     const vectorHits = embedding ? await vectorSearch(embedding, limit * 2).catch(() => []) : [];
     const ftsHits = await ftsSearch(query, limit * 2).catch(() => []);
 
-    let hits = fuseHybrid(vectorHits, ftsHits, limit);
+    // Phase 1b: Search nodes by vector (if embedding available)
+    const nodeVectorHits = embedding ? await nodeVectorSearch(embedding, limit).catch(() => []) : [];
+
+    // Fuse all three result sets
+    let hits = fuseHybrid([...vectorHits, ...nodeVectorHits], ftsHits, limit);
     let method = embedding ? 'hybrid' : 'fts';
 
     if (!hits.length) {
@@ -403,7 +434,12 @@ function createLsHubServices(options = {}) {
     execute,
     searchNodes,
     searchContent,
-    queryKnowledgeContext
+    queryKnowledgeContext,
+    nodeVectorSearch,
+    vectorSearch,
+    ftsSearch,
+    nodeTextFallback,
+    fuseHybrid
   };
 }
 

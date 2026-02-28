@@ -118,8 +118,8 @@ async function main() {
       const embText = `${node.title}\n${node.description || ''}`.slice(0, 2000);
       const emb = await getEmbedding(embText);
       await db.execute({
-        sql: 'UPDATE nodes SET embedding = vector(?), embedding_text = ?, embedding_updated_at = datetime() WHERE id = ?',
-        args: [vecJson(emb), embText.slice(0, 2000), nodeId],
+        sql: 'UPDATE nodes SET embedding = vector(?), embedding_vec = vector(?), embedding_text = ?, embedding_updated_at = datetime() WHERE id = ?',
+        args: [vecJson(emb), vecJson(emb), embText.slice(0, 2000), nodeId],
       });
 
       const chunkContent = String(node.chunk || '');
