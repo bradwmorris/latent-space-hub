@@ -1,6 +1,6 @@
 {
   "name": "latent-space-hub-mcp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Standalone MCP server for the Latent Space Hub knowledge base",
   "license": "MIT",
   "author": "Bradley Morris",
@@ -10,6 +10,7 @@
   },
   "files": [
     "index.js",
+    "services/index.js",
     "README.md",
     "guides/system"
   ],
