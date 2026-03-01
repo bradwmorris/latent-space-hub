@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Menu, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+
+interface PageLink {
+  slug: string;
+  title: string;
+}
 
 interface Section {
   id: string;
@@ -14,6 +20,8 @@ interface DocsLayoutProps {
   content: string;
   title: string;
   description: string;
+  currentSlug: string;
+  pages: PageLink[];
 }
 
 function extractSections(markdown: string): Section[] {
@@ -30,7 +38,7 @@ function extractSections(markdown: string): Section[] {
   return sections;
 }
 
-export default function DocsLayout({ content, title, description }: DocsLayoutProps) {
+export default function DocsLayout({ content, title, description, currentSlug, pages }: DocsLayoutProps) {
   const [activeSection, setActiveSection] = useState<string>('');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -105,7 +113,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
               gap: '6px',
               color: 'var(--accent-primary)',
               textDecoration: 'none',
-              fontSize: '13px',
+              fontSize: '14px',
               fontFamily: "'JetBrains Mono', monospace",
             }}
           >
@@ -114,9 +122,9 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
           </a>
           <span style={{ color: 'var(--border-default)' }}>/</span>
           <span style={{
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
-            color: 'var(--text-secondary)',
+            color: '#ccc',
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
             fontFamily: "'JetBrains Mono', monospace",
@@ -149,7 +157,7 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
         margin: '0 auto',
         padding: '0 32px',
       }}>
-        {/* Section nav — desktop sidebar */}
+        {/* Sidebar — page nav + section nav */}
         <nav
           className="docs-sidebar"
           style={{
@@ -160,31 +168,67 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
             height: 'calc(100vh - 60px)',
             paddingTop: '36px',
             paddingRight: '32px',
+            overflowY: 'auto',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {sections.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => scrollToSection(s.id)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  lineHeight: 1.4,
-                  color: activeSection === s.id ? 'var(--text-primary)' : 'var(--accent-dark)',
-                  fontWeight: activeSection === s.id ? 500 : 400,
-                  transition: 'all 0.15s',
-                  fontFamily: "'Inter', -apple-system, sans-serif",
-                }}
-              >
-                {s.title}
-              </button>
-            ))}
+            {pages.map((page) => {
+              const isCurrent = page.slug === currentSlug;
+              return (
+                <div key={page.slug}>
+                  <a
+                    href={`/docs/${page.slug}`}
+                    style={{
+                      display: 'block',
+                      background: 'none',
+                      border: 'none',
+                      textAlign: 'left',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      lineHeight: 1.4,
+                      textDecoration: 'none',
+                      color: isCurrent ? '#f0f0f0' : '#999',
+                      fontWeight: isCurrent ? 600 : 400,
+                      transition: 'all 0.15s',
+                      fontFamily: "'Inter', -apple-system, sans-serif",
+                    }}
+                  >
+                    {page.title}
+                  </a>
+                  {/* Show within-page sections for the current page */}
+                  {isCurrent && sections.length > 1 && (
+                    <div style={{ paddingLeft: '12px' }}>
+                      {sections.map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() => scrollToSection(s.id)}
+                          style={{
+                            display: 'block',
+                            background: 'none',
+                            border: 'none',
+                            textAlign: 'left',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            lineHeight: 1.4,
+                            color: activeSection === s.id ? '#ccc' : '#777',
+                            fontWeight: activeSection === s.id ? 500 : 400,
+                            transition: 'all 0.15s',
+                            fontFamily: "'Inter', -apple-system, sans-serif",
+                            opacity: 0.8,
+                          }}
+                        >
+                          {s.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </nav>
 
@@ -206,24 +250,23 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
               gap: '4px',
             }}
           >
-            {sections.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => scrollToSection(s.id)}
+            {pages.map((page) => (
+              <a
+                key={page.slug}
+                href={`/docs/${page.slug}`}
+                onClick={() => setMobileNavOpen(false)}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
+                  display: 'block',
                   padding: '8px',
                   borderRadius: '4px',
-                  cursor: 'pointer',
                   fontSize: '14px',
-                  color: activeSection === s.id ? 'var(--text-primary)' : 'var(--accent-primary)',
-                  fontWeight: activeSection === s.id ? 500 : 400,
+                  textDecoration: 'none',
+                  color: page.slug === currentSlug ? 'var(--text-primary)' : 'var(--accent-primary)',
+                  fontWeight: page.slug === currentSlug ? 500 : 400,
                 }}
               >
-                {s.title}
-              </button>
+                {page.title}
+              </a>
             ))}
           </div>
         )}
@@ -239,10 +282,19 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
           }}
         >
           {/* Hero */}
-          <div style={{ marginBottom: '36px' }}>
+          <div style={{ marginBottom: '40px' }}>
+            <h1 style={{
+              fontSize: '30px',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+              margin: '0 0 14px 0',
+              letterSpacing: '-0.02em',
+            }}>
+              {title}
+            </h1>
             <p style={{
-              fontSize: '15px',
-              color: 'var(--text-secondary)',
+              fontSize: '17px',
+              color: '#ccc',
               lineHeight: 1.6,
               margin: 0,
             }}>
@@ -251,9 +303,10 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
           </div>
 
           {/* Markdown content */}
-          <div className="docs-content" style={{ lineHeight: 1.75, fontSize: '14px' }}>
+          <div className="docs-content" style={{ lineHeight: 1.8, fontSize: '16px' }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
               components={{
                 h1: ({ children }) => {
                   const text = String(children);
@@ -262,13 +315,13 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                     <h1
                       id={id}
                       style={{
-                        fontSize: '22px',
+                        fontSize: '26px',
                         fontWeight: 600,
-                        color: 'var(--text-primary)',
-                        margin: '56px 0 18px 0',
+                        color: '#f0f0f0',
+                        margin: '56px 0 20px 0',
                         paddingTop: '20px',
                         scrollMarginTop: '80px',
-                        letterSpacing: '-0.01em',
+                        letterSpacing: '-0.02em',
                       }}
                     >
                       {children}
@@ -277,35 +330,35 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                 },
                 h2: ({ children }) => (
                   <h2 style={{
-                    fontSize: '16px',
+                    fontSize: '20px',
                     fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    margin: '32px 0 12px 0',
+                    color: '#e8e8e8',
+                    margin: '36px 0 14px 0',
                   }}>
                     {children}
                   </h2>
                 ),
                 h3: ({ children }) => (
                   <h3 style={{
-                    fontSize: '15px',
+                    fontSize: '17px',
                     fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    margin: '24px 0 10px 0',
+                    color: '#e0e0e0',
+                    margin: '28px 0 12px 0',
                   }}>
                     {children}
                   </h3>
                 ),
                 p: ({ children }) => (
-                  <p style={{ margin: '0 0 16px 0', color: '#b0b0b0' }}>{children}</p>
+                  <p style={{ margin: '0 0 18px 0', color: '#d0d0d0' }}>{children}</p>
                 ),
                 ul: ({ children }) => (
-                  <ul style={{ margin: '0 0 16px 0', paddingLeft: '20px' }}>{children}</ul>
+                  <ul style={{ margin: '0 0 18px 0', paddingLeft: '22px' }}>{children}</ul>
                 ),
                 ol: ({ children }) => (
-                  <ol style={{ margin: '0 0 16px 0', paddingLeft: '20px' }}>{children}</ol>
+                  <ol style={{ margin: '0 0 18px 0', paddingLeft: '22px' }}>{children}</ol>
                 ),
                 li: ({ children }) => (
-                  <li style={{ margin: '0 0 8px 0', color: '#b0b0b0' }}>{children}</li>
+                  <li style={{ margin: '0 0 10px 0', color: '#d0d0d0' }}>{children}</li>
                 ),
                 a: ({ href, children }) => (
                   <a
@@ -323,9 +376,9 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                     return (
                       <code style={{
                         background: 'var(--bg-elevated)',
-                        padding: '2px 7px',
+                        padding: '2px 8px',
                         borderRadius: '4px',
-                        fontSize: '13px',
+                        fontSize: '14px',
                         color: '#a78bfa',
                         fontFamily: "'JetBrains Mono', monospace",
                       }} {...props}>{children}</code>
@@ -335,26 +388,27 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                     <code style={{
                       display: 'block',
                       background: 'var(--bg-surface)',
-                      padding: '16px',
+                      padding: '18px',
                       borderRadius: '8px',
-                      fontSize: '13px',
+                      fontSize: '14px',
                       overflowX: 'auto',
-                      margin: '0 0 16px 0',
-                      color: 'var(--accent-light)',
+                      margin: '0 0 18px 0',
+                      color: '#c4b5fd',
                       whiteSpace: 'pre-wrap',
                       border: '1px solid #1e1e1e',
                       fontFamily: "'JetBrains Mono', monospace",
+                      lineHeight: 1.6,
                     }} {...props}>{children}</code>
                   );
                 },
                 pre: ({ children }) => (
-                  <pre style={{ margin: '0 0 16px 0' }}>{children}</pre>
+                  <pre style={{ margin: '0 0 18px 0' }}>{children}</pre>
                 ),
                 strong: ({ children }) => (
-                  <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>
+                  <strong style={{ color: '#f0f0f0', fontWeight: 600 }}>{children}</strong>
                 ),
                 em: ({ children }) => (
-                  <em style={{ color: '#bbb', fontStyle: 'italic' }}>{children}</em>
+                  <em style={{ color: '#ccc', fontStyle: 'italic' }}>{children}</em>
                 ),
                 hr: () => (
                   <hr style={{
@@ -366,9 +420,9 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                 blockquote: ({ children }) => (
                   <blockquote style={{
                     borderLeft: '3px solid #a78bfa',
-                    paddingLeft: '16px',
-                    margin: '0 0 16px 0',
-                    color: 'var(--text-secondary)',
+                    paddingLeft: '18px',
+                    margin: '0 0 18px 0',
+                    color: '#ccc',
                   }}>{children}</blockquote>
                 ),
                 img: ({ src, alt }) => {
@@ -387,11 +441,11 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                   );
                 },
                 table: ({ children }) => (
-                  <div style={{ overflowX: 'auto', margin: '0 0 16px 0' }}>
+                  <div style={{ overflowX: 'auto', margin: '0 0 20px 0' }}>
                     <table style={{
                       width: '100%',
                       borderCollapse: 'collapse',
-                      fontSize: '13px',
+                      fontSize: '15px',
                     }}>
                       {children}
                     </table>
@@ -400,11 +454,11 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                 th: ({ children }) => (
                   <th style={{
                     textAlign: 'left',
-                    padding: '10px 14px',
+                    padding: '12px 16px',
                     borderBottom: '1px solid var(--border-default)',
-                    color: 'var(--accent-primary)',
-                    fontWeight: 500,
-                    fontSize: '12px',
+                    color: '#a78bfa',
+                    fontWeight: 600,
+                    fontSize: '13px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                   }}>
@@ -413,9 +467,9 @@ export default function DocsLayout({ content, title, description }: DocsLayoutPr
                 ),
                 td: ({ children }) => (
                   <td style={{
-                    padding: '10px 14px',
+                    padding: '12px 16px',
                     borderBottom: '1px solid var(--bg-hover)',
-                    color: '#b0b0b0',
+                    color: '#d0d0d0',
                     verticalAlign: 'top',
                   }}>
                     {children}

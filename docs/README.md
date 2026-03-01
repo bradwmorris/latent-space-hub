@@ -1,49 +1,28 @@
 # Latent Space Hub — Documentation
 
-## What is this?
+A knowledge graph for the Latent Space universe — podcasts, articles, AI News, conference talks, paper clubs, and more. Searchable via hybrid vector + keyword search, connected in a graph, accessible via web UI, MCP tools, and Discord bot.
 
-A knowledge graph for the Latent Space universe — podcasts, articles, AI News, conference talks, paper clubs, and more. Searchable via semantic vector search, connected in a graph, accessible via web UI, MCP tools, and Discord bots.
+## Core Documentation
 
-## Documentation
+Read in this order.
 
-### Core
+| # | Doc | What it covers |
+|---|-----|---------------|
+| 1 | **[Overview](./overview.md)** | The system, how the two repos work together, indexing pipeline, tech stack |
+| 2 | **[Ingestion](./ingestion.md)** | Content sources, hourly cron, enrichment pipeline, entity extraction, Discord notifications |
+| 3 | **[Database](./database.md)** | Turso cloud SQLite, categories, full schema, edge context model, indexes, example queries |
+| 4 | **[Interfaces](./interfaces.md)** | Web app, MCP server (18 tools), Discord bot (agentic tool-calling), announcements webhook |
 
-| Doc | Description |
-|-----|-------------|
-| [Overview](./overview.md) | What LS Hub is, how it works, three interfaces, tech stack |
-| [Categories](./categories.md) | The 8 content categories and how they map to the database |
-| [Schema](./schema.md) | Database tables, relationships, edge model, example queries |
+## Developer Documentation
 
-### Systems
-
-| Doc | Description |
-|-----|-------------|
-| [MCP Server](./mcp-server.md) | External agent setup, all tools, example workflows |
-| [Bots](./bots.md) | Slop bot architecture, commands, member memory flow |
-| [Ingestion](./ingestion.md) | Content pipeline, sources, extractors, Quick Add |
-| [Search](./search.md) | Vector, FTS5, hybrid search, fallback chain |
-| [Evals](./evals.md) | Discord trace logging, /evals dashboard, querying traces |
-
-### Developer
-
-| Doc | Description |
-|-----|-------------|
-| [Architecture](./architecture.md) | Codebase map, key directories, patterns |
-| [Contributing](./contributing.md) | Dev setup, git workflow, backlog, env vars |
-| [Deployment](./deployment.md) | Vercel, cron jobs, environments, readonly mode |
+| Doc | What it covers |
+|-----|---------------|
+| [Architecture](./architecture.md) | Codebase structure, key directories, patterns |
+| [Contributing](./contributing.md) | Dev setup, git workflow, env vars |
+| [Deployment](./deployment.md) | Vercel, Railway, Turso, NPM, environments |
+| [Search](./search.md) | Vector search, FTS5, hybrid RRF, fallback chain |
+| [Evals](./evals.md) | Discord trace logging, /evals dashboard |
 | [Troubleshooting](./TROUBLESHOOTING.md) | Common issues and fixes |
-
-### User-Facing
-
-The published user documentation is at [`/docs`](https://latent-space-hub.vercel.app/docs) on the live hub. Source content is in `src/config/docs/`.
-
-### Development Workflow
-
-| Doc | Description |
-|-----|-------------|
-| [Backlog](./development/backlog.json) | Priority queue of projects |
-| [Process](./development/process.md) | How work gets done |
-| PRDs | `docs/development/prd-*.md` — feature specs |
 
 ## Quick Start
 
@@ -57,7 +36,7 @@ npm run dev                   # localhost:3000
 
 ## MCP Integration
 
-Connect your AI agent to the knowledge graph:
+Connect any AI agent to the knowledge graph:
 
 ```json
 {
@@ -74,4 +53,4 @@ Connect your AI agent to the knowledge graph:
 }
 ```
 
-See [MCP Server docs](./mcp-server.md) for full setup and tool reference.
+See [Interfaces — MCP Server](./interfaces.md#2-mcp-server) for full tool reference.

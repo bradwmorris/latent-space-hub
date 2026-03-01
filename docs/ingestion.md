@@ -1,142 +1,124 @@
-# Content Ingestion
+# Ingestion, Enrichment & Content Sources
 
-How content gets into the Latent Space Hub knowledge graph.
+## Content Sources
 
-## Sources
+Four feeds, polled hourly by Vercel cron.
 
-| Source | Content Type | Method | Category |
-|--------|-------------|--------|----------|
-| Latent Space Podcast | YouTube videos | RSS + transcript extraction | `podcast` |
-| latent.space Substack | Blog posts | RSS + article scraping | `article` |
-| AINews (smol.ai) | GitHub markdown | GitHub API + markdown parsing | `ainews` |
-| LatentSpaceTV | YouTube videos | RSS + transcript extraction | `builders-club`, `paper-club`, `workshop` |
+| Source | Feed | Node Type | Detection |
+|--------|------|-----------|-----------|
+| Latent Space Podcast | YouTube RSS (Atom) | `podcast` | New `<entry>` not in DB |
+| LatentSpaceTV | YouTube RSS (Atom) | `workshop` / `builders-club` / `paper-club` | Series detection by title keywords |
+| latent.space Substack | RSS | `article` | New `<item>` not in DB |
+| AINews (smol.ai) | Substack RSS | `ainews` | Title starts with `[ainews]` |
 
-## Pipeline (Per Item)
+## Hourly Cron
 
-```
-1. Discover    RSS check / GitHub API → find new content
-2. Extract     Transcript / article text / markdown
-3. Create      Node with title, link, event_date, dimensions, category
-4. Chunk       Split text (~2000 chars, 400 overlap)
-5. Embed       text-embedding-3-small → 1536d vectors
-6. Connect     Entity extraction (Claude) → person/org/topic nodes + edges
-7. Log         Record in ingestion_runs table
-```
-
-## Manual Ingestion (Current)
-
-### Unified Script
-
-```bash
-npx tsx scripts/ingest.ts
-```
-
-This replaced the three legacy scripts (`bulk-ingest-ainews.js`, `bulk-ingest-podcasts.js`, `bulk-ingest-aie.js`).
-
-### Manifest Files
-
-Content is defined in manifest JSON files under `scripts/data/`:
-
-| File | Content |
-|------|---------|
-| `scripts/data/ls-podcasts-backfill.json` | Podcast episodes: `{ id, title, guest, company, month }` |
-| `scripts/data/ls-ainews-backfill.json` | AINews issues: `{ slug, title, date, substack_url }` |
-| `scripts/data/aie-videos.json` | AI Engineer videos: `{ id, title, speaker, company, event }` |
-
-### Daily Process
-
-1. **Check for new content** — RSS feeds, YouTube channels, GitHub
-2. **Update manifest files** — Add new items to the relevant JSON
-3. **Dry run** — Verify titles, summaries, dedup detection
-4. **Run ingestion** — Write to Turso
-5. **Verify** — Search the hub for new items
-
-### Dedup
-
-Scripts are idempotent — items already in the database are skipped. Dedup uses canonical link + source-specific IDs.
-
-## Quick Add (Web UI)
-
-Paste any URL or text into the Quick Add input in the sidebar:
-
-| Input Type | Detection | What happens |
-|-----------|-----------|-------------|
-| YouTube URL | URL contains `youtube.com` or `youtu.be` | Transcript extracted, node created |
-| Website URL | Any other URL | Page scraped with Cheerio, content extracted |
-| PDF / arXiv | URL ends in `.pdf` or contains `arxiv.org` | Paper text extracted |
-| Chat transcript | Contains timestamps, "You said:", etc. | Summarized, node created with key points |
-| Plain text | Everything else | Created as a note node |
-
-After extraction, every input type follows the same path:
-1. Node created with auto-detected dimensions
-2. Auto-edge creates connections to related entities
-3. Auto-embed queue chunks and embeds the content
-
-## Auto-Ingestion
-
-Automated hourly ingestion with zero manual intervention, deployed on Vercel.
-
-### Cron Endpoints
+Two endpoints run on Vercel, staggered by 30 minutes.
 
 | Endpoint | Schedule | What it does |
 |----------|----------|-------------|
-| `GET /api/cron/ingest` | Hourly | Polls RSS feeds and GitHub for new content across all sources. Discovers, extracts, chunks, embeds, and creates nodes. |
-| `GET /api/cron/extract-entities` | Hourly (offset) | Runs entity extraction on nodes that have chunks but no edges. Creates guest/entity nodes and connects them. |
+| `GET /api/cron/ingest` | Every hour at `:00` | Polls all 4 RSS feeds, discovers new items, extracts text, creates nodes, embeds, notifies Discord |
+| `GET /api/cron/extract-entities` | Every hour at `:30` | Finds content nodes with chunks but no edges, runs Claude Haiku entity extraction, creates entity nodes + edges |
 
-Both endpoints require `Authorization: Bearer $CRON_SECRET`.
+Both require `Authorization: Bearer $CRON_SECRET`.
 
-### Per-Item Flow
+### Concurrency Guard
+
+The ingestion cron checks for an active run within the last 30 minutes. If one exists, it skips. This prevents overlapping runs from Vercel's retry behavior.
+
+## Per-Item Pipeline
 
 ```
-1. Discover    RSS/GitHub check → find new items not in DB
-2. Extract     Transcript / article text / markdown
-3. Create      Node with title, link, event_date, node_type, dimensions
-4. Chunk       Split text (~2000 chars, 400 overlap)
-5. Embed       text-embedding-3-small → 1536d vectors
-6. Companion   Detect podcast/article pairs → create companion edges
-7. Notify      Post to Discord: announcement + yap kickoff
-8. Log         Record in ingestion_runs table
+1. Discover     RSS/GitHub check → find items not already in DB (dedup by link URL)
+2. Extract      YouTube transcript (youtube-transcript-plus) or article text (Cheerio scraper)
+3. Create node  title, link, event_date, node_type, dimensions, metadata, raw text as chunk
+4. Embed        Node-level: title+description → OpenAI text-embedding-3-small (1536d)
+                Chunk-level: split ~2000 chars / 400 overlap → batch embed 20 at a time
+5. Companion    Detect podcast↔article pairs by title word overlap (threshold 0.5)
+                Creates companion_article or companion_episode edges
+6. Notify       Post to Discord #announcements + trigger Slop discussion
+7. Log          Record in ingestion_runs table (status, items found/ingested/skipped/failed)
 ```
 
-### Companion Detection
+## Entity Extraction
 
-When a new podcast or article is ingested, the pipeline checks for a matching companion (same topic, published within a few days). If found, a `companion_article` or `companion_episode` edge is created linking them. Companion items skip the yap kickoff to avoid duplicate discussions.
+Runs on the `:30` cron. Finds content nodes created in the last 7 days that have chunks but zero edges.
 
-### Discord Notifications
+For each node:
+1. Send chunk text to Claude Haiku with extraction prompt
+2. Extract structured entities: people, organizations, topics
+3. For each entity: search existing nodes → match or create new `guest`/`entity` node
+4. Create typed edges: `features`, `covers_topic`, `affiliated_with`, `appeared_on`
+5. For AINews: also uses frontmatter entities when available
 
-Each new item triggers two Discord messages:
+Processes up to 5 items per run (configurable via `?limit=` query param).
 
-1. **#announcements** — Clean announcement with title, date, and link
-2. **#yap** — Kickoff message mentioning Slop to start a graph-backed discussion
+## Companion Detection
 
-Slop-only automated kickoff — Sig stays available for slash commands but is not part of the automated feed.
+When a new podcast or article is ingested, the pipeline checks for a matching companion — same topic, published within a few days. Matching uses title word overlap scoring:
 
-Alternatively, if `DISCORD_BOT_KICKOFF_URL` is configured, a deterministic bot kickoff API call replaces the yap webhook, starting a multi-exchange Slop thread in the bot-talk channel.
+- Tokenize both titles, remove stopwords
+- Calculate Jaccard-style overlap score
+- Threshold: 0.5
 
-### Environment Variables
+If a companion is found:
+- Creates a `companion_article` or `companion_episode` edge
+- Companion items skip the Slop yap kickoff (avoids duplicate discussions)
 
-| Variable | Purpose |
-|----------|---------|
-| `CRON_SECRET` | Auth for cron endpoints |
-| `DISCORD_ANNOUNCEMENTS_WEBHOOK_URL` | Webhook for #announcements |
-| `DISCORD_YAP_WEBHOOK_URL` | Webhook for #yap feed |
-| `DISCORD_SLOP_USER_ID` | Slop user ID for @mentions in yap |
-| `DISCORD_BOT_KICKOFF_URL` | (Optional) Deterministic bot kickoff endpoint |
-| `DISCORD_BOT_KICKOFF_SECRET` | (Optional) Shared secret for kickoff auth |
+## Discord Notifications
+
+Each newly ingested item triggers up to two Discord messages:
+
+### 1. #announcements (webhook)
+
+Clean announcement with emoji header, title, date, chunk count, and source URL. Always fires.
+
+### 2. Slop discussion kickoff
+
+Two modes:
+
+| Mode | Trigger | What happens |
+|------|---------|-------------|
+| **Webhook** | `DISCORD_YAP_WEBHOOK_URL` set | Posts to #yap with @Slop mention and prompt |
+| **Bot API** (preferred) | `DISCORD_BOT_KICKOFF_URL` set | Calls bot's internal `/internal/kickoff` endpoint → Slop creates a thread and generates a graph-backed take |
+
+The bot API mode gives more control — Slop searches the KB with its own tools and produces a richer opening post.
+
+Companion items skip the discussion kickoff to avoid duplicate threads.
+
+## Quick Add (Web UI)
+
+Paste any URL or text into the sidebar Quick Add input:
+
+| Input | Detection | Pipeline |
+|-------|-----------|----------|
+| YouTube URL | `youtube.com` or `youtu.be` in URL | Transcript extraction → node + chunks + embed |
+| Website URL | Any other URL | Cheerio scrape → content extraction → node + embed |
+| PDF / arXiv | `.pdf` extension or `arxiv.org` | PDF parse → text extraction → node + embed |
+| Chat transcript | Contains timestamps, "You said:", etc. | Summarize → create note node |
+| Plain text | Everything else | Create note node directly |
+
+All paths end with: auto-dimension tagging, auto-edge creation to related entities, and chunk embedding.
 
 ## Extractors
 
-| Extractor | File | Technology |
-|-----------|------|-----------|
-| YouTube | `src/services/typescript/extractors/youtube.ts` | `youtube-transcript-plus` (innertube) |
-| Website | `src/services/typescript/extractors/website.ts` | Cheerio + readability |
-| PDF | `src/services/typescript/extractors/paper.ts` | `pdf-parse` (local), direct fetch (arXiv) |
+| Extractor | Technology | Notes |
+|-----------|-----------|-------|
+| YouTube | `youtube-transcript-plus` (innertube API) | Falls back to Substack article scrape if transcript unavailable |
+| Website | Cheerio + readability heuristics | Strips nav/footer, extracts main content |
+| PDF | `pdf-parse` (local) / direct fetch (arXiv) | Handles multi-page documents |
 
-## Prerequisites
+## Environment Variables
 
-| Variable | Required for |
-|----------|-------------|
-| `TURSO_DATABASE_URL` | All ingestion |
-| `TURSO_AUTH_TOKEN` | All ingestion |
-| `OPENAI_API_KEY` | Embedding generation |
-| `ANTHROPIC_API_KEY` | Entity extraction |
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `TURSO_DATABASE_URL` | Yes | Database connection |
+| `TURSO_AUTH_TOKEN` | Yes | Database auth |
+| `OPENAI_API_KEY` | Yes | Embedding generation |
+| `ANTHROPIC_API_KEY` | Yes | Entity extraction (Claude Haiku) |
+| `CRON_SECRET` | Yes | Auth for cron endpoints |
+| `DISCORD_ANNOUNCEMENTS_WEBHOOK_URL` | No | #announcements webhook |
+| `DISCORD_YAP_WEBHOOK_URL` | No | #yap webhook (fallback mode) |
+| `DISCORD_SLOP_USER_ID` | No | Slop's Discord user ID for @mentions |
+| `DISCORD_BOT_KICKOFF_URL` | No | Bot kickoff API endpoint (preferred mode) |
+| `DISCORD_BOT_KICKOFF_SECRET` | No | Shared secret for kickoff auth |

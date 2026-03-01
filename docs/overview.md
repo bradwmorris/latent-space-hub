@@ -1,61 +1,62 @@
 # Latent Space Hub — Overview
 
-## What is Latent Space Hub?
+## The System
 
-A knowledge graph for the [Latent Space](https://www.latent.space/) universe — every podcast episode, article, AI News digest, conference talk, paper club session, guest, and entity, structured, connected, and searchable.
+Two repos, one knowledge graph.
 
-Think of it as a **second brain** for Latent Space. Not a static wiki — a living graph where nodes have edges, dimensions, and full source material. The graph grows over time and connections compound.
+| Repo | What it is | Deployed on |
+|------|-----------|-------------|
+| **latent-space-hub** | Knowledge graph — Next.js web app + Turso cloud SQLite + MCP server | Vercel |
+| **latent-space-bots** | Discord bot (Slop) — queries the graph via MCP | Railway |
+
+They share one Turso database. The hub writes to it (ingestion, web UI, API). The bot reads from it (MCP tool calls) and writes member data back.
 
 ## How It Works
 
 ```
-Content sources          AI enrichment            Three interfaces
-─────────────────       ──────────────────       ──────────────────
-YouTube transcripts  →  Embeddings (1536d)    →  Web App (dashboard)
-Substack articles    →  Entity extraction     →  MCP Server (agents)
-GitHub (AINews)      →  Auto-edges            →  Discord Bot (Slop)
+Content sources             AI enrichment                Surfaces
+──────────────────         ──────────────────           ──────────────────
+YouTube transcripts    →   Embeddings (1536d)       →   Web App (Next.js)
+Substack articles      →   Chunk splitting          →   MCP Server (agents)
+AINews (smol.ai)       →   Entity extraction        →   Discord Bot (Slop)
+LatentSpaceTV          →   Auto-edge creation       →   Announcements webhook
 ```
 
-1. **Content goes in** — Auto-ingestion pipeline polls RSS feeds and GitHub hourly, extracts from YouTube, Substack, and GitHub
-2. **AI enriches it** — Chunks are embedded, entities extracted, edges created automatically
-3. **Humans and agents explore it** — Via the web UI, MCP tools, or Discord bots
-4. **The graph grows** — Each new piece of content connects to existing knowledge, continuously updated
+## Indexing Pipeline
 
-## Three Interfaces
-
-### 1. The Web App
-
-Dashboard landing page with stats and 8 category cards. Browse by category (Podcast, Guest, Article, Entity, Builders Club, Paper Club, Workshop, AI News). Full-text and semantic search. Interactive graph map visualization.
-
-### 2. The MCP Server
-
-Any MCP-compatible AI agent (Claude Code, Cursor, Windsurf, custom agents) can plug into the graph via `ls_*` tools. Search, read, and contribute to the knowledge base programmatically.
-
-```bash
-npx latent-space-hub-mcp
 ```
-
-See [MCP Server docs](./mcp-server.md) for setup.
-
-### 3. Discord Bot — Slop
-
-Slop is the active bot backed by the graph:
-- **Slop** — Opinionated, provocative, source-grounded, and member-aware (`/join` creates member memory profiles).
-
-See [Bots docs](./bots.md) for details.
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 15 + TypeScript + Tailwind CSS |
-| Database | Turso (cloud SQLite via `@libsql/client`) |
-| Search | Turso native vector search (F32_BLOB + `vector_top_k`) + FTS5 |
-| Embeddings | OpenAI `text-embedding-3-small` (1536d) |
-| AI | Anthropic (Claude) + OpenAI via Vercel AI SDK |
-| MCP | Model Context Protocol server (`npx latent-space-hub-mcp`) |
-| Bots | Discord.js — separate repo (`latent-space-bots`) |
-| Deployment | Vercel (web app, readonly), Railway (Discord bots) |
+Content in (YouTube URL, article, RSS feed)
+    ↓
+Auto-detect format → extract text (transcript, scrape, parse)
+    ↓
+Create node in SQLite nodes table — Turso
+  (title, description, link, node_type, event_date, metadata)
+    ↓
+Background enrichment kicks off:
+    ↓
+1. Node-level embedding
+   title + description → OpenAI text-embedding-3-small (1536d) → nodes.embedding
+    ↓
+2. Chunk-level embedding
+   - Split source text into ~2000 char chunks (400 char overlap)
+   - Smart boundaries: paragraph breaks > sentence ends > hard cut
+   - Batch embed 20 chunks at a time → chunks.embedding (F32_BLOB)
+    ↓
+3. FTS5 sync via SQL triggers (automatic)
+    ↓
+4. Entity extraction (Claude Haiku)
+   - Extract people, organizations, topics from content
+   - Match against existing nodes or create new ones
+   - Create typed edges (features, covers_topic, affiliated_with, etc.)
+    ↓
+5. Companion detection
+   - Match podcast ↔ article pairs by title overlap
+   - Create companion_article / companion_episode edges
+    ↓
+6. Discord notification
+   - #announcements: clean announcement (title, date, link)
+   - #yap or bot kickoff: Slop starts a discussion thread
+```
 
 ## The Graph — By the Numbers
 
@@ -68,21 +69,19 @@ See [Bots docs](./bots.md) for details.
 | Chunks with embeddings | ~35,800 |
 | Coverage | June 2023 → present, continuously updated |
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 + TypeScript + Tailwind CSS |
+| Database | Turso (cloud SQLite via `@libsql/client`) |
+| Search | Turso native vector search (F32_BLOB + `vector_top_k`) + FTS5 + hybrid RRF |
+| Embeddings | OpenAI `text-embedding-3-small` (1536d) |
+| AI | Anthropic Claude (entity extraction) + OpenAI (embeddings) |
+| MCP | Model Context Protocol server — `npx latent-space-hub-mcp` |
+| Bot | Discord.js + OpenRouter → Claude Sonnet 4.6 |
+| Deployment | Vercel (web + cron), Railway (bot), NPM (MCP package) |
+
 ## Origin
 
-Forked from [RA-H Open Source](https://github.com/bradwmorris/ra-h_os) — a local-first personal knowledge graph. Latent Space Hub is the cloud-native product built specifically for the LS community. The two projects share a common ancestor but evolve independently.
-
-## Documentation
-
-| Doc | What it covers |
-|-----|---------------|
-| **[Categories](./categories.md)** | The 8 content categories |
-| **[Schema](./schema.md)** | Database tables and relationships |
-| **[MCP Server](./mcp-server.md)** | External agent setup and tools |
-| **[Bots](./bots.md)** | Slop bot architecture, commands, member memory |
-| **[Ingestion](./ingestion.md)** | Content pipeline and sources |
-| **[Search](./search.md)** | Vector, FTS, and hybrid search |
-| **[Architecture](./architecture.md)** | Codebase map and patterns |
-| **[Contributing](./contributing.md)** | Dev setup and workflow |
-| **[Deployment](./deployment.md)** | Vercel, environments, readonly mode |
-| **[Troubleshooting](./TROUBLESHOOTING.md)** | Common issues and fixes |
+Forked from [RA-H Open Source](https://github.com/bradwmorris/ra-h_os) — a local-first personal knowledge graph. Latent Space Hub is the cloud-native deployment built for the LS community. The two projects share a common ancestor but evolve independently.
