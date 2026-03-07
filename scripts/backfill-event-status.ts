@@ -2,9 +2,10 @@
  * Backfill: Create event nodes for existing paper-club and builders-club recordings.
  *
  * For each existing paper-club or builders-club node:
- * 1. Create a new 'event' node with event_type and event_status: 'completed'
- * 2. Link the recording node to the event node
- * 3. Tag the recording node metadata with event_status: 'recording'
+ * 1. Tag the recording node metadata with event_status: 'recording'
+ * 2. Create a new 'event' node with event_type and event_status: 'completed'
+ * 3. Add dimensions to node_dimensions table
+ * 4. Link the recording node to the event node via edges
  *
  * Run: npx tsx scripts/backfill-event-status.ts [--dry-run]
  */
@@ -26,7 +27,7 @@ async function main() {
 
   // Find all paper-club and builders-club recording nodes
   const result = await db.execute({
-    sql: `SELECT id, node_type, title, event_date, metadata, dimensions FROM nodes
+    sql: `SELECT id, node_type, title, event_date, metadata FROM nodes
           WHERE node_type IN ('paper-club', 'builders-club')
           ORDER BY event_date DESC`,
     args: [],
@@ -69,17 +70,30 @@ async function main() {
       recording_node_id: recordingId,
     });
 
-    const dims = JSON.stringify(['event', nodeType]);
-
     const insertResult = await db.execute({
-      sql: `INSERT INTO nodes (title, node_type, description, event_date, dimensions, metadata, created_at, updated_at)
-            VALUES (?, 'event', ?, ?, ?, ?, datetime(), datetime())`,
-      args: [title, `${label} session`, eventDate, dims, eventMeta],
+      sql: `INSERT INTO nodes (title, node_type, description, event_date, metadata, created_at, updated_at)
+            VALUES (?, 'event', ?, ?, ?, datetime(), datetime())`,
+      args: [title, `${label} session`, eventDate, eventMeta],
     });
 
     const eventNodeId = Number(insertResult.lastInsertRowid);
 
-    // 3. Create edge: recording -> event
+    // 3. Add dimensions via node_dimensions table
+    for (const dim of ['event', nodeType]) {
+      await db.execute({
+        sql: `INSERT OR IGNORE INTO node_dimensions (node_id, dimension) VALUES (?, ?)`,
+        args: [eventNodeId, dim],
+      });
+    }
+
+    // Also ensure the dimension exists in the dimensions table
+    await db.execute({
+      sql: `INSERT OR IGNORE INTO dimensions (name, description, is_priority, updated_at)
+            VALUES ('event', 'Community events (Paper Club, Builders Club)', 0, datetime())`,
+      args: [],
+    });
+
+    // 4. Create edge: recording -> event
     const edgeContext = JSON.stringify({
       type: 'source_of',
       confidence: 1,

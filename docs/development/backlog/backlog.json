@@ -462,7 +462,7 @@
           "text": "Step 1: Add 'event' node type with EventMetadata (event_status, event_type, presenter, recording link)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Step 2: Add /paper-club and /builders-club Discord slash commands in latent-space-bots"
         },
         {
@@ -478,7 +478,7 @@
           "text": "Step 5: Backfill script to create event nodes for all existing recordings"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Step 6: Run backfill script against production DB"
         }
       ],
