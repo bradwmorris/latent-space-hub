@@ -108,7 +108,7 @@ export default function EvalsClient() {
   const expanded = useMemo(() => traces.find((t) => t.id === expandedId) || null, [traces, expandedId]);
 
   return (
-    <div style={{ height: '100vh', overflowY: 'auto', background: '#0a0a0a', color: '#e0e0e0', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+    <div style={{ flex: 1, height: '100%', overflowY: 'auto', background: '#0a0a0a', color: '#e0e0e0', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
       <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>

@@ -9,6 +9,7 @@ import {
   Search,
   Plus,
   FileText,
+  FlaskConical,
   BookOpen,
 } from 'lucide-react';
 import { Node } from '@/types/database';
@@ -29,6 +30,7 @@ interface LeftTypePanelProps {
   onNodeSelect: (nodeId: number) => void;
   onSearchClick: () => void;
   onAddClick: () => void;
+  onEvalsClick: () => void;
   onSkillsClick: () => void;
 }
 
@@ -40,6 +42,7 @@ export default function LeftTypePanel({
   onNodeSelect,
   onSearchClick,
   onAddClick,
+  onEvalsClick,
   onSkillsClick,
 }: LeftTypePanelProps) {
   const [typeCounts, setTypeCounts] = useState<TypeCount[]>([]);
@@ -192,6 +195,24 @@ export default function LeftTypePanel({
           </>
         )}
         <div style={{ flex: 1 }} />
+        <button
+          onClick={onEvalsClick}
+          title="Evals"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <FlaskConical size={16} />
+        </button>
         <button
           onClick={onSkillsClick}
           title="Skills"
@@ -460,6 +481,26 @@ export default function LeftTypePanel({
           gap: '2px',
         }}
       >
+        <button
+          onClick={onEvalsClick}
+          style={{
+            width: '100%',
+            height: '30px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '0 8px',
+            fontSize: '12px',
+          }}
+        >
+          <FlaskConical size={14} />
+          <span>Evals</span>
+        </button>
         <button
           onClick={onSkillsClick}
           style={{

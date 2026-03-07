@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import SkillsPane from '../panes/SkillsPane';
+import EvalsClient from '@/app/evals/EvalsClient';
 import SearchModal from '../nodes/SearchModal';
 import { Node } from '@/types/database';
 import { DatabaseEvent } from '@/services/events';
@@ -562,6 +563,9 @@ export default function ThreePanelLayout() {
           />
         );
 
+      case 'evals':
+        return <EvalsClient />;
+
       default:
         return null;
     }
@@ -598,6 +602,13 @@ export default function ThreePanelLayout() {
         onNodeSelect={handleNodeSelect}
         onSearchClick={() => setShowSearchModal(true)}
         onAddClick={() => setShowAddStuff(true)}
+        onEvalsClick={() => {
+          setActiveView('evals');
+          if (showingFocusedNode) {
+            setActiveTab(null);
+            setFocusedNodeId(null);
+          }
+        }}
         onSkillsClick={() => {
           setActiveView('skills');
           if (showingFocusedNode) {
