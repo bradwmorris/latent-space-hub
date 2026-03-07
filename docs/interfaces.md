@@ -139,107 +139,23 @@ Turso cloud SQLite
 
 ## 3. Discord Bot — Slop
 
-Slop is the community bot. Opinionated, source-grounded, member-aware. Backed by the full knowledge graph via MCP tool-calling.
+Slop is the community bot. Searches the knowledge graph, answers questions with source links, remembers members, and schedules community events.
 
 **Repo:** `latent-space-bots` (separate from latent-space-hub)
 **Hosted on:** Railway (always-on process)
 **LLM:** Claude Sonnet 4.6 via OpenRouter
 
-### How Slop Uses MCP
+See **[Slop Bot documentation](./slop-bot.md)** for the full reference.
 
-Slop has **direct tool-calling access** to 9 read-only MCP tools. The tools are passed to the LLM (Claude) via OpenRouter's tool-calling API. The LLM decides what to search — same as how Claude Code uses MCP tools, but running through the Discord bot.
+### Quick Summary
 
-```
-User message in Discord
-    ↓
-Discord.js receives message
-    ↓
-Bot builds system prompt (soul + skills + member context)
-    ↓
-Sends to OpenRouter WITH tool definitions
-    ↓
-LLM decides: call ls_search_nodes? ls_search_content? ls_sqlite_query?
-    ↓
-Bot executes tool calls via MCP (stdio → latent-space-hub-mcp → Turso)
-    ↓
-Tool results fed back to LLM
-    ↓
-LLM may call more tools (up to 5 rounds) or generate final response
-    ↓
-Response posted to Discord thread with source links
-```
-
-#### Slop's 9 Read-Only Tools
-
-| Tool | What Slop uses it for |
-|------|----------------------|
-| `ls_search_nodes` | Finding podcasts, articles, guests by title/description |
-| `ls_search_content` | Searching through transcript text and article content |
-| `ls_get_nodes` | Loading full details for specific nodes |
-| `ls_sqlite_query` | Structured lookups — "latest episodes", counting, date queries |
-| `ls_get_context` | Overview of the knowledge graph |
-| `ls_query_edges` | Finding connections between nodes |
-| `ls_list_dimensions` | Listing categories and tags |
-| `ls_list_skills` | Listing available skills |
-| `ls_read_skill` | Reading skill content |
-
-The agentic loop runs up to 5 rounds. If the LLM hasn't produced a text response by round 5, it's forced to generate one. Tool results are truncated to 4000 chars to prevent context blowout.
-
-Write operations (member updates, edge creation) are handled by the bot code directly, not through the LLM's tool calls.
-
-### Interaction Points
-
-#### @Slop Mentions
-
-Mention @Slop in any allowed channel. Slop creates a thread (`Slop: [topic]`), searches the graph, and responds with a source-grounded take. Follow-up messages in the thread continue the conversation.
-
-#### Slash Commands
-
-| Command | Description |
-|---------|-------------|
-| `/tldr <query>` | Concise TLDR on any topic — Slop searches the graph and summarizes |
-| `/wassup` | What's new in Latent Space — latest content roundup |
-| `/join` | Create your member profile so Slop remembers your interests |
-
-#### Automated Kickoff
-
-When new content is ingested, the hub calls Slop's internal API (`/internal/kickoff`). Slop creates a thread, searches the graph for context on the new content, and generates an opening take. Community joins from there.
-
-### Member Memory
-
-`/join` creates a `member` node in the knowledge graph with Discord metadata.
-
-On each interaction:
-1. Slop looks up member profile and injects context into the system prompt
-2. After responding: appends interaction summary to member notes
-3. Updates `last_active`, `interaction_count`, discovered `interests`
-4. Creates member → content edges for topics discussed
-
-All member updates are non-blocking (run after the response is sent).
-
-### Trace Logging
-
-Every interaction logs to the `chats` table:
-- Full MCP tool call traces (tool name, args, result summary, duration)
-- Request latency, Discord context, model used
-- Retrieval method (`agentic`, `smalltalk`, `latest_node_lookup`)
-- Member ID if the user has `/join`ed
-
-View traces at `/evals` on the web app.
-
-### Persona
-
-Defined in `personas/slop.soul.md`. Key traits:
-- Provocative but source-grounded
-- Attacks ideas, never people
-- Cites specific content with links
-- Uses the knowledge base as ammunition for hot takes
-
-### Footer
-
-Every response includes:
-- **Model badge:** `🤖 claude-sonnet-4-6`
-- **Tools footer:** `🛠️ search_nodes(x2) | search_content | get_nodes` — shows exactly which MCP tools the LLM called
+- **9 read-only MCP tools** passed to the LLM via OpenRouter tool-calling. The LLM decides what to search (up to 5 rounds).
+- **5 slash commands:** `/tldr`, `/wassup`, `/join`, `/paper-club`, `/builders-club`
+- **@Slop mentions** create threads for conversation
+- **Member system** — `/join` creates a member node; Slop remembers interests, role, and interaction preferences across conversations
+- **Event scheduling** — `/paper-club` and `/builders-club` create event nodes with date picking and double-booking prevention
+- **Automated kickoffs** — hub calls Slop's API when new content is ingested; Slop generates an opening take
+- **Trace logging** — every interaction logged to `chats` table with full tool call traces
 
 ---
 

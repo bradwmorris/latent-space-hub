@@ -15,7 +15,7 @@ export interface Doc extends DocMeta {
 const DOCS_DIR = path.join(process.cwd(), 'src/config/docs');
 
 /** Ordered list of doc pages. Slug must match filename (without .md) and route. */
-const DOC_ORDER = ['overview', 'ingestion', 'database', 'interfaces', 'evals'];
+const DOC_ORDER = ['overview', 'ingestion', 'database', 'interfaces', 'slop-bot', 'evals'];
 
 export function getDoc(slug: string): Doc | null {
   const filepath = path.join(DOCS_DIR, `${slug}.md`);

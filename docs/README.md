@@ -18,6 +18,7 @@ Read in this order.
 | Doc | What it covers |
 |-----|---------------|
 | [Architecture](./architecture.md) | Codebase structure, key directories, patterns |
+| [Slop Bot](./slop-bot.md) | Discord bot internals — system prompt, skills, member system, scheduling, trace logging |
 | [Contributing](./contributing.md) | Dev setup, git workflow, env vars |
 | [Deployment](./deployment.md) | Vercel, Railway, Turso, NPM, environments |
 | [Search](./search.md) | Vector search, FTS5, hybrid RRF, fallback chain |
