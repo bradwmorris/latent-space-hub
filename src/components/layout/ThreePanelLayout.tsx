@@ -388,9 +388,9 @@ export default function ThreePanelLayout() {
             case 'DIMENSION_UPDATED':
               setNodesPanelRefresh(prev => prev + 1);
               break;
-            case 'GUIDE_UPDATED':
+            case 'SKILL_UPDATED':
               if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('guides:updated', { detail: data.data }));
+                window.dispatchEvent(new CustomEvent('skills:updated', { detail: data.data }));
               }
               break;
             case 'HELPER_UPDATED':
