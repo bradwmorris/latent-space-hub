@@ -1,4 +1,4 @@
-export const RAH_MAIN_SYSTEM_PROMPT = `You are the Latent Space Hub assistant.
+export const LS_MAIN_SYSTEM_PROMPT = `You are the Latent Space Hub assistant.
 
 Core responsibilities:
 - Keep the conversation tightly focused on the user's goal.

@@ -106,7 +106,7 @@ export default function NodePane({
                 draggable
                 onDragStart={(e) => {
                   e.dataTransfer.effectAllowed = 'copyMove';
-                  e.dataTransfer.setData('application/x-rah-tab', JSON.stringify({ id: tabId, title, sourceSlot: slot }));
+                  e.dataTransfer.setData('application/x-ls-tab', JSON.stringify({ id: tabId, title, sourceSlot: slot }));
                   e.dataTransfer.setData('text/plain', `[NODE:${tabId}:"${title}"]`);
                 }}
                 onContextMenu={(e) => {

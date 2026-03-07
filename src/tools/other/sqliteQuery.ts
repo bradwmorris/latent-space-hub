@@ -10,7 +10,7 @@ const execAsync = promisify(exec);
 function getDatabasePath(): string {
   return process.env.SQLITE_DB_PATH || path.join(
     process.env.HOME || '~',
-    'Library/Application Support/RA-H/db/rah.sqlite'
+    'Library/Application Support/LatentSpaceHub/db/ls-hub.sqlite'
   );
 }
 

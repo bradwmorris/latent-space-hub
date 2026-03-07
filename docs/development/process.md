@@ -4,7 +4,7 @@ Simple. No over-engineering.
 
 ## How Work Gets Done
 
-1. **Pick from backlog** — `docs/development/backlog.json` has the queue in priority order
+1. **Pick from backlog** — `docs/development/backlog/backlog.json` has the queue in priority order (UI at localhost:5561)
 2. **Do the work** — Branch if needed, implement, test
 3. **Update backlog** — Mark tasks done, update status
 4. **Commit, merge, and push**
@@ -12,7 +12,7 @@ Simple. No over-engineering.
 
 ## Backlog
 
-**File:** `docs/development/backlog.json`
+**File:** `docs/development/backlog/backlog.json`
 
 ```json
 {
@@ -28,7 +28,7 @@ Simple. No over-engineering.
 
 ## Key Constraint
 
-This is a fork of RA-H Open Source. The main app (`ra-h`) will continue evolving. Changes here may diverge from main — that's expected. But schema changes in main should be evaluated for porting.
+Originally forked from RA-H Open Source, but Latent Space Hub is now a fully independent product with its own identity, schema, and roadmap.
 
 ## Environments
 
@@ -45,7 +45,7 @@ Commit often. Push at end of session. Branch for big changes.
 
 ## Finish Checklist
 
-- Mark project + tasks complete in `docs/development/backlog.json`
+- Mark project + tasks complete in `docs/development/backlog/backlog.json`
 - Move completed PRD from `docs/development/` to `docs/development/completed-prds/`
 - Update `docs/development/process/handoff.md` with current state + next work
 - Update `docs/development/process/agents.md` with durable learnings for the next agent

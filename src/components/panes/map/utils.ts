@@ -1,7 +1,7 @@
 import type { Node as DbNode, Edge as DbEdge } from '@/types/database';
 import type { Node as RFNode, Edge as RFEdge } from '@xyflow/react';
 
-export interface RahNodeData {
+export interface MapNodeData {
   label: string;
   dimensions: string[];
   edgeCount: number;
@@ -83,13 +83,13 @@ export function toRFNodes(
   selectedNodeId: number | null,
   connectedNodeIds: Set<number>,
   existingPositions: Map<string, { x: number; y: number }>,
-): RFNode<RahNodeData>[] {
+): RFNode<MapNodeData>[] {
   const sortedBase = [...baseNodes].sort((a, b) => (b.edge_count ?? 0) - (a.edge_count ?? 0));
   const maxEdges = Math.max(...sortedBase.map(n => n.edge_count ?? 0), 1);
   const baseNodeIds = new Set(baseNodes.map(n => n.id));
   const hasSelection = selectedNodeId !== null;
 
-  const rfNodes: RFNode<RahNodeData>[] = sortedBase.map((node, index) => {
+  const rfNodes: RFNode<MapNodeData>[] = sortedBase.map((node, index) => {
     const id = String(node.id);
     // Prefer React Flow's current position (for drag state), then saved, then calculated
     const existingPos = existingPositions.get(id);
@@ -100,7 +100,7 @@ export function toRFNodes(
 
     return {
       id,
-      type: 'rahNode',
+      type: 'mapNode',
       position: pos,
       className: isDimmed ? 'dimmed' : undefined,
       data: {
@@ -145,7 +145,7 @@ export function toRFNodes(
 
     rfNodes.push({
       id,
-      type: 'rahNode',
+      type: 'mapNode',
       position: pos,
       className: isDimmed ? 'dimmed' : undefined,
       data: {

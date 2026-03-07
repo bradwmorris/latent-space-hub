@@ -15,7 +15,7 @@ export default function PaneHeader({
 
   const handleDragStart = (e: React.DragEvent) => {
     if (!slot) return;
-    e.dataTransfer.setData('application/x-rah-pane', slot);
+    e.dataTransfer.setData('application/x-ls-pane', slot);
     e.dataTransfer.effectAllowed = 'move';
     setIsDragging(true);
   };
@@ -25,7 +25,7 @@ export default function PaneHeader({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes('application/x-rah-pane')) return;
+    if (!e.dataTransfer.types.includes('application/x-ls-pane')) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
@@ -39,7 +39,7 @@ export default function PaneHeader({
     e.preventDefault();
     setIsDragOver(false);
 
-    const sourceSlot = e.dataTransfer.getData('application/x-rah-pane');
+    const sourceSlot = e.dataTransfer.getData('application/x-ls-pane');
     if (sourceSlot && sourceSlot !== slot && onSwapPanes) {
       onSwapPanes();
     }

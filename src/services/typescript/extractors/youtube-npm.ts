@@ -1,5 +1,5 @@
 /**
- * YouTube content extraction for RA-H knowledge management system
+ * YouTube content extraction for Latent Space Hub
  * Uses youtube-transcript npm package - more similar to Python youtube-transcript-api
  */
 

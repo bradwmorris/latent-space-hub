@@ -1794,7 +1794,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   onDragStart={(e) => {
                     const title = node?.title || 'Untitled';
                     e.dataTransfer.effectAllowed = 'copyMove';
-                    e.dataTransfer.setData('application/x-rah-tab', JSON.stringify({ id: tabId, title }));
+                    e.dataTransfer.setData('application/x-ls-tab', JSON.stringify({ id: tabId, title }));
                     e.dataTransfer.setData('text/plain', `[NODE:${tabId}:"${title}"]`);
                   }}
                   onContextMenu={(e) => {
@@ -2041,7 +2041,7 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 onDragStart={(e: DragEvent<HTMLSpanElement>) => {
                   const title = nodesData[activeTab]?.title || 'Untitled';
                   e.dataTransfer.effectAllowed = 'copyMove';
-                  e.dataTransfer.setData('application/x-rah-node', JSON.stringify({ id: activeTab, title }));
+                  e.dataTransfer.setData('application/x-ls-node', JSON.stringify({ id: activeTab, title }));
                   e.dataTransfer.setData('application/node-info', JSON.stringify({ id: activeTab, title, dimensions: nodesData[activeTab]?.dimensions || [] }));
                   e.dataTransfer.setData('text/plain', `[NODE:${activeTab}:"${title}"]`);
                 }}

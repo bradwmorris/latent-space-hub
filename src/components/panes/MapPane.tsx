@@ -23,9 +23,9 @@ import { ChevronDown } from 'lucide-react';
 
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 
-import { RahNode } from './map/RahNode';
+import { MapNode } from './map/RahNode';
 import EdgeExplanationModal from './map/EdgeExplanationModal';
-import { toRFNodes, toRFEdges, NODE_LIMIT, type RahNodeData } from './map/utils';
+import { toRFNodes, toRFEdges, NODE_LIMIT, type MapNodeData } from './map/utils';
 import './map/map-styles.css';
 
 interface DimensionInfo {
@@ -35,7 +35,7 @@ interface DimensionInfo {
   description: string | null;
 }
 
-const nodeTypes = { rahNode: RahNode };
+const nodeTypes = { mapNode: MapNode };
 
 // Debounce helper
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,7 +75,7 @@ function MapPaneInner({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // --- React Flow state ---
-  const [rfNodes, setRfNodes, onNodesChange] = useNodesState<RFNode<RahNodeData>>([]);
+  const [rfNodes, setRfNodes, onNodesChange] = useNodesState<RFNode<MapNodeData>>([]);
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState<RFEdge>([]);
 
   // --- Edge creation modal ---
@@ -398,7 +398,7 @@ function MapPaneInner({
     }, 400),
   );
 
-  const onNodeDragStop: NodeMouseHandler<RFNode<RahNodeData>> = useCallback((_event, node) => {
+  const onNodeDragStop: NodeMouseHandler<RFNode<MapNodeData>> = useCallback((_event, node) => {
     const nodeId = parseInt(node.id);
     if (!isNaN(nodeId)) {
       rfPositionsRef.current.set(node.id, node.position);
@@ -407,14 +407,14 @@ function MapPaneInner({
   }, []);
 
   // ----- Node click → select + traverse -----
-  const onNodeClickHandler: NodeMouseHandler<RFNode<RahNodeData>> = useCallback((_event, node) => {
+  const onNodeClickHandler: NodeMouseHandler<RFNode<MapNodeData>> = useCallback((_event, node) => {
     const nodeId = parseInt(node.id);
     if (isNaN(nodeId)) return;
     setSelectedNodeId(prev => prev === nodeId ? null : nodeId);
   }, []);
 
   // ----- Node double-click → open in other pane -----
-  const onNodeDoubleClick: NodeMouseHandler<RFNode<RahNodeData>> = useCallback((_event, node) => {
+  const onNodeDoubleClick: NodeMouseHandler<RFNode<MapNodeData>> = useCallback((_event, node) => {
     const nodeId = parseInt(node.id);
     if (!isNaN(nodeId)) onNodeClick?.(nodeId);
   }, [onNodeClick]);
@@ -582,7 +582,7 @@ function MapPaneInner({
             No nodes to display
           </div>
         ) : (
-          <div className="rah-map-wrapper" style={{ width: '100%', height: '100%' }}>
+          <div className="ls-map-wrapper" style={{ width: '100%', height: '100%' }}>
             <ReactFlow
               nodes={rfNodes}
               edges={rfEdges}

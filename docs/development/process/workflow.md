@@ -36,7 +36,7 @@ main ─────────────────────────
 
 ## Backlog
 
-**File:** `docs/development/backlog.json`
+**File:** `docs/development/backlog/backlog.json`
 
 ```
 queue: [project IDs in priority order]

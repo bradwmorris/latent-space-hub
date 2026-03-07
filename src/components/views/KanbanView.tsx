@@ -69,7 +69,7 @@ export default function KanbanView({
     const title = node?.title || 'Untitled';
 
     // Set MIME types for chat input drops
-    e.dataTransfer.setData('application/x-rah-node', JSON.stringify({ id: nodeId, title }));
+    e.dataTransfer.setData('application/x-ls-node', JSON.stringify({ id: nodeId, title }));
     e.dataTransfer.setData('application/node-info', JSON.stringify({ id: nodeId, title, dimensions: node?.dimensions || [] }));
     e.dataTransfer.setData('text/plain', `[NODE:${nodeId}:"${title}"]`);
   };

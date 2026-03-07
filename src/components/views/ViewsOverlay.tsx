@@ -306,7 +306,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
     e.dataTransfer.effectAllowed = 'copyMove';
     const node = filteredNodes.find(n => n.id === nodeId);
     const title = node?.title || 'Untitled';
-    e.dataTransfer.setData('application/x-rah-node', JSON.stringify({ id: nodeId, title }));
+    e.dataTransfer.setData('application/x-ls-node', JSON.stringify({ id: nodeId, title }));
     e.dataTransfer.setData('application/node-info', JSON.stringify({ id: nodeId, title, dimensions: node?.dimensions || [] }));
     e.dataTransfer.setData('text/plain', `[NODE:${nodeId}:"${title}"]`);
     draggedNodeRef.current = { id: nodeId, title, dimensions: node?.dimensions || [] };
@@ -420,7 +420,7 @@ export default function ViewsOverlay({ onNodeClick, onNodeOpenInOtherPane, refre
             handleKanbanNodeDragStart(e, node.id, dimension);
           } else {
             const title = node.title || 'Untitled';
-            e.dataTransfer.setData('application/x-rah-node', JSON.stringify({ id: node.id, title }));
+            e.dataTransfer.setData('application/x-ls-node', JSON.stringify({ id: node.id, title }));
             e.dataTransfer.setData('application/node-info', JSON.stringify({ id: node.id, title, dimensions: node.dimensions || [] }));
             e.dataTransfer.setData('text/plain', `[NODE:${node.id}:"${title}"]`);
           }

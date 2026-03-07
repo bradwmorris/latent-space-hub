@@ -1,6 +1,6 @@
 "use client";
 
-// Stub type for delegation (delegation system removed in rah-light)
+// Stub type for delegation (delegation system not used)
 type AgentDelegation = {
   id: number;
   sessionId: string;

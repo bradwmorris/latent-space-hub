@@ -1,5 +1,5 @@
 /**
- * PDF/Paper content extraction for RA-H knowledge management system
+ * PDF/Paper content extraction for Latent Space Hub
  * Extracts text content from PDF files and returns formatted content
  */
 

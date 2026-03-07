@@ -1,5 +1,5 @@
 /**
- * Website content extraction for RA-H knowledge management system
+ * Website content extraction for Latent Space Hub
  * Extracts text content from web pages and returns formatted content
  */
 
@@ -36,7 +36,7 @@ export class WebsiteExtractor {
     const jinaUrl = `https://r.jina.ai/${url}`;
 
     const response = await fetch(jinaUrl, {
-      headers: { 'User-Agent': 'RA-H/1.0' },
+      headers: { 'User-Agent': 'LatentSpaceHub/1.0' },
       signal: AbortSignal.timeout(30000),
     });
 

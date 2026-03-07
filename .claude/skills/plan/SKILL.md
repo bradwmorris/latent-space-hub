@@ -13,7 +13,7 @@ Creates a PRD (Product Requirements Document) for a project. PRDs go in `docs/de
 
 Read these files:
 1. `CLAUDE.md` — project context
-2. `docs/development/backlog.json` — existing queue
+2. `docs/development/backlog/backlog.json` — existing queue
 3. `docs/development/process.md` — workflow
 
 ## The Process
@@ -55,7 +55,7 @@ Create `docs/development/prd-XX-[name].md`:
 
 ### 4. Update Backlog
 
-Add the project to `docs/development/backlog.json`:
+Add the project to `docs/development/backlog/backlog.json`:
 - Add to `queue` array (position based on priority)
 - Add project entry with `status: "ready"`
 - Set `prd` path

@@ -46,7 +46,7 @@ type EvalChatLog = {
  */
 export function logEvalToolCall(entry: EvalToolCallLog): void {
   // Disabled - no local filesystem on Vercel/serverless
-  if (process.env.RAH_EVALS_LOG === '1' || process.env.RAH_EVALS_LOG === 'true') {
+  if (process.env.LS_EVALS_LOG === '1' || process.env.LS_EVALS_LOG === 'true') {
     console.log('[EVALS] Tool call (logging disabled in Turso fork):', entry.toolName);
   }
 }
@@ -57,7 +57,7 @@ export function logEvalToolCall(entry: EvalToolCallLog): void {
  */
 export function logEvalChat(entry: EvalChatLog): void {
   // Disabled - no local filesystem on Vercel/serverless
-  if (process.env.RAH_EVALS_LOG === '1' || process.env.RAH_EVALS_LOG === 'true') {
+  if (process.env.LS_EVALS_LOG === '1' || process.env.LS_EVALS_LOG === 'true') {
     console.log('[EVALS] Chat (logging disabled in Turso fork):', entry.helperName);
   }
 }

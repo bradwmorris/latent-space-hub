@@ -13,7 +13,7 @@ description: Execute a PRD end-to-end. Branch, implement everything in the PRD, 
 
 Read these files in order:
 1. `CLAUDE.md` — project overview, architecture, key constraints
-2. `docs/development/backlog.json` — the work queue
+2. `docs/development/backlog/backlog.json` — the work queue
 3. The PRD for the task you're executing
 
 Then confirm:
@@ -66,7 +66,7 @@ Update the PRD — add completion section:
 **What was delivered:** [Brief summary of all changes]
 ```
 
-Update `docs/development/backlog.json` — mark tasks as done, update project status.
+Update `docs/development/backlog/backlog.json` — mark tasks as done, update project status.
 
 Commit everything:
 ```bash

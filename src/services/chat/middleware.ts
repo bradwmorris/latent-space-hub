@@ -165,7 +165,7 @@ export class ChatLoggingMiddleware {
 
       const lastInsertedChatId = Number(result.lastInsertRowid);
 
-      if (metadata.agentType === 'orchestrator' && (metadata.helperName === 'ra-h' || metadata.helperName === 'ra-h-easy')) {
+      if (metadata.agentType === 'orchestrator' && (metadata.helperName === 'ls-hub' || metadata.helperName === 'ls-hub-easy')) {
         RequestContext.set({ 
           traceId: metadata.traceId, 
           parentChatId: lastInsertedChatId 

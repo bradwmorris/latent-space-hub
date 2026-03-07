@@ -43,7 +43,7 @@ git commit -m "feat: description"
 
 ## How Work Gets Done
 
-1. **Pick from backlog** — `docs/development/backlog.json` has the priority queue
+1. **Pick from backlog** — `docs/development/backlog/backlog.json` has the priority queue
 2. **Read the PRD** — Each project has a PRD in `docs/development/` that serves as the spec
 3. **Do the work** — Branch, implement, test
 4. **Update backlog** — Mark tasks done, update status
@@ -51,7 +51,7 @@ git commit -m "feat: description"
 
 ### Backlog
 
-**File:** `docs/development/backlog.json`
+**File:** `docs/development/backlog/backlog.json`
 
 ```json
 {

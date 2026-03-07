@@ -124,6 +124,7 @@
       "title": "Data refinement & hygiene \u2014 type migration, descriptions/notes, dates, edge cleanup"
     }
   ],
+  "lastUpdated": "2026-03-07",
   "projects": {
     "builders-club-prep": {
       "id": "builders-club-prep",
@@ -449,12 +450,39 @@
       "title": "Member profiles \u2014 Discord avatars + profile card display in hub",
       "type": "feature"
     },
+    "paper-club-scheduling": {
+      "id": "paper-club-scheduling",
+      "notes": "Members schedule Paper Club sessions via Discord /paper-club command. Creates a forward-looking event node. When cron ingests the recording later, it auto-links to the event node. Cross-repo: latent-space-hub (ingestion linking, UI) + latent-space-bots (slash command).",
+      "prd": "docs/development/prd-32-paper-club-scheduling.md",
+      "priority": "medium",
+      "status": "ready",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Define event node metadata structure (event_status, presenter, paper_url)"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Add /paper-club Discord slash command in latent-space-bots"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Show upcoming events in Paper Club category view"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Auto-link recordings to event nodes in ingestion pipeline"
+        }
+      ],
+      "title": "Paper Club scheduling \u2014 members schedule sessions, event nodes auto-link to recordings",
+      "type": "feature"
+    },
     "setup-handover": {
       "id": "setup-handover",
       "notes": "No code. Owner does 3 tasks (invite bot, create webhooks, test channel), then Brad tests and switches to live.",
       "prd": "docs/development/prd-17-setup-handover.md",
       "priority": "high",
-      "status": "ready",
+      "status": "in_progress",
       "tasks": [
         {
           "done": false,
@@ -496,6 +524,33 @@
       "title": "Setup & handover \u2014 get bot and webhooks live in the LS Discord server",
       "type": "ops"
     },
+    "ui-polish-and-docs": {
+      "id": "ui-polish-and-docs",
+      "notes": "Design pass across the hub UI \u2014 cleaner layout, light mode as default, fix docs readability in light mode. Content pass on all 5 documentation pages to reflect current state (post PRD-29).",
+      "prd": "docs/development/prd-31-ui-polish-and-docs.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Make light mode the default theme"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Fix documentation page readability in light mode"
+        },
+        {
+          "done": false,
+          "text": "Step 3: UI design pass \u2014 dashboard, sidebar, focus panel, views, skills pane, map"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Documentation content pass \u2014 update all 5 doc pages for accuracy"
+        }
+      ],
+      "title": "UI polish & documentation refresh \u2014 cleaner design, light mode default, docs readability + content update",
+      "type": "feature"
+    },
     "user-persona-system": {
       "id": "user-persona-system",
       "notes": "Cross-repo (latent-space-hub types + latent-space-bots logic). Extends MemberMetadata with interaction_style. Post-interaction style observation via <style> block. System prompt injection of learned style. /style slash command for explicit preferences. Depends on member nodes (PRD 19).",
@@ -533,16 +588,17 @@
     }
   },
   "queue": [
-    "setup-handover",
     "graph-bot-polish",
     "evals-dashboard",
     "member-nodes",
+    "paper-club-scheduling",
     "member-profiles",
     "inbox",
     "eval-suite",
     "entity-extraction-audit",
+    "ui-polish-and-docs",
     "builders-club-prep",
-    "user-persona-system"
-  ],
-  "lastUpdated": "2026-03-07"
+    "user-persona-system",
+    "setup-handover"
+  ]
 }

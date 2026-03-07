@@ -11,7 +11,7 @@ export interface ApiKeyStatus {
   anthropic: 'connected' | 'failed' | 'testing' | 'not-set';
 }
 
-const STORAGE_KEY = 'ra-h-api-keys';
+const STORAGE_KEY = 'ls-hub-api-keys';
 
 export class ApiKeyService {
   private static instance: ApiKeyService;
