@@ -1,193 +1,285 @@
-# PRD 33: Slop System Message & Skills Overhaul
+# PRD 33: Slop System Message & Interaction Overhaul
 
 **Status:** Ready | **Created:** 2026-03-08
 
 ## 1. Background
 
-The Slop bot's system message and skill loading were built up incrementally during PRD-32 (event scheduling). The result works but is messy — the system message is bloated at ~8,000 chars, skills were bolted on without design, the soul file duplicates tool descriptions that are already in the OpenAI function definitions, and there's no clear contract between what goes in the system prompt vs what the agent reads on demand. This needs a proper audit and overhaul.
+The Slop bot's system message is ~8,050 chars assembled from a bloated soul file, redundant hardcoded lines, and bolted-on context. It works but is inefficient — the same instructions are stated 2-3 times in different places, tool documentation is duplicated from the OpenAI function definitions, and personality framing consumes ~6,500 chars when a fraction would suffice.
+
+This PRD kills the soul file, replaces the entire system message with a minimal programmatic builder, and adds per-member interaction preferences so Slop adapts its style to each person over time.
+
+### Repos involved
+
+| Repo | What changes |
+|------|-------------|
+| `latent-space-bots` | All code changes — system prompt builder, member metadata, skill cleanup |
+| `latent-space-hub` | PRD only (this file). No code changes needed — member metadata is JSON in the existing `nodes` table, no schema migration required. |
 
 ### What exists today
 
-**Repo:** `latent-space-bots` (all changes in this PRD are in the bots repo)
-
 **System message assembly** (`src/index.ts:653`):
 ```
-${profile.systemPrompt}        ← personas/slop.soul.md (~6,500 chars)
+${profile.systemPrompt}        <- personas/slop.soul.md (~6,500 chars)
 \n\n
-${groundingLine}               ← hardcoded string (~220 chars)
+${groundingLine}               <- hardcoded string (~220 chars)
 \n
-${profileStyleLine}            ← hardcoded string (~300 chars)
+${profileStyleLine}            <- hardcoded string (~300 chars)
 \n\n
-${additionalSystemContext}     ← skills index + member context (~1,000 chars)
+${additionalSystemContext}     <- skills index (~727 chars) + member context (~300 chars)
 ```
-Total: ~8,050 chars. Verified via `scripts/debug-system-message.ts`.
+Total: ~8,050 chars.
 
-**Full verified output:** `docs/slop-system-message-output.txt`
-**Reference doc:** `docs/slop-system-message.md`
+**Problems:**
+1. Soul file is 6,500 chars of personality prose — most of which the model doesn't need to stay in character
+2. Tool documentation in the soul file (~800 chars) duplicates the OpenAI function definitions
+3. Grounding/citation rules stated 3 times: soul file `Grounding Rules`, hardcoded `groundingLine`, hardcoded `profileStyleLine`
+4. Style/voice guidance in 3 places: soul file `Voice` + `Format`, hardcoded `profileStyleLine`
+5. Member awareness in the soul file duplicates the `member-profiles` skill
+6. No per-member personality adaptation — everyone gets the same Slop
+7. Two response paths (`generateResponse` + `generateAgenticResponse`) each assemble the system message slightly differently with duplicated logic
 
-### What's wrong
-
-1. **Soul file is too long and duplicates tool info.** The `Knowledge Base & Tools` section (~800 chars) lists all 9 tools with descriptions. But these same tools are ALSO passed as OpenAI function definitions with their own descriptions. The LLM sees tool info twice. The soul file should focus on persona/voice/approach — not tool documentation.
-
-2. **Hardcoded grounding + style lines are redundant.** The soul file already has a `Grounding Rules` section and a `Voice` + `Format` section. Then two more hardcoded strings repeat similar instructions at `src/index.ts:645-648`. Three places saying "cite your sources" and "don't fabricate."
-
-3. **Skills are a good pattern but poorly integrated.** Skills live in `skills/` with frontmatter. The system prompt shows the index (frontmatter only, 727 chars). The agent reads full bodies via `ls_read_skill`. But:
-   - The `ls_read_skill` intercept was hacked into the agentic loop as a special case (lines 726-733)
-   - There's still a stale `guides/member-profiles.md` file that nothing reads anymore
-   - The skill names must match between the `skills/` dir filenames and what the agent passes to `ls_read_skill` — no validation
-   - The `graph-search` skill body duplicates info from the soul file's tool section
-
-4. **No clear contract.** There's no documented rule for what belongs in:
-   - The soul file (persona, voice, behavioral rules)
-   - Hardcoded lines (should these exist at all?)
-   - Skill frontmatter (what the agent always sees)
-   - Skill body (what the agent reads on demand)
-   - OpenAI tool definitions (what the API provides)
-
-5. **Member skill is duplicated.** `skills/member-profiles.md` and `guides/member-profiles.md` both exist. The old `guides/` one is dead code but still in the repo.
-
-6. **No testing.** The debug script (`scripts/debug-system-message.ts`) prints the system message but there's no actual test that validates skills load correctly, that the agent can read them, or that the message stays under a size budget.
-
-### Key files
+### Key files (latent-space-bots)
 
 | File | What it is |
 |------|-----------|
-| `personas/slop.soul.md` | Base persona — identity, voice, approach, grounding rules, tool list, member awareness |
-| `src/index.ts:637-655` | `generateAgenticResponse` — assembles the system message |
-| `src/index.ts:468-507` | Skill types, `loadSkillIndex()`, `readLocalSkill()`, `loadSkillsContext()` |
-| `src/index.ts:726-733` | `ls_read_skill` intercept in agentic tool loop |
+| `personas/slop.soul.md` | 6,500-char persona file — TO BE DELETED |
+| `src/index.ts:637-655` | `generateAgenticResponse` — system message assembly |
+| `src/index.ts:565-595` | `generateResponse` — non-agentic system message assembly |
 | `src/index.ts:260-282` | `formatMemberContext()` — builds `[MEMBER CONTEXT]` block |
-| `src/index.ts:543-595` | `generateResponse()` — non-agentic path (smalltalk, /wassup) |
-| `skills/event-scheduling.md` | Event scheduling skill (frontmatter + body) |
-| `skills/graph-search.md` | Graph search skill (frontmatter + body) |
-| `skills/member-profiles.md` | Member profiles skill (frontmatter + body) |
+| `src/index.ts:348-360` | `parseProfileBlock()` — extracts `<profile>` updates from responses |
+| `src/index.ts:362-410` | `updateMemberAfterInteraction()` — persists member changes |
+| `src/index.ts:466-525` | Skill loading (`loadSkillIndex`, `readLocalSkill`, `loadSkillsContext`) |
+| `skills/*.md` | 3 skill files (event-scheduling, graph-search, member-profiles) |
 | `guides/member-profiles.md` | DEAD CODE — old version, nothing reads it |
-| `scripts/debug-system-message.ts` | Debug script to print exact system message |
-| `docs/slop-system-message.md` | Reference doc for system message structure |
-| `docs/slop-system-message-output.txt` | Verified output from debug script |
 
-### How Slop works (for context)
+## 2. Design
 
-Slop is a Discord bot. It uses OpenRouter to call Claude Sonnet 4.6. It has two response paths:
+### 2.1 Kill the soul file, build system prompt in code
 
-1. **Agentic path** (most interactions): `generateAgenticResponse()`. System message + user message. LLM gets 9 read-only tools as OpenAI function definitions. Up to 5 tool-call rounds. The LLM decides what to search and when.
+Replace the 6,500-char `personas/slop.soul.md` with a `buildSystemPrompt()` function in code. The base persona should be **~400-600 chars** — minimal, direct, no prose. The model is smart enough to adopt a persona from a tight description.
 
-2. **Non-agentic path** (smalltalk, /wassup): `generateResponse()`. System message + user message + pre-fetched context string. No tool calling.
+**Target system message structure:**
 
-Both paths use the same system message structure. The `additionalSystemContext` (skills + member) is passed into both.
-
-The agentic tool loop at `src/index.ts:712-735` executes tool calls from the LLM. `ls_read_skill` is intercepted to serve local `skills/` files first, falling back to MCP.
-
-## 2. Plan
-
-1. Audit and slim down the soul file — remove tool documentation (already in function defs), remove redundancy with hardcoded lines
-2. Eliminate the hardcoded grounding/style lines — fold essential bits into the soul file, delete the rest
-3. Define a clear contract for what goes where (soul vs skills vs tool defs)
-4. Clean up the skill system — remove dead code, improve the intercept, validate loading
-5. Review and improve each skill's frontmatter and body
-6. Add a size budget test
-7. Test end-to-end: trigger Slop with key scenarios, verify it reads skills and uses tools correctly
-
-## 3. Implementation Details
-
-### Step 1: Audit the soul file
-
-**File:** `personas/slop.soul.md`
-
-The soul file should contain ONLY:
-- Identity and personality
-- Voice and tone rules
-- Approach and behavioral patterns
-- Anti-patterns
-- Format rules
-- Latent Space DNA (community context)
-
-It should NOT contain:
-- Tool descriptions (these come from OpenAI function definitions)
-- Grounding rules that duplicate the skill system ("cite your sources" etc — this should be in a skill or a compact directive)
-- Member awareness boilerplate (this is covered by the member-profiles skill)
-
-**Action:** Rewrite the soul file. Cut the `Knowledge Base & Tools` section and `Member Awareness` section. Add a brief pointer: "You have skills and tools available. Check your [SKILLS] index for operational guidance." Target: ~3,500 chars (down from 6,500).
-
-### Step 2: Eliminate hardcoded lines
-
-**File:** `src/index.ts` (lines 645-648 in `generateAgenticResponse`, lines 551-555 in `generateResponse`)
-
-The `groundingLine` and `profileStyleLine` are hardcoded strings that repeat what the soul file and skills already say. Remove them entirely. If any essential instruction isn't covered by the soul file or skills, add it to the right place.
-
-**Action:** Remove `groundingLine` and `profileStyleLine` variables. The system message becomes simply:
 ```
-${profile.systemPrompt}\n\n${additionalSystemContext}
+[IDENTITY]
+<~400-600 chars: who Slop is, how to behave, format rules>
+
+[RULES]
+<~200 chars: grounding, citations, no fabrication>
+
+[SKILLS]
+<skill index from frontmatter — ~700 chars>
+
+[MEMBER CONTEXT]         (only if member exists)
+<member profile + interaction preference — ~400 chars>
+
+[MEMBER STATUS]          (only if NO member)
+<one line: mention /join>
 ```
 
-### Step 3: Define the contract
+**Target total: ~2,000 chars** (down from 8,050). That's a 75% reduction.
 
-Create `docs/system-message-contract.md` documenting:
+The identity section replaces the soul file, the grounding line, AND the style line — all in one place, no duplication.
 
-| Layer | What goes here | Size budget | Example |
-|-------|---------------|-------------|---------|
-| Soul file | Persona, voice, behavior, format | ~3,500 chars | "You are Slop..." |
-| Skill frontmatter | Index of operational skills | ~100 chars/skill | "[SKILLS] Event Scheduling: ..." |
-| Skill body | Detailed instructions read on demand | No limit | SQL queries, validation rules |
-| Tool definitions | API-provided tool schemas | Automatic | OpenAI function calling format |
-| Member context | Per-user personalization | ~300 chars | "[MEMBER CONTEXT] Name: ..." |
+### 2.2 Per-member interaction preference
 
-Total system message budget: **~5,000 chars** (down from 8,050).
+Add an `interaction_preference` field to the member metadata JSON. This is a free-text string that describes how Slop should interact with this specific member.
 
-### Step 4: Clean up the skill system
+**How it develops:**
+- Slop observes interactions and builds/refines the preference automatically
+- Members can also tell Slop explicitly (e.g. "be more technical with me", "I like short answers")
+- The preference is injected into the `[MEMBER CONTEXT]` block so Slop sees it every interaction
+- Slop is instructed to respect and update this preference continuously
 
-**Files:** `src/index.ts`, `skills/`, `guides/`
+**Example member context with preference:**
+```
+[MEMBER CONTEXT]
+Name: brad w morris
+Role: founder and systems eng
+Location: Byron Bay / SF
+Interests: local-first architecture, knowledge graphs, RAG
+Interaction preference: Direct and technical. Skip pleasantries. Challenge assumptions. Prefers short, dense responses with links to sources.
+Use this to personalize your response. Update interaction_preference in <profile> when you learn more about how they like to interact.
+```
+
+**How it persists:**
+- The existing `<profile>` block mechanism (parsed from Slop's response, stripped before sending to user) already supports `role`, `company`, `location`, `interests`
+- Add `interaction_preference` as a new field in the `<profile>` block
+- `updateMemberAfterInteraction()` already merges profile updates into metadata — extend it to handle `interaction_preference`
+
+### 2.3 Unified system prompt assembly
+
+Currently there are two functions that build system messages differently:
+- `generateAgenticResponse()` — agentic path with tools
+- `generateResponse()` — non-agentic path (smalltalk, /wassup)
+
+Create a single `buildSystemPrompt()` function used by both paths. The only difference between paths should be whether tools are passed — the system message itself should be identical.
+
+### 2.4 Skill cleanup
 
 - Delete `guides/member-profiles.md` (dead code)
-- Move the `ls_read_skill` intercept into `McpGraphClient` instead of inline in the agentic loop
-- Add a `listLocalSkills()` method to `McpGraphClient` so `ls_list_skills` also returns local skills
-- Validate that skill filenames match what the agent would pass to `ls_read_skill` (slugified)
+- Update `member-profiles` skill to include `interaction_preference` guidance
+- Keep the skill system as-is (it's already a good progressive-disclosure pattern)
+- Remove tool documentation from `graph-search` skill body (it duplicates function definitions)
 
-### Step 5: Review each skill
+## 3. Implementation
 
-**Files:** `skills/*.md`
+### Step 1: Create `buildSystemPrompt()` function
 
-For each skill, review:
-- Is the frontmatter (`name`, `description`, `when_to_use`) clear and accurate?
-- Does `when_to_use` actually trigger when it should?
-- Is the body concise and actionable?
-- Does it duplicate anything from the soul file?
+**File:** `src/index.ts` (or extract to `src/systemPrompt.ts`)
 
-Specific issues:
-- `graph-search.md` body duplicates the soul file's tool section — should focus on search strategy and citation rules only, not tool descriptions
-- `event-scheduling.md` is solid but could be more concise
-- `member-profiles.md` has `<profile>` block instructions that are critical — make sure these aren't lost
+```typescript
+function buildSystemPrompt(options: {
+  skillsContext: string;
+  memberContext: string;
+}): string {
+  const identity = [
+    "[IDENTITY]",
+    "You are Slop — Latent Space community's AI. Opinionated, sharp, concise.",
+    "Lead with your take. Challenge lazy thinking. Cite sources from the knowledge base.",
+    "Keep responses short and punchy — this is Discord, not an essay.",
+    "Bold your strongest claims. End with a question or challenge when debating.",
+    "Never agree just to be agreeable. Never hedge. Never use filler.",
+    "If you don't know something, say so. Never fabricate names, dates, episodes, quotes, or links.",
+  ].join("\n");
 
-### Step 6: Add size budget test
+  const rules = [
+    "[RULES]",
+    "Search the knowledge base before answering factual questions.",
+    "Always link to sources: [Title](url). Never reference content without a link.",
+    "Mark speculation: 'No hard data, but...' or 'Extrapolating here...'",
+  ].join("\n");
 
-**File:** `scripts/debug-system-message.ts` or new test file
+  return [identity, rules, options.skillsContext, options.memberContext]
+    .filter(Boolean)
+    .join("\n\n");
+}
+```
 
-Add assertions:
-- Total system message < 5,500 chars
-- Soul file < 4,000 chars
-- Skills index < 1,000 chars
-- No skill appears in both `skills/` and `guides/`
-- All skill files have valid frontmatter (name, description, when_to_use)
+This is ~600 chars for identity + rules. The exact wording should be iterated during implementation, but the principle is: **minimal, direct, no prose**.
 
-### Step 7: End-to-end test scenarios
+### Step 2: Add `interaction_preference` to member flow
 
-After all changes, test these scenarios in Discord (or via the debug script + manual verification):
+**2a. Update `formatMemberContext()`**
 
-| Scenario | Expected behavior |
-|----------|------------------|
-| "show me upcoming paper clubs" | Reads event-scheduling skill → queries `node_type='event'` with `event_status='scheduled'` → returns 2 upcoming events |
-| "what was the latest podcast about?" | Uses `ls_sqlite_query` or `ls_search_nodes` → returns latest podcast with link |
-| "I'm an ML engineer at Google" | Reads member-profiles skill → responds naturally → appends `<profile>` block |
-| `/paper-club` | Shows next 4 available Wednesdays, starts scheduling thread |
-| "how do I schedule a talk?" | Reads event-scheduling skill → directs to `/paper-club` or `/builders-club` |
-| Generic greeting "hey" | Responds in character, no tool calls, mentions `/join` if not a member |
+Add the `interaction_preference` field to the output:
 
-## 4. Open Questions
+```typescript
+function formatMemberContext(member: MemberNode): string {
+  // ... existing fields ...
+  if (member.metadata.interaction_preference) {
+    profileLines.push(`Interaction preference: ${member.metadata.interaction_preference}`);
+  }
+  return (
+    `[MEMBER CONTEXT]\n` +
+    profileLines.join("\n") + "\n" +
+    `Use this to personalize your response. Update interaction_preference in <profile> when you learn how they like to interact.`
+  );
+}
+```
 
-- Should the soul file reference skills at all, or should the `[SKILLS]` block be self-sufficient?
-- Should we add a `slop-persona` skill that the agent can re-read if it's drifting out of character? (Separates persona from system prompt)
-- The non-agentic path (`generateResponse`) uses the same system message but doesn't have tool access — should skills even be injected there?
-- Should there be a `max_tokens` increase now that the system prompt will be shorter? Currently 1200 for agentic, 700 for non-agentic.
+**2b. Update `MemberMetadata` type**
+
+Add `interaction_preference?: string` to the type.
+
+**2c. Update `parseMetadata()`**
+
+Parse `interaction_preference` from the raw metadata JSON.
+
+**2d. Update `parseProfileBlock()`**
+
+The return type already supports arbitrary fields — just update the type annotation to include `interaction_preference?: string`.
+
+**2e. Update `updateMemberAfterInteraction()`**
+
+```typescript
+if (profileUpdate) {
+  // ... existing role/company/location/interests merging ...
+  if (profileUpdate.interaction_preference) {
+    metadata.interaction_preference = profileUpdate.interaction_preference;
+  }
+}
+```
+
+### Step 3: Unify system prompt assembly
+
+Replace the duplicated system message construction in both `generateAgenticResponse()` and `generateResponse()` with a single call to `buildSystemPrompt()`.
+
+**In `generateAgenticResponse()`:**
+- Remove `groundingLine` and `profileStyleLine` variables
+- Replace system message content with `buildSystemPrompt({ skillsContext, memberContext })`
+
+**In `generateResponse()`:**
+- Remove `groundingLine` and `profileStyleLine` variables
+- Replace system message content with `buildSystemPrompt({ skillsContext, memberContext })`
+
+### Step 4: Delete soul file and dead code
+
+- Delete `personas/slop.soul.md`
+- Delete `guides/member-profiles.md`
+- Remove `readSoulDocument()` function
+- Remove `BotProfileSeed.soulFile` field
+- Update `buildProfiles()` — no longer needs to read soul file
+- Simplify `BotProfile` — `systemPrompt` field is no longer populated from a file
+
+### Step 5: Update skills
+
+**`skills/member-profiles.md`** — Add `interaction_preference` to the `<profile>` block documentation:
+
+```markdown
+Available fields: `role`, `company`, `location`, `interests` (string array), `interaction_preference` (string).
+
+The `interaction_preference` field captures how this member prefers to interact:
+- Observe their communication style (technical depth, brevity, humor)
+- Note explicit preferences ("be more concise", "challenge me more")
+- Update this field as you learn more about them
+```
+
+**`skills/graph-search.md`** — Remove the tool descriptions table from the body. Keep only:
+- Content types table (node_type reference)
+- Search strategy (which tool to use when)
+- Citation rules
+
+**`skills/event-scheduling.md`** — Keep as-is (already concise and actionable).
+
+### Step 6: Update docs
+
+- Update `docs/slop-system-message.md` to reflect the new structure
+- Delete `docs/slop-system-message-output.txt` (will be stale)
+
+## 4. Verification
+
+After implementation, verify with these scenarios:
+
+| Scenario | Expected |
+|----------|----------|
+| Factual question from non-member | Searches KB, cites sources, mentions `/join` once |
+| Factual question from member with preference | Searches KB, adapts style to preference |
+| Member says "be more technical with me" | Updates `interaction_preference` via `<profile>` block |
+| Greeting from member | Short, in-character response, no tool calls |
+| "show me upcoming paper clubs" | Reads event-scheduling skill, queries events |
+| `/paper-club` slash command | Scheduling flow works unchanged |
+| Member shares personal info | Updates profile fields via `<profile>` block |
+
+## 5. Size Budget
+
+| Section | Target chars |
+|---------|-------------|
+| Identity | ~400 |
+| Rules | ~200 |
+| Skills index | ~700 |
+| Member context | ~400 |
+| **Total** | **~1,700** |
+
+Down from 8,050. The exact identity/rules text will be iterated during implementation.
+
+## 6. Non-goals
+
+- Changing the agentic loop mechanics (tool calling, max rounds, etc.)
+- Changing the model (stays on Claude Sonnet 4.6 via OpenRouter)
+- Modifying the MCP server or hub codebase
+- Adding new tools or skills beyond updating existing ones
+- Changing the scheduling flow (slash commands, thread management)
 
 ---
 
