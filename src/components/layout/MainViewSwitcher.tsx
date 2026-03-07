@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { LayoutDashboard, FolderOpen, List, Map, FileText, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, List, Map, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 export type MainView = 'dashboard' | 'type' | 'feed' | 'map' | 'skills';
@@ -17,7 +17,6 @@ const VIEW_CONFIG: { id: MainView; icon: typeof FolderOpen; label: string }[] = 
   { id: 'type', icon: FolderOpen, label: 'Type' },
   { id: 'feed', icon: List, label: 'Feed' },
   { id: 'map', icon: Map, label: 'Map' },
-  { id: 'skills', icon: FileText, label: 'Skills' },
 ];
 
 export default function MainViewSwitcher({

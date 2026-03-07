@@ -8,6 +8,7 @@ import {
   PanelLeftOpen,
   Search,
   Plus,
+  FileText,
   BookOpen,
 } from 'lucide-react';
 import { Node } from '@/types/database';
@@ -28,6 +29,7 @@ interface LeftTypePanelProps {
   onNodeSelect: (nodeId: number) => void;
   onSearchClick: () => void;
   onAddClick: () => void;
+  onSkillsClick: () => void;
 }
 
 export default function LeftTypePanel({
@@ -38,6 +40,7 @@ export default function LeftTypePanel({
   onNodeSelect,
   onSearchClick,
   onAddClick,
+  onSkillsClick,
 }: LeftTypePanelProps) {
   const [typeCounts, setTypeCounts] = useState<TypeCount[]>([]);
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
@@ -189,6 +192,24 @@ export default function LeftTypePanel({
           </>
         )}
         <div style={{ flex: 1 }} />
+        <button
+          onClick={onSkillsClick}
+          title="Skills"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <FileText size={16} />
+        </button>
         <a
           href="/docs"
           title="Docs"
@@ -439,6 +460,26 @@ export default function LeftTypePanel({
           gap: '2px',
         }}
       >
+        <button
+          onClick={onSkillsClick}
+          style={{
+            width: '100%',
+            height: '30px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '0 8px',
+            fontSize: '12px',
+          }}
+        >
+          <FileText size={14} />
+          <span>Skills</span>
+        </button>
         <a
           href="/docs"
           style={{

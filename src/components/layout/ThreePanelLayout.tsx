@@ -598,6 +598,13 @@ export default function ThreePanelLayout() {
         onNodeSelect={handleNodeSelect}
         onSearchClick={() => setShowSearchModal(true)}
         onAddClick={() => setShowAddStuff(true)}
+        onSkillsClick={() => {
+          setActiveView('skills');
+          if (showingFocusedNode) {
+            setActiveTab(null);
+            setFocusedNodeId(null);
+          }
+        }}
       />
 
       {/* Main Workspace */}
