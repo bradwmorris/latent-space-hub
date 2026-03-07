@@ -161,6 +161,81 @@ async function findCompanionNode(params: {
   return null;
 }
 
+/**
+ * When a Paper Club or Builders Club recording is ingested, find a matching
+ * scheduled event node (within 3 days of the recording date) and link them.
+ * Returns true if a match was found and linked.
+ */
+async function linkRecordingToEvent(recordingNodeId: number, nodeType: string, recordingDate?: string): Promise<boolean> {
+  if (!recordingDate) return false;
+
+  const sqlite = getSQLiteClient();
+  const result = await sqlite.query<{ id: number; metadata: string }>(
+    `SELECT id, metadata FROM nodes
+     WHERE node_type = 'event'
+       AND json_extract(metadata, '$.event_type') = ?
+       AND json_extract(metadata, '$.event_status') = 'scheduled'
+       AND event_date BETWEEN date(?, '-3 days') AND date(?, '+3 days')
+     ORDER BY ABS(julianday(event_date) - julianday(?))
+     LIMIT 1`,
+    [nodeType, recordingDate, recordingDate, recordingDate]
+  );
+
+  if (result.rows.length === 0) return false;
+
+  const eventRow = result.rows[0];
+  const eventId = Number(eventRow.id);
+
+  const label = nodeType === 'paper-club' ? 'Paper Club' : 'Builders Club';
+
+  // Create edge: recording -> event
+  await ensureEdge(recordingNodeId, eventId, `recording of scheduled ${label} session`);
+
+  // Update event metadata: mark completed, store recording node ID
+  let metadata: Record<string, unknown> = {};
+  try {
+    metadata = JSON.parse(eventRow.metadata);
+  } catch { /* use empty */ }
+  metadata.event_status = 'completed';
+  metadata.recording_node_id = recordingNodeId;
+
+  await sqlite.query(
+    'UPDATE nodes SET metadata = ?, updated_at = datetime() WHERE id = ?',
+    [JSON.stringify(metadata), eventId]
+  );
+
+  console.log(`[ingestion] Linked ${label} recording node ${recordingNodeId} -> event node ${eventId}`);
+  return true;
+}
+
+/**
+ * Create a completed event node for a recording that had no prior scheduled event.
+ */
+async function createEventNodeForRecording(
+  recordingNodeId: number,
+  recordingNodeType: string,
+  recordingTitle: string,
+  recordingDate?: string,
+): Promise<void> {
+  const label = recordingNodeType === 'paper-club' ? 'Paper Club' : 'Builders Club';
+
+  const eventNode = await nodeService.createNode({
+    title: recordingTitle,
+    node_type: 'event',
+    description: `${label} session`,
+    event_date: recordingDate,
+    dimensions: ['event', recordingNodeType],
+    metadata: {
+      event_status: 'completed',
+      event_type: recordingNodeType,
+      recording_node_id: recordingNodeId,
+    },
+  });
+
+  await ensureEdge(recordingNodeId, eventNode.id, `recording of ${label} session`);
+  console.log(`[ingestion] Created event node ${eventNode.id} for ${label} recording ${recordingNodeId}`);
+}
+
 async function findOrCreateEntity(title: string, entityType: 'person' | 'organization' | 'topic'): Promise<number> {
   const normalized = cleanEntity(title);
   if (!normalized) {
@@ -527,6 +602,12 @@ export async function processDiscoveredItem(params: {
     const { nodeType, dimensions, metadataExtra } = targetNodeTypeAndDimensions(source, extracted.title);
     const description = buildDescription(extracted.title, extracted.chunk);
 
+    // Mark paper-club and builders-club recordings with event_status
+    const eventStatusExtra: Record<string, unknown> =
+      (nodeType === 'paper-club' || nodeType === 'builders-club')
+        ? { event_status: 'recording' }
+        : {};
+
     const node = await nodeService.createNode({
       title: extracted.title,
       node_type: nodeType,
@@ -539,11 +620,25 @@ export async function processDiscoveredItem(params: {
       metadata: {
         ...extracted.metadata,
         ...metadataExtra,
+        ...eventStatusExtra,
       },
     });
 
     const embeddingResult = await embedNodeContent(node.id);
     const chunksCreated = embeddingResult.chunk_embeddings.chunks_created || 0;
+
+    // Event linking: connect recordings to scheduled event nodes, or create event node
+    if (nodeType === 'paper-club' || nodeType === 'builders-club') {
+      try {
+        const linked = await linkRecordingToEvent(node.id, nodeType, node.event_date || extracted.publishedAt);
+        if (!linked) {
+          // No scheduled event found — create a completed event node
+          await createEventNodeForRecording(node.id, nodeType, node.title, node.event_date || extracted.publishedAt);
+        }
+      } catch (error) {
+        console.warn(`[ingestion] ${nodeType} event linking failed; continuing`, error);
+      }
+    }
 
     // Companion detection for podcast/article pairs
     let hasCompanion = false;

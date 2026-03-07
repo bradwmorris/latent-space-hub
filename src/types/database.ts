@@ -10,6 +10,7 @@ export type NodeType =
   | 'workshop'
   | 'ainews'
   | 'hub'
+  | 'event'        // Scheduled or completed community events (Paper Club, Builders Club)
   | 'member';     // Structural anchor + community member profiles
 
 export interface Node {
@@ -36,6 +37,8 @@ export interface Node {
 
 // ─── Node Metadata Schemas (application-layer validation) ────────────────────
 
+export type EventStatus = 'scheduled' | 'completed' | 'cancelled' | 'recording';
+
 export interface ContentMetadata {
   source?: string;
   video_id?: string;
@@ -55,6 +58,7 @@ export interface ContentMetadata {
   format?: string;
   topic?: string;
   tools?: string[];
+  event_status?: EventStatus;
 }
 
 export interface GuestMetadata {
@@ -86,6 +90,19 @@ export interface HubMetadata {
   anchors_types?: string[];
 }
 
+export interface EventMetadata {
+  event_status: EventStatus;
+  event_type: 'paper-club' | 'builders-club';
+  presenter_name?: string;
+  presenter_discord_id?: string;
+  presenter_node_id?: number;
+  paper_url?: string;
+  paper_title?: string;
+  topic?: string;
+  recording_node_id?: number | null;
+  scheduled_at?: string;
+}
+
 export interface MemberMetadata {
   discord_id: string;
   discord_handle: string;
@@ -109,6 +126,7 @@ export type NodeMetadataMap = {
   guest: GuestMetadata;
   entity: EntityMetadata;
   hub: HubMetadata;
+  event: EventMetadata;
   member: MemberMetadata;
 };
 

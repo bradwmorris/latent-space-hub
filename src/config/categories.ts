@@ -1,6 +1,7 @@
 import {
   Mic, Users, FileText, Building2, Hammer,
   BookOpen, Presentation, Newspaper, UserCircle,
+  CalendarDays,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -17,11 +18,12 @@ export const CATEGORIES: CategoryConfig[] = [
   { key: 'guest',         label: 'Guest',          icon: Users,        sortMode: 'connected', order: 1 },
   { key: 'article',       label: 'Article',        icon: FileText,     sortMode: 'recent',    order: 2 },
   { key: 'entity',        label: 'Entity',         icon: Building2,    sortMode: 'connected', order: 3 },
-  { key: 'builders-club', label: 'Builders Club',  icon: Hammer,       sortMode: 'recent',    order: 4 },
-  { key: 'paper-club',    label: 'Paper Club',     icon: BookOpen,     sortMode: 'recent',    order: 5 },
-  { key: 'workshop',      label: 'Workshop',       icon: Presentation, sortMode: 'recent',    order: 6 },
-  { key: 'ainews',        label: 'AI News',        icon: Newspaper,    sortMode: 'recent',    order: 7 },
-  { key: 'member',        label: 'Member',         icon: UserCircle,   sortMode: 'connected', order: 8 },
+  { key: 'event',          label: 'Events',         icon: CalendarDays, sortMode: 'recent',    order: 4 },
+  { key: 'builders-club', label: 'Builders Club',  icon: Hammer,       sortMode: 'recent',    order: 5 },
+  { key: 'paper-club',    label: 'Paper Club',     icon: BookOpen,     sortMode: 'recent',    order: 6 },
+  { key: 'workshop',      label: 'Workshop',       icon: Presentation, sortMode: 'recent',    order: 7 },
+  { key: 'ainews',        label: 'AI News',        icon: Newspaper,    sortMode: 'recent',    order: 8 },
+  { key: 'member',        label: 'Member',         icon: UserCircle,   sortMode: 'connected', order: 9 },
 ];
 
 export type CategoryKey = typeof CATEGORIES[number]['key'];

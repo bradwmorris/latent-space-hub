@@ -452,29 +452,37 @@
     },
     "paper-club-scheduling": {
       "id": "paper-club-scheduling",
-      "notes": "Members schedule Paper Club sessions via Discord /paper-club command. Creates a forward-looking event node. When cron ingests the recording later, it auto-links to the event node. Cross-repo: latent-space-hub (ingestion linking, UI) + latent-space-bots (slash command).",
+      "notes": "New 'event' node type in sidebar. Each paper-club/builders-club recording gets a linked event node. Upcoming/Past sections in Events view. Backfill script creates events for all existing recordings. Discord slash commands still needed in latent-space-bots.",
       "prd": "docs/development/prd-32-paper-club-scheduling.md",
       "priority": "medium",
-      "status": "ready",
+      "status": "review",
       "tasks": [
         {
-          "done": false,
-          "text": "Step 1: Define event node metadata structure (event_status, presenter, paper_url)"
+          "done": true,
+          "text": "Step 1: Add 'event' node type with EventMetadata (event_status, event_type, presenter, recording link)"
         },
         {
-          "done": false,
-          "text": "Step 2: Add /paper-club Discord slash command in latent-space-bots"
+          "done": true,
+          "text": "Step 2: Add /paper-club and /builders-club Discord slash commands in latent-space-bots"
         },
         {
-          "done": false,
-          "text": "Step 3: Show upcoming events in Paper Club category view"
+          "done": true,
+          "text": "Step 3: Add Events category to sidebar with Upcoming/Past sections"
         },
         {
-          "done": false,
-          "text": "Step 4: Auto-link recordings to event nodes in ingestion pipeline"
+          "done": true,
+          "text": "Step 4: Auto-create event nodes + link recordings in ingestion pipeline"
+        },
+        {
+          "done": true,
+          "text": "Step 5: Backfill script to create event nodes for all existing recordings"
+        },
+        {
+          "done": true,
+          "text": "Step 6: Run backfill script against production DB"
         }
       ],
-      "title": "Paper Club scheduling \u2014 members schedule sessions, event nodes auto-link to recordings",
+      "title": "Event nodes \u2014 first-class events in sidebar, linked to recordings, Upcoming/Past UI",
       "type": "feature"
     },
     "setup-handover": {

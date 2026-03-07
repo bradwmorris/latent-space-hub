@@ -169,3 +169,37 @@ POST endpoint that creates the event node. Would need auth (member must be logge
 ---
 
 **When complete:** Add `## COMPLETED` header with date and summary.
+
+---
+
+## COMPLETED (latent-space-hub parts)
+**Date:** 2026-03-07
+**What was delivered:**
+
+### New `event` node type
+- Added `'event'` to `NodeType` — first-class events in the knowledge graph
+- Added `EventMetadata` interface (`event_status`, `event_type`, presenter info, `recording_node_id`)
+- Events are separate from recordings — each recording (paper-club/builders-club) gets a linked event node
+- Added to sidebar as "Events" category with CalendarDays icon
+
+### UI — Upcoming / Past sections in Events view
+- `TypeNodeList` splits events into **Upcoming** (scheduled, green highlight) and **Past** (completed) sections
+- Event rows show event_type badge (Paper Club = purple, Builders Club = amber)
+- Upcoming events: green left border, "Upcoming" badge, presenter name
+- `ListView` (feed view): green "Upcoming" badge for event nodes
+
+### Ingestion pipeline
+- Recording nodes tagged with `event_status: 'recording'` in metadata
+- `linkRecordingToEvent()` searches for matching scheduled `event` nodes (3-day window)
+- If no scheduled event found, auto-creates a completed event node and links it
+- Works for both paper-club and builders-club recordings
+
+### Backfill script
+- `npx tsx scripts/backfill-event-status.ts` — creates event nodes for all existing recordings
+- Tags existing paper-club/builders-club nodes with `event_status: 'recording'`
+- Creates edge from recording to event node
+- Supports `--dry-run` flag
+
+**Remaining (latent-space-bots repo):**
+- `/paper-club` Discord slash command (creates scheduled event node)
+- `/builders-club` Discord slash command (creates scheduled event node)
