@@ -283,4 +283,27 @@ Down from 8,050. The exact identity/rules text will be iterated during implement
 
 ---
 
-**When complete:** Add `## COMPLETED` header with date and summary.
+---
+
+## COMPLETED
+
+**Date:** 2026-03-08
+
+**What was delivered:**
+
+All changes in `latent-space-bots` repo, branch `feature/prd-33-slop-overhaul`:
+
+- Deleted `personas/slop.soul.md` — replaced with `buildSystemPrompt()` function (~600 chars identity + rules)
+- Removed hardcoded `groundingLine` and `profileStyleLine` — folded into `buildSystemPrompt()`
+- Added `interaction_preference` field to `MemberMetadata` type
+- Updated `formatMemberContext()` to inject interaction preference into `[MEMBER CONTEXT]`
+- Updated `parseMetadata()` to parse `interaction_preference` from database
+- Updated `parseProfileBlock()` to support `interaction_preference` extraction from responses
+- Updated `updateMemberAfterInteraction()` to persist `interaction_preference` changes
+- Unified system prompt assembly — one `buildSystemPrompt()` used by both `generateResponse()` and `generateAgenticResponse()`
+- Updated `skills/member-profiles.md` with `interaction_preference` documentation
+- Trimmed `skills/graph-search.md` — removed tool list that duplicated OpenAI function definitions
+- Deleted dead code: `guides/member-profiles.md`, `docs/slop-system-message-output.txt`
+- Updated `docs/slop-system-message.md` to reflect new structure
+- System message reduced from ~8,050 to ~1,700 chars (75% reduction)
+- Build passes cleanly (`npm run build`)
