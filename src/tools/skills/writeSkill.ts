@@ -12,7 +12,7 @@ export const writeSkillTool = tool({
   execute: async ({ name, content }) => {
     try {
       writeSkill(name, content);
-      eventBroadcaster.broadcast({ type: 'GUIDE_UPDATED', data: { name } });
+      eventBroadcaster.broadcast({ type: 'SKILL_UPDATED', data: { name } });
       return {
         success: true,
         data: { name },

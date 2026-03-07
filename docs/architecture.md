@@ -68,7 +68,6 @@ latent-space-hub/
 │   │   ├── dimensions/            Dimension CRUD + search
 │   │   ├── dashboard/             Stats + category previews
 │   │   ├── skills/                Skill CRUD
-│   │   ├── guides/                Guide CRUD (legacy alias)
 │   │   ├── quick-add/             Multi-format ingestion
 │   │   ├── ingestion/             Embedding pipeline
 │   │   ├── cron/
@@ -96,7 +95,7 @@ latent-space-hub/
 │   │   ├── panes/                 Content panes
 │   │   │   ├── MapPane            ReactFlow graph visualization
 │   │   │   ├── NodePane           Node detail view
-│   │   │   ├── SkillsPane         Skills & guides browser
+│   │   │   ├── SkillsPane         Skills browser
 │   │   │   └── DimensionsPane     Dimension browser
 │   │   ├── focus/                 Focus panel (right side)
 │   │   │   ├── FocusPanel         Tabbed node editor
@@ -135,8 +134,7 @@ latent-space-hub/
 │   │   │   ├── sources            RSS/GitHub source definitions
 │   │   │   ├── processing         Per-item ingest + companion detection
 │   │   │   └── notify             Discord notification (announcements + yap)
-│   │   ├── skills/                Skill service (system, guide, user)
-│   │   ├── guides/                Legacy guide stub (delegates to skills)
+│   │   ├── skills/                Skill service (bundled + user)
 │   │   ├── docs/                  User-facing docs service
 │   │   ├── events.ts              SSE real-time broadcasting
 │   │   └── embeddings.ts          AI embedding wrapper
@@ -149,7 +147,7 @@ latent-space-hub/
 │   ├── config/
 │   │   ├── categories.ts          8-category taxonomy config
 │   │   ├── prompts/               Agent system prompts
-│   │   ├── skills/                Skills (system/ + guides/) — agent & user-facing
+│   │   ├── skills/                Skills — agent & user-facing
 │   │   └── docs/                  User-facing documentation content
 │   │
 │   ├── types/

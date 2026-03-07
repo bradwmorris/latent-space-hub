@@ -11,7 +11,7 @@ export const deleteSkillTool = tool({
   execute: async ({ name }) => {
     try {
       deleteSkill(name);
-      eventBroadcaster.broadcast({ type: 'GUIDE_UPDATED', data: { name } });
+      eventBroadcaster.broadcast({ type: 'SKILL_UPDATED', data: { name } });
       return {
         success: true,
         data: { name },

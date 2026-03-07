@@ -59,9 +59,9 @@ Or create `~/.latent-space-hub/config.json`:
 - `ls_delete_dimension`
 - `ls_search_content`
 - `ls_sqlite_query`
-- `ls_list_guides`
-- `ls_read_guide`
-- `ls_write_guide`
-- `ls_delete_guide`
+- `ls_list_skills`
+- `ls_read_skill`
+- `ls_write_skill`
+- `ls_delete_skill`
 
 `ls_search_nodes` supports optional filters: `node_type`, `event_after` (`YYYY-MM-DD`), `event_before` (`YYYY-MM-DD`), and `sortBy` (`updated` or `event_date`).

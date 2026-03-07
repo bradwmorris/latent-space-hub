@@ -37,7 +37,7 @@ function loadConfig() {
   const fileConfig = readJsonFile(CONFIG_PATH) || {};
   const tursoUrl = process.env.TURSO_DATABASE_URL || fileConfig.tursoUrl || fileConfig.turso_url;
   const tursoToken = process.env.TURSO_AUTH_TOKEN || fileConfig.tursoToken || fileConfig.turso_token;
-  const skillsDir = process.env.LSH_SKILLS_DIR || process.env.LSH_GUIDES_DIR || fileConfig.skillsDir || fileConfig.guidesDir || DEFAULT_SKILLS_DIR;
+  const skillsDir = process.env.LSH_SKILLS_DIR || fileConfig.skillsDir || DEFAULT_SKILLS_DIR;
   const openAiApiKey = process.env.OPENAI_API_KEY || fileConfig.openAiApiKey || fileConfig.openai_api_key || null;
   return { tursoUrl, tursoToken, skillsDir, openAiApiKey };
 }
@@ -73,7 +73,7 @@ function parseFrontmatter(markdown) {
   return { frontmatter, body };
 }
 
-function slugifyGuideName(name) {
+function slugifyName(name) {
   return String(name)
     .toLowerCase()
     .replace(/[^a-z0-9-\s]/g, '')
@@ -95,7 +95,7 @@ function readSkillFile(filePath, immutable) {
   const markdown = fs.readFileSync(filePath, 'utf8');
   const { frontmatter, body } = parseFrontmatter(markdown);
   const fallbackName = path.basename(filePath, '.md');
-  const name = slugifyGuideName(frontmatter.name || fallbackName);
+  const name = slugifyName(frontmatter.name || fallbackName);
   return {
     name,
     title: frontmatter.name || fallbackName,
@@ -119,12 +119,12 @@ function listSkills(skillsDir) {
 
 function writeSkill(skillsDir, name, content) {
   ensureDir(skillsDir);
-  const slug = slugifyGuideName(name);
+  const slug = slugifyName(name);
   if (!slug) {
     throw new Error('Skill name must contain letters or numbers.');
   }
 
-  const systemNames = listMarkdownFiles(SYSTEM_SKILLS_DIR).map((f) => slugifyGuideName(path.basename(f, '.md')));
+  const systemNames = listMarkdownFiles(SYSTEM_SKILLS_DIR).map((f) => slugifyName(path.basename(f, '.md')));
   if (systemNames.includes(slug)) {
     throw new Error('System skill names cannot be overwritten. Choose a different name.');
   }
@@ -141,7 +141,7 @@ function writeSkill(skillsDir, name, content) {
 
 function deleteSkill(skillsDir, name) {
   ensureDir(skillsDir);
-  const slug = slugifyGuideName(name);
+  const slug = slugifyName(name);
   const filePath = path.join(skillsDir, `${slug}.md`);
   if (!fs.existsSync(filePath)) {
     throw new Error(`Custom skill '${slug}' does not exist.`);
@@ -877,7 +877,7 @@ async function main() {
   };
 
   const readSkillHandler = async ({ name }) => {
-    const slug = slugifyGuideName(name);
+    const slug = slugifyName(name);
     const skills = listSkills(skillsDir);
     const skill = skills.find((g) => g.name === slug);
     if (!skill) {
@@ -898,7 +898,7 @@ async function main() {
   const writeSkillHandler = async ({ name, content }) => {
     const filePath = writeSkill(skillsDir, name, content);
     return {
-      content: [{ type: 'text', text: `Wrote skill '${slugifyGuideName(name)}'.` }],
+      content: [{ type: 'text', text: `Wrote skill '${slugifyName(name)}'.` }],
       structuredContent: { success: true, filePath }
     };
   };
@@ -906,7 +906,7 @@ async function main() {
   const deleteSkillHandler = async ({ name }) => {
     deleteSkill(skillsDir, name);
     return {
-      content: [{ type: 'text', text: `Deleted custom skill '${slugifyGuideName(name)}'.` }],
+      content: [{ type: 'text', text: `Deleted custom skill '${slugifyName(name)}'.` }],
       structuredContent: { success: true }
     };
   };
@@ -933,31 +933,6 @@ async function main() {
   server.registerTool(
     'ls_delete_skill',
     { title: 'Delete skill', description: 'Delete a custom skill.', inputSchema: { name: z.string().min(1) } },
-    deleteSkillHandler
-  );
-
-  // Backward-compatible aliases (old guide tool names)
-  server.registerTool(
-    'ls_list_guides',
-    { title: 'List guides (alias)', description: 'Alias for ls_list_skills. List system and custom skills.', inputSchema: {} },
-    listSkillsHandler
-  );
-
-  server.registerTool(
-    'ls_read_guide',
-    { title: 'Read guide (alias)', description: 'Alias for ls_read_skill. Read a skill by name.', inputSchema: { name: z.string().min(1) } },
-    readSkillHandler
-  );
-
-  server.registerTool(
-    'ls_write_guide',
-    { title: 'Write guide (alias)', description: 'Alias for ls_write_skill. Create or overwrite a custom skill.', inputSchema: { name: z.string().min(1), content: z.string().min(1) } },
-    writeSkillHandler
-  );
-
-  server.registerTool(
-    'ls_delete_guide',
-    { title: 'Delete guide (alias)', description: 'Alias for ls_delete_skill. Delete a custom skill.', inputSchema: { name: z.string().min(1) } },
     deleteSkillHandler
   );
 

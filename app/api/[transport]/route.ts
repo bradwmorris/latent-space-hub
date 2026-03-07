@@ -12,7 +12,6 @@ import { z } from 'zod';
 
 import { nodeService, edgeService, searchService } from '@/services/database';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
-import { listGuides, readGuide } from '@/services/guides/guideService';
 import { listSkills, readSkill } from '@/services/skills/skillService';
 
 const ALLOW_WRITES = process.env.MCP_ALLOW_WRITES === 'true';
@@ -299,7 +298,7 @@ const handler = createMcpHandler(
       'ls_list_skills',
       {
         title: 'List Latent Space skills',
-        description: 'List available skills and guides for exploring the Latent Space hub.',
+        description: 'List available skills for the Latent Space knowledge graph.',
         inputSchema: {},
       },
       async () => {
@@ -337,53 +336,6 @@ const handler = createMcpHandler(
         const header = `# ${skill.name}\n\n${skill.description ? `${skill.description}\n\n` : ''}`;
         return {
           content: [{ type: 'text' as const, text: `${header}${skill.content}` }],
-        };
-      }
-    );
-
-    // ls_list_guides (backward-compatible alias)
-    server.registerTool(
-      'ls_list_guides',
-      {
-        title: 'List Latent Space guides (alias)',
-        description: 'Alias for ls_list_skills. List available skills and guides.',
-        inputSchema: {},
-      },
-      async () => {
-        const guides = listGuides();
-        if (guides.length === 0) {
-          return { content: [{ type: 'text' as const, text: 'No guides available.' }] };
-        }
-
-        const lines = guides.map(guide =>
-          `- ${guide.name}${guide.description ? ` — ${guide.description}` : ''}`
-        ).join('\n');
-
-        return {
-          content: [{ type: 'text' as const, text: `Available guides (${guides.length}):\n\n${lines}` }],
-        };
-      }
-    );
-
-    // ls_read_guide (backward-compatible alias)
-    server.registerTool(
-      'ls_read_guide',
-      {
-        title: 'Read a Latent Space guide (alias)',
-        description: 'Alias for ls_read_skill. Load the full text of a skill by name.',
-        inputSchema: {
-          name: z.string().min(1).max(120).describe('Guide/skill name (case-insensitive)'),
-        },
-      },
-      async ({ name }) => {
-        const guide = readGuide(name.trim());
-        if (!guide) {
-          return { content: [{ type: 'text' as const, text: `Guide not found: ${name}` }] };
-        }
-
-        const header = `# ${guide.name}\n\n${guide.description ? `${guide.description}\n\n` : ''}`;
-        return {
-          content: [{ type: 'text' as const, text: `${header}${guide.content}` }],
         };
       }
     );

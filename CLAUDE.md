@@ -50,7 +50,7 @@ src/
   config/
     categories.ts       — 8-category taxonomy config
     prompts/            — Agent system prompts
-    skills/             — Skills (system/ + guides/) — agent & user-facing
+    skills/             — Skills — agent & user-facing
   types/
     database.ts         — Core TypeScript definitions
 apps/

@@ -32,8 +32,8 @@ export default function SkillsPane({
     fetchSkills();
 
     const handleUpdated = () => { fetchSkills(); };
-    window.addEventListener('guides:updated', handleUpdated);
-    return () => window.removeEventListener('guides:updated', handleUpdated);
+    window.addEventListener('skills:updated', handleUpdated);
+    return () => window.removeEventListener('skills:updated', handleUpdated);
   }, []);
 
   const fetchSkills = async () => {
@@ -107,7 +107,7 @@ export default function SkillsPane({
             Loading...
           </div>
         ) : selectedSkill ? (
-          <div className="guide-content" style={{ color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.6' }}>
+          <div className="skill-content" style={{ color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.6' }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{

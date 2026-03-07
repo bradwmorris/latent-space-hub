@@ -12,7 +12,7 @@
     "index.js",
     "services/index.js",
     "README.md",
-    "guides/system"
+    "skills"
   ],
   "engines": {
     "node": ">=18"

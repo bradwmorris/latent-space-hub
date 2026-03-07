@@ -15,7 +15,7 @@ export interface DatabaseEvent {
     | 'AGENT_UPDATED'
     | 'AGENT_DELEGATION_CREATED'
     | 'AGENT_DELEGATION_UPDATED'
-    | 'GUIDE_UPDATED'
+    | 'SKILL_UPDATED'
     | 'CONNECTION_ESTABLISHED';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;

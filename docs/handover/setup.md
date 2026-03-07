@@ -162,7 +162,7 @@ When someone @mentions Slop or new content triggers a discussion:
 
 1. Slop receives the message from Discord
 2. Retrieves graph context via MCP tools
-3. Merges retrieval + guide context + member context into prompt assembly
+3. Merges retrieval + skill context + member context into prompt assembly
 4. Sends grounded context + persona prompt to a model via OpenRouter
 5. Posts a response grounded in actual Latent Space content — with specific references
 6. Fire-and-forget member graph updates run after response delivery
