@@ -8,7 +8,8 @@ import {
   PanelLeftOpen,
   Search,
   Plus,
-  Settings,
+  FileText,
+  FlaskConical,
   BookOpen,
 } from 'lucide-react';
 import { Node } from '@/types/database';
@@ -29,7 +30,8 @@ interface LeftTypePanelProps {
   onNodeSelect: (nodeId: number) => void;
   onSearchClick: () => void;
   onAddClick: () => void;
-  onSettingsClick: () => void;
+  onEvalsClick: () => void;
+  onSkillsClick: () => void;
 }
 
 export default function LeftTypePanel({
@@ -40,7 +42,8 @@ export default function LeftTypePanel({
   onNodeSelect,
   onSearchClick,
   onAddClick,
-  onSettingsClick,
+  onEvalsClick,
+  onSkillsClick,
 }: LeftTypePanelProps) {
   const [typeCounts, setTypeCounts] = useState<TypeCount[]>([]);
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
@@ -192,6 +195,42 @@ export default function LeftTypePanel({
           </>
         )}
         <div style={{ flex: 1 }} />
+        <button
+          onClick={onEvalsClick}
+          title="Evals"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <FlaskConical size={16} />
+        </button>
+        <button
+          onClick={onSkillsClick}
+          title="Skills"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <FileText size={16} />
+        </button>
         <a
           href="/docs"
           title="Docs"
@@ -211,27 +250,6 @@ export default function LeftTypePanel({
         >
           <BookOpen size={16} />
         </a>
-        {!isReadOnly && (
-          <button
-            onClick={onSettingsClick}
-            title="Settings"
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '6px',
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--accent-dark)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '12px',
-            }}
-          >
-            <Settings size={16} />
-          </button>
-        )}
       </div>
     );
   }
@@ -463,6 +481,46 @@ export default function LeftTypePanel({
           gap: '2px',
         }}
       >
+        <button
+          onClick={onEvalsClick}
+          style={{
+            width: '100%',
+            height: '30px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '0 8px',
+            fontSize: '12px',
+          }}
+        >
+          <FlaskConical size={14} />
+          <span>Evals</span>
+        </button>
+        <button
+          onClick={onSkillsClick}
+          style={{
+            width: '100%',
+            height: '30px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '0 8px',
+            fontSize: '12px',
+          }}
+        >
+          <FileText size={14} />
+          <span>Skills</span>
+        </button>
         <a
           href="/docs"
           style={{
@@ -484,28 +542,6 @@ export default function LeftTypePanel({
           <BookOpen size={14} />
           <span>Docs</span>
         </a>
-        {!isReadOnly && (
-          <button
-            onClick={onSettingsClick}
-            style={{
-              width: '100%',
-              height: '30px',
-              borderRadius: '6px',
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--accent-dark)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '0 8px',
-              fontSize: '12px',
-            }}
-          >
-            <Settings size={14} />
-            <span>Settings</span>
-          </button>
-        )}
       </div>
     </div>
   );

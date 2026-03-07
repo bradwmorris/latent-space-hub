@@ -108,14 +108,14 @@ export default function EvalsClient() {
   const expanded = useMemo(() => traces.find((t) => t.id === expandedId) || null, [traces, expandedId]);
 
   return (
-    <div style={{ height: '100vh', overflowY: 'auto', background: '#0a0a0a', color: '#e0e0e0', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+    <div style={{ flex: 1, height: '100%', overflowY: 'auto', background: 'var(--bg-base)', color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
       <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#a78bfa', marginBottom: 4 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--accent-brand-light)', marginBottom: 4 }}>
             Evals — Slop Discord Traces
           </h1>
-          <div style={{ fontSize: 13, color: '#666' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {total} trace{total !== 1 ? 's' : ''} logged
           </div>
         </div>
@@ -129,9 +129,9 @@ export default function EvalsClient() {
               style={{
                 padding: '5px 12px',
                 borderRadius: 6,
-                border: filter === f.value ? '1px solid #a78bfa' : '1px solid #333',
-                background: filter === f.value ? '#1e1b2e' : '#111',
-                color: filter === f.value ? '#a78bfa' : '#999',
+                border: filter === f.value ? '1px solid var(--accent-brand-light)' : '1px solid var(--border-default)',
+                background: filter === f.value ? 'var(--accent-brand-subtle)' : 'var(--bg-surface)',
+                color: filter === f.value ? 'var(--accent-brand-light)' : 'var(--text-muted)',
                 cursor: 'pointer',
                 fontSize: 12,
                 fontFamily: 'inherit',
@@ -147,15 +147,15 @@ export default function EvalsClient() {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search messages..."
               style={{
-                padding: '5px 10px', borderRadius: 6, border: '1px solid #333',
-                background: '#111', color: '#ccc', fontSize: 12, fontFamily: 'inherit', minWidth: 200,
+                padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border-default)',
+                background: 'var(--bg-surface)', color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'inherit', minWidth: 200,
               }}
             />
             <button
               onClick={handleSearch}
               style={{
-                padding: '5px 10px', borderRadius: 6, border: '1px solid #333',
-                background: '#111', color: '#999', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border-default)',
+                background: 'var(--bg-surface)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
               }}
             >
               Go
@@ -164,15 +164,15 @@ export default function EvalsClient() {
         </div>
 
         {/* Table */}
-        <div style={{ border: '1px solid #222', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+        <div style={{ border: '1px solid var(--border-default)', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
           {loading ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#555' }}>Loading...</div>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
           ) : traces.length === 0 ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#555' }}>No traces found. Slop hasn&apos;t logged any Discord interactions yet.</div>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>No traces found. Slop hasn&apos;t logged any Discord interactions yet.</div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #222', background: '#111' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
                   <th style={th}>Time</th>
                   <th style={th}>User</th>
                   <th style={th}>Type</th>
@@ -193,33 +193,33 @@ export default function EvalsClient() {
                       onClick={() => setExpandedId(isExpanded ? null : trace.id)}
                       style={{
                         cursor: 'pointer',
-                        borderBottom: '1px solid #1a1a1a',
-                        background: isExpanded ? '#1a1528' : 'transparent',
+                        borderBottom: '1px solid var(--border-subtle)',
+                        background: isExpanded ? 'var(--accent-brand-subtle)' : 'transparent',
                       }}
                     >
                       <td style={td}>{formatTime(trace.created_at)}</td>
                       <td style={td}>
-                        <span style={{ color: '#a78bfa' }}>@{m?.discord_username || '?'}</span>
+                        <span style={{ color: 'var(--accent-brand-light)' }}>@{m?.discord_username || '?'}</span>
                       </td>
                       <td style={td}>
                         {m?.is_kickoff ? (
-                          <span style={badge('#2d1f0a', '#f59e0b')}>kickoff</span>
+                          <span style={badgeStyle('kickoff')}>kickoff</span>
                         ) : m?.is_slash_command ? (
-                          <span style={badge('#0a2d1f', '#34d399')}>/{m.slash_command}</span>
+                          <span style={badgeStyle('slash')}>/{m.slash_command}</span>
                         ) : (
-                          <span style={badge('#1a1a1a', '#666')}>message</span>
+                          <span style={badgeStyle('default')}>message</span>
                         )}
                       </td>
                       <td style={{ ...td, maxWidth: 400 }}>{truncate(trace.user_message)}</td>
                       <td style={td}>
                         {toolCount > 0 ? (
-                          <span style={badge('#1e1b2e', '#a78bfa')}>{toolCount}</span>
+                          <span style={badgeStyle('brand')}>{toolCount}</span>
                         ) : (
-                          <span style={{ color: '#444' }}>0</span>
+                          <span style={{ color: 'var(--text-muted)' }}>0</span>
                         )}
                       </td>
                       <td style={td}>
-                        <span style={{ color: '#666' }}>{m?.retrieval_method || '—'}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{m?.retrieval_method || '—'}</span>
                       </td>
                       <td style={td}>
                         {m?.latency_ms != null ? `${(m.latency_ms / 1000).toFixed(1)}s` : '—'}
@@ -242,7 +242,7 @@ export default function EvalsClient() {
             >
               prev
             </button>
-            <span style={{ fontSize: 12, color: '#666' }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               page {page} of {totalPages}
             </span>
             <button
@@ -267,18 +267,18 @@ function TraceDetail({ trace }: { trace: Trace }) {
   const toolCalls = m?.tool_calls || [];
 
   return (
-    <div style={{ border: '1px solid #222', borderRadius: 8, background: '#111', padding: 20 }}>
+    <div style={{ border: '1px solid var(--border-default)', borderRadius: 8, background: 'var(--bg-surface)', padding: 20 }}>
       {/* Trace header */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16, fontSize: 12 }}>
-        <div><span style={{ color: '#666' }}>Trace</span> <span style={{ color: '#a78bfa' }}>#{trace.id}</span></div>
-        <div><span style={{ color: '#666' }}>Time</span> {formatTime(trace.created_at)}</div>
-        <div><span style={{ color: '#666' }}>User</span> <span style={{ color: '#a78bfa' }}>@{m?.discord_username || '?'}</span> <span style={{ color: '#555' }}>({m?.discord_user_id})</span></div>
-        <div><span style={{ color: '#666' }}>Latency</span> {m?.latency_ms != null ? `${(m.latency_ms / 1000).toFixed(2)}s` : '—'}</div>
-        <div><span style={{ color: '#666' }}>Model</span> {m?.model || '—'}</div>
-        <div><span style={{ color: '#666' }}>Retrieval</span> {m?.retrieval_method || '—'}</div>
-        {m?.member_id && <div><span style={{ color: '#666' }}>Member</span> node #{m.member_id}</div>}
+        <div><span style={{ color: 'var(--text-muted)' }}>Trace</span> <span style={{ color: 'var(--accent-brand-light)' }}>#{trace.id}</span></div>
+        <div><span style={{ color: 'var(--text-muted)' }}>Time</span> {formatTime(trace.created_at)}</div>
+        <div><span style={{ color: 'var(--text-muted)' }}>User</span> <span style={{ color: 'var(--accent-brand-light)' }}>@{m?.discord_username || '?'}</span> <span style={{ color: 'var(--text-muted)' }}>({m?.discord_user_id})</span></div>
+        <div><span style={{ color: 'var(--text-muted)' }}>Latency</span> {m?.latency_ms != null ? `${(m.latency_ms / 1000).toFixed(2)}s` : '—'}</div>
+        <div><span style={{ color: 'var(--text-muted)' }}>Model</span> {m?.model || '—'}</div>
+        <div><span style={{ color: 'var(--text-muted)' }}>Retrieval</span> {m?.retrieval_method || '—'}</div>
+        {m?.member_id && <div><span style={{ color: 'var(--text-muted)' }}>Member</span> node #{m.member_id}</div>}
         {m?.context_node_ids && m.context_node_ids.length > 0 && (
-          <div><span style={{ color: '#666' }}>Context nodes</span> {m.context_node_ids.join(', ')}</div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Context nodes</span> {m.context_node_ids.join(', ')}</div>
         )}
       </div>
 
@@ -291,23 +291,23 @@ function TraceDetail({ trace }: { trace: Trace }) {
       {toolCalls.length > 0 && (
         <Section title={`Tool Calls (${toolCalls.length})`}>
           {toolCalls.map((tc, idx) => (
-            <div key={idx} style={{ marginBottom: idx < toolCalls.length - 1 ? 12 : 0, paddingBottom: idx < toolCalls.length - 1 ? 12 : 0, borderBottom: idx < toolCalls.length - 1 ? '1px solid #1a1a1a' : 'none' }}>
+            <div key={idx} style={{ marginBottom: idx < toolCalls.length - 1 ? 12 : 0, paddingBottom: idx < toolCalls.length - 1 ? 12 : 0, borderBottom: idx < toolCalls.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, fontSize: 12 }}>
-                <span style={{ color: '#a78bfa', fontWeight: 600 }}>{idx + 1}. {tc.tool}</span>
-                <span style={{ color: '#555' }}>{tc.duration_ms}ms</span>
-                {tc.error && <span style={badge('#2d0a0a', '#f87171')}>error</span>}
+                <span style={{ color: 'var(--accent-brand-light)', fontWeight: 600 }}>{idx + 1}. {tc.tool}</span>
+                <span style={{ color: 'var(--text-muted)' }}>{tc.duration_ms}ms</span>
+                {tc.error && <span style={badgeStyle('error')}>error</span>}
               </div>
               <div style={{ fontSize: 11 }}>
-                <div style={{ color: '#666', marginBottom: 2 }}>Args:</div>
+                <div style={{ color: 'var(--text-muted)', marginBottom: 2 }}>Args:</div>
                 <pre style={{ ...preStyle, fontSize: 11, marginBottom: 6 }}>{JSON.stringify(tc.args, null, 2)}</pre>
                 {tc.error ? (
                   <>
-                    <div style={{ color: '#f87171', marginBottom: 2 }}>Error:</div>
-                    <pre style={{ ...preStyle, fontSize: 11, color: '#f87171' }}>{tc.error}</pre>
+                    <div style={{ color: '#ef4444', marginBottom: 2 }}>Error:</div>
+                    <pre style={{ ...preStyle, fontSize: 11, color: '#ef4444' }}>{tc.error}</pre>
                   </>
                 ) : (
                   <>
-                    <div style={{ color: '#666', marginBottom: 2 }}>Result:</div>
+                    <div style={{ color: 'var(--text-muted)', marginBottom: 2 }}>Result:</div>
                     <pre style={{ ...preStyle, fontSize: 11 }}>{typeof tc.result === 'string' ? tc.result : JSON.stringify(tc.result, null, 2)}</pre>
                   </>
                 )}
@@ -328,7 +328,7 @@ function TraceDetail({ trace }: { trace: Trace }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, borderBottom: '1px solid #1a1a1a', paddingBottom: 4 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, borderBottom: '1px solid var(--border-subtle)', paddingBottom: 4 }}>
         {title}
       </div>
       {children}
@@ -337,18 +337,30 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 // Styles
-const th: React.CSSProperties = { padding: '8px 10px', textAlign: 'left', color: '#555', fontWeight: 500, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' };
+const th: React.CSSProperties = { padding: '8px 10px', textAlign: 'left', color: 'var(--text-muted)', fontWeight: 500, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' };
 const td: React.CSSProperties = { padding: '8px 10px', verticalAlign: 'top' };
-const preStyle: React.CSSProperties = { whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, padding: 10, background: '#0a0a0a', borderRadius: 4, fontSize: 12, lineHeight: 1.5, color: '#ccc', maxHeight: 300, overflowY: 'auto' };
+const preStyle: React.CSSProperties = { whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, padding: 10, background: 'var(--bg-elevated)', borderRadius: 4, fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)', maxHeight: 300, overflowY: 'auto' };
 
-function badge(bg: string, color: string): React.CSSProperties {
-  return { display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontSize: 11, background: bg, color, fontFamily: 'inherit' };
+function badgeStyle(variant: 'kickoff' | 'slash' | 'default' | 'brand' | 'error'): React.CSSProperties {
+  const base: React.CSSProperties = { display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontFamily: 'inherit' };
+  switch (variant) {
+    case 'kickoff':
+      return { ...base, background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' };
+    case 'slash':
+      return { ...base, background: 'rgba(52, 211, 153, 0.12)', color: '#34d399' };
+    case 'brand':
+      return { ...base, background: 'var(--accent-brand-subtle)', color: 'var(--accent-brand-light)' };
+    case 'error':
+      return { ...base, background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' };
+    default:
+      return { ...base, background: 'var(--bg-elevated)', color: 'var(--text-muted)' };
+  }
 }
 
 function paginationBtn(disabled: boolean): React.CSSProperties {
   return {
-    padding: '5px 14px', borderRadius: 6, border: '1px solid #333',
-    background: disabled ? '#0a0a0a' : '#111', color: disabled ? '#333' : '#999',
+    padding: '5px 14px', borderRadius: 6, border: '1px solid var(--border-default)',
+    background: disabled ? 'var(--bg-base)' : 'var(--bg-surface)', color: disabled ? 'var(--text-muted)' : 'var(--text-secondary)',
     cursor: disabled ? 'default' : 'pointer', fontSize: 12, fontFamily: 'inherit',
   };
 }

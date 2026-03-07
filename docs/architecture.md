@@ -67,7 +67,7 @@ latent-space-hub/
 │   │   ├── edges/                 Edge CRUD
 │   │   ├── dimensions/            Dimension CRUD + search
 │   │   ├── dashboard/             Stats + category previews
-│   │   ├── guides/                Guide CRUD
+│   │   ├── skills/                Skill CRUD
 │   │   ├── quick-add/             Multi-format ingestion
 │   │   ├── ingestion/             Embedding pipeline
 │   │   ├── cron/
@@ -95,7 +95,7 @@ latent-space-hub/
 │   │   ├── panes/                 Content panes
 │   │   │   ├── MapPane            ReactFlow graph visualization
 │   │   │   ├── NodePane           Node detail view
-│   │   │   ├── GuidesPane         Built-in guides
+│   │   │   ├── SkillsPane         Skills browser
 │   │   │   └── DimensionsPane     Dimension browser
 │   │   ├── focus/                 Focus panel (right side)
 │   │   │   ├── FocusPanel         Tabbed node editor
@@ -107,7 +107,6 @@ latent-space-hub/
 │   │   │   └── KanbanView         Kanban board
 │   │   ├── agents/                QuickAdd input UI
 │   │   ├── nodes/                 Search modal
-│   │   ├── settings/              Settings modal (logs, tools, keys, DB)
 │   │   ├── common/                Shared components (chips, dialogs)
 │   │   └── helpers/               Markdown renderer, node tokens
 │   │
@@ -135,7 +134,7 @@ latent-space-hub/
 │   │   │   ├── sources            RSS/GitHub source definitions
 │   │   │   ├── processing         Per-item ingest + companion detection
 │   │   │   └── notify             Discord notification (announcements + yap)
-│   │   ├── guides/                Guide CRUD service
+│   │   ├── skills/                Skill service (bundled + user)
 │   │   ├── docs/                  User-facing docs service
 │   │   ├── events.ts              SSE real-time broadcasting
 │   │   └── embeddings.ts          AI embedding wrapper
@@ -148,7 +147,7 @@ latent-space-hub/
 │   ├── config/
 │   │   ├── categories.ts          8-category taxonomy config
 │   │   ├── prompts/               Agent system prompts
-│   │   ├── guides/                Built-in markdown guides (agent-facing)
+│   │   ├── skills/                Skills — agent & user-facing
 │   │   └── docs/                  User-facing documentation content
 │   │
 │   ├── types/

@@ -7,16 +7,16 @@ import remarkGfm from 'remark-gfm';
 import PaneHeader from './PaneHeader';
 import type { BasePaneProps } from './types';
 
-interface GuideMeta {
+interface SkillMeta {
   name: string;
   description: string;
 }
 
-interface Guide extends GuideMeta {
+interface Skill extends SkillMeta {
   content: string;
 }
 
-export default function GuidesPane({
+export default function SkillsPane({
   slot,
   isActive,
   onPaneAction,
@@ -24,46 +24,46 @@ export default function GuidesPane({
   onSwapPanes,
   tabBar,
 }: BasePaneProps) {
-  const [guides, setGuides] = useState<GuideMeta[]>([]);
-  const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
+  const [skills, setSkills] = useState<SkillMeta[]>([]);
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchGuides();
+    fetchSkills();
 
-    const handleGuideUpdated = () => { fetchGuides(); };
-    window.addEventListener('guides:updated', handleGuideUpdated);
-    return () => window.removeEventListener('guides:updated', handleGuideUpdated);
+    const handleUpdated = () => { fetchSkills(); };
+    window.addEventListener('skills:updated', handleUpdated);
+    return () => window.removeEventListener('skills:updated', handleUpdated);
   }, []);
 
-  const fetchGuides = async () => {
+  const fetchSkills = async () => {
     try {
-      const res = await fetch('/api/guides');
+      const res = await fetch('/api/skills');
       const data = await res.json();
       if (data.success) {
-        setGuides(data.data);
+        setSkills(data.data);
       }
     } catch (err) {
-      console.error('[GuidesPane] Failed to fetch guides:', err);
+      console.error('[SkillsPane] Failed to fetch skills:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelectGuide = async (name: string) => {
+  const handleSelectSkill = async (name: string) => {
     try {
-      const res = await fetch(`/api/guides/${encodeURIComponent(name)}`);
+      const res = await fetch(`/api/skills/${encodeURIComponent(name)}`);
       const data = await res.json();
       if (data.success) {
-        setSelectedGuide(data.data);
+        setSelectedSkill(data.data);
       }
     } catch (err) {
-      console.error('[GuidesPane] Failed to fetch guide:', err);
+      console.error('[SkillsPane] Failed to fetch skill:', err);
     }
   };
 
   const handleBack = () => {
-    setSelectedGuide(null);
+    setSelectedSkill(null);
   };
 
   return (
@@ -75,7 +75,7 @@ export default function GuidesPane({
       overflow: 'hidden',
     }}>
       <PaneHeader slot={slot} onCollapse={onCollapse} onSwapPanes={onSwapPanes} tabBar={tabBar}>
-        {selectedGuide && (
+        {selectedSkill && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               onClick={handleBack}
@@ -95,7 +95,7 @@ export default function GuidesPane({
               <ArrowLeft size={16} />
             </button>
             <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
-              {selectedGuide.name}
+              {selectedSkill.name}
             </span>
           </div>
         )}
@@ -106,13 +106,13 @@ export default function GuidesPane({
           <div style={{ color: 'var(--accent-dark)', fontSize: '13px', textAlign: 'center', paddingTop: '24px' }}>
             Loading...
           </div>
-        ) : selectedGuide ? (
-          <div className="guide-content" style={{ color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.6' }}>
+        ) : selectedSkill ? (
+          <div className="skill-content" style={{ color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.6' }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => (
-                  <h1 style={{ fontSize: '18px', fontWeight: 600, color: '#eee', margin: '0 0 16px 0' }}>{children}</h1>
+                  <h1 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px 0' }}>{children}</h1>
                 ),
                 h2: ({ children }) => (
                   <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: '20px 0 8px 0' }}>{children}</h2>
@@ -163,7 +163,7 @@ export default function GuidesPane({
                   <pre style={{ margin: '0 0 12px 0' }}>{children}</pre>
                 ),
                 strong: ({ children }) => (
-                  <strong style={{ color: '#eee', fontWeight: 600 }}>{children}</strong>
+                  <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>
                 ),
                 hr: () => (
                   <hr style={{ border: 'none', borderTop: '1px solid var(--border-default)', margin: '16px 0' }} />
@@ -178,53 +178,58 @@ export default function GuidesPane({
                 ),
               }}
             >
-              {selectedGuide.content}
+              {selectedSkill.content}
             </ReactMarkdown>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {guides.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {skills.map(skill => (
+              <SkillButton key={skill.name} skill={skill} onClick={() => handleSelectSkill(skill.name)} />
+            ))}
+
+            {skills.length === 0 && (
               <div style={{ color: 'var(--accent-dark)', fontSize: '13px', textAlign: 'center', paddingTop: '24px' }}>
-                No guides found
+                No skills found
               </div>
-            ) : (
-              guides.map((guide) => (
-                <button
-                  key={guide.name}
-                  onClick={() => handleSelectGuide(guide.name)}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    padding: '12px',
-                    background: 'var(--bg-hover)',
-                    border: '1px solid var(--bg-elevated)',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'var(--bg-elevated)';
-                    e.currentTarget.style.borderColor = 'var(--border-default)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'var(--bg-hover)';
-                    e.currentTarget.style.borderColor = 'var(--bg-elevated)';
-                  }}
-                >
-                  <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
-                    {guide.name}
-                  </span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: '1.4' }}>
-                    {guide.description}
-                  </span>
-                </button>
-              ))
             )}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function SkillButton({ skill, onClick }: { skill: SkillMeta; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+        padding: '12px',
+        background: 'var(--bg-hover)',
+        border: '1px solid var(--bg-elevated)',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        textAlign: 'left',
+        transition: 'all 0.15s ease',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = 'var(--bg-elevated)';
+        e.currentTarget.style.borderColor = 'var(--border-default)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'var(--bg-hover)';
+        e.currentTarget.style.borderColor = 'var(--bg-elevated)';
+      }}
+    >
+      <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
+        {skill.name}
+      </span>
+      <span style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: '1.4' }}>
+        {skill.description}
+      </span>
+    </button>
   );
 }

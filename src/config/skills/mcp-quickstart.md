@@ -55,11 +55,12 @@ Ask your agent:
 **Read:** `ls_get_nodes`, `ls_get_context`, `ls_query_edges`
 **Write:** `ls_add_node`, `ls_update_node`, `ls_create_edge`
 **Explore:** `ls_list_dimensions`, `ls_sqlite_query`
-**Guides:** `ls_list_guides`, `ls_read_guide`
+**Skills:** `ls_list_skills`, `ls_read_skill`
 
 ## Tips
 
-- Start with `ls_get_context` to get an overview of the graph
+- Start with `ls_read_skill("start-here")` to understand the graph
+- Use `ls_get_context` to get live stats and top nodes
 - Use `ls_search_content` for deep searches through transcripts and articles
 - Use `ls_sqlite_query` for advanced filtering and aggregation
-- Read guides with `ls_read_guide("welcome")` for orientation
+- Read `ls_read_skill("db-operations")` for detailed graph operation policy

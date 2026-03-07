@@ -18,7 +18,7 @@ Next.js 15 app deployed on Vercel. The primary interface for browsing and managi
 
 - Fixed left panel with all 8 categories, each with icon and count badge.
 - **Quick Add** input at top — paste any URL or text to ingest content (see [Ingestion](./ingestion.md)).
-- Search, guides, dimensions, and settings access.
+- Search, skills, evals, and docs access.
 
 ### Key Features
 
@@ -99,14 +99,14 @@ Turso cloud SQLite
 | `ls_update_dimension` | Rename or update a dimension |
 | `ls_delete_dimension` | Delete a dimension and remove from all nodes |
 
-#### Guides
+#### Skills
 
 | Tool | Description |
 |------|-------------|
-| `ls_list_guides` | List all guides (system + custom) |
-| `ls_read_guide` | Read a guide by name |
-| `ls_write_guide` | Create or update a custom guide |
-| `ls_delete_guide` | Delete a custom guide |
+| `ls_list_skills` | List all skills |
+| `ls_read_skill` | Read a skill by name |
+| `ls_write_skill` | Create or update a custom skill |
+| `ls_delete_skill` | Delete a custom skill |
 
 ### Search Pipeline
 
@@ -154,7 +154,7 @@ User message in Discord
     ↓
 Discord.js receives message
     ↓
-Bot builds system prompt (soul + guides + member context)
+Bot builds system prompt (soul + skills + member context)
     ↓
 Sends to OpenRouter WITH tool definitions
     ↓
@@ -180,8 +180,8 @@ Response posted to Discord thread with source links
 | `ls_get_context` | Overview of the knowledge graph |
 | `ls_query_edges` | Finding connections between nodes |
 | `ls_list_dimensions` | Listing categories and tags |
-| `ls_list_guides` | Listing reference guides |
-| `ls_read_guide` | Reading guide content |
+| `ls_list_skills` | Listing available skills |
+| `ls_read_skill` | Reading skill content |
 
 The agentic loop runs up to 5 rounds. If the LLM hasn't produced a text response by round 5, it's forced to generate one. Tool results are truncated to 4000 chars to prevent context blowout.
 

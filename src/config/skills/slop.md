@@ -1,5 +1,5 @@
 ---
-name: Meet Slop
+name: Slop
 description: Slop — the AI bot powering discussions in the Latent Space Discord.
 ---
 

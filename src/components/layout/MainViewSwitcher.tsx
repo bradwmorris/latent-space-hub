@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { LayoutDashboard, FolderOpen, List, Map, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
-export type MainView = 'dashboard' | 'type' | 'feed' | 'map';
+export type MainView = 'dashboard' | 'type' | 'feed' | 'map' | 'skills' | 'evals';
 
 interface MainViewSwitcherProps {
   activeView: MainView;

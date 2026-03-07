@@ -11,14 +11,16 @@ A knowledge graph for the entire Latent Space universe — every podcast episode
 
 The hub organizes content into **8 categories**:
 
-- **Podcast** — Latent Space podcast episodes: deep dives with industry leaders
-- **Guest** — People who appear on or create Latent Space content
-- **Article** — Blog posts from the latent.space Substack
-- **Entity** — Organizations (OpenAI, Anthropic) and technical topics (RAG, agents)
-- **Builders Club** — Meetup recordings and community builds
-- **Paper Club** — Deep-dive paper discussions
-- **Workshop** — Conference talks, tutorials, AI Engineer events
-- **AI News** — Daily AINews digests from smol.ai
+- **Podcast** — Latent Space podcast episodes: deep dives with industry leaders. Each node has the full transcript, guest connections, and topic edges.
+- **Article** — Blog posts from the latent.space Substack. Written analysis, tutorials, and essays by Swyx and guest authors.
+- **AI News** — Daily AINews digests from smol.ai. Each digest covers the most important AI developments of the day.
+- **Builders Club** — Meetup recordings from the Latent Space Builders Club. Community members presenting their projects and builds.
+- **Paper Club** — Deep-dive paper discussions. The community reads and discusses important AI research papers together.
+- **Workshop** — Conference talks, tutorials, and presentations from AI Engineer events (World's Fair, Code Summit, etc.).
+- **Guest** — People who appear on or create Latent Space content — podcast guests, conference speakers, article authors. Connected to the content they appear in via edges.
+- **Entity** — Organizations (OpenAI, Anthropic, LangChain) and technical topics (RAG, agents, fine-tuning). These nodes serve as connection hubs — many content nodes link to them.
+
+Content categories sort by **most recent** (newest first). People/entity categories sort by **most connected** (most edges first).
 
 ## How to Explore
 
@@ -40,7 +42,7 @@ Click any node to see its full details: description, notes, connections to other
 
 ### MCP (for AI Agents)
 
-Connect an AI agent (Claude Code, Cursor) via MCP to search and explore the graph programmatically. See the **MCP Quickstart** guide for setup.
+Connect an AI agent (Claude Code, Cursor) via MCP to search and explore the graph programmatically. See the **MCP Quickstart** skill for setup.
 
 ## Recommended Starting Points
 
@@ -52,14 +54,9 @@ Connect an AI agent (Claude Code, Cursor) via MCP to search and explore the grap
 
 **Conference highlights:** Browse **Workshop** for AI Engineer talks and tutorials.
 
-## The Bots
+## The Bot
 
-Two AI personalities powered by this knowledge base live on Discord:
-
-- **Sig (Signal)** — Precise, factual, cites specific episodes and dates
-- **Slop (Entropy)** — Opinionated, provocative, connects unexpected dots
-
-See the **Meet the Bots** guide for more.
+**Slop** — an AI bot powered by this knowledge base, live in the Latent Space Discord. Opinionated, provocative, always grounded in the actual content. See the **Slop** guide for details.
 
 ## Key Topics
 

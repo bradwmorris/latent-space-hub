@@ -1,0 +1,548 @@
+{
+  "completed": [
+    {
+      "completed_date": "2026-03-07",
+      "id": "guides-to-skills",
+      "prd": "docs/development/prd-29-guides-to-skills.md",
+      "title": "Guides to skills migration \u2014 rename guides to skills, consolidate MCP guides, add read-only UI"
+    },
+    {
+      "completed_date": "2026-03-06",
+      "id": "bot-polish-v2",
+      "prd": "docs/development/prd-18-bot-polish-v2.md",
+      "title": "Bot polish v2 \u2014 Slop-only, model upgrade to Sonnet 4.6, source linking"
+    },
+    {
+      "completed_date": "2026-03-06",
+      "id": "visual-pizazz",
+      "prd": "docs/development/prd-20-visual-pizazz.md",
+      "title": "Visual pizazz \u2014 ASCII art header, Latent Space purple accent, terminal flair"
+    },
+    {
+      "branch": "feature/dev-setup-cleanup",
+      "completed_date": "2026-02-19",
+      "id": "dev-setup-cleanup",
+      "prd": "docs/development/completed-prds/prd-01-dev-setup-cleanup.md",
+      "title": "Identity, dev process & repo cleanup \u2014 establish LSH as the product, set up workflow, fix stale code"
+    },
+    {
+      "branch": "feature/schema-and-port",
+      "completed_date": "2026-02-19",
+      "id": "schema-and-port",
+      "prd": "docs/development/completed-prds/prd-02-schema-and-port.md",
+      "title": "Schema cleanup + typed entity model \u2014 finalize DB structure with node_type, port RA-H UX"
+    },
+    {
+      "branch": "codex/prd-03-naming-audit",
+      "completed_date": "2026-02-19",
+      "id": "naming-audit",
+      "prd": "docs/development/completed-prds/prd-03-naming-audit.md",
+      "title": "Naming audit \u2014 align branding and naming to Latent Space Hub"
+    },
+    {
+      "branch": "feature/enable-vector-search",
+      "completed_date": "2026-02-20",
+      "id": "enable-vector-search",
+      "prd": "docs/development/completed-prds/prd-04-vector-search.md",
+      "title": "Enable vector search \u2014 wire up Turso native vector_top_k, add FTS5, hybrid search"
+    },
+    {
+      "branch": "feature/content-ingestion",
+      "completed_date": "2026-02-20",
+      "id": "content-ingestion",
+      "prd": "docs/development/completed-prds/prd-05-content-ingestion.md",
+      "title": "Content ingestion \u2014 backfill podcasts, articles, ainews, LatentSpaceTV (Jan 2025 \u2192 today)"
+    },
+    {
+      "branch": "latent-space-bots repo",
+      "completed_date": "2026-02-20",
+      "id": "discord-bot",
+      "prd": "docs/development/completed-prds/prd-06-discord-bot.md",
+      "title": "Discord bots v1 \u2014 Sig & Slop, dual-personality bots backed by LS knowledge base"
+    },
+    {
+      "branch": "feature/mcp-server-standalone",
+      "completed_date": "2026-02-20",
+      "id": "mcp-server-and-skills",
+      "prd": "docs/development/completed-prds/prd-07-mcp-server-and-skills.md",
+      "title": "MCP server (NPX) + skills/guides \u2014 publishable package, shared interface for humans and bots"
+    },
+    {
+      "branch": "feature/prd-09-ux-overhaul",
+      "completed_date": "2026-02-20",
+      "id": "ux-overhaul",
+      "prd": "docs/development/completed-prds/prd-09-ux-overhaul-type-navigation.md",
+      "title": "UX Overhaul \u2014 collapsible type navigation + simplified main workspace"
+    },
+    {
+      "branch": "feature/dashboard-and-categories",
+      "completed_date": "2026-02-22",
+      "id": "dashboard-and-categories",
+      "prd": "docs/development/completed-prds/prd-12-dashboard-and-categories.md",
+      "title": "Dashboard + Category Taxonomy \u2014 8 canonical categories, dashboard overview, sidebar overhaul"
+    },
+    {
+      "branch": "feature/documentation-overhaul",
+      "completed_date": "2026-02-22",
+      "id": "documentation-overhaul-v1",
+      "prd": "docs/development/completed-prds/prd-14-documentation-overhaul-v1.md",
+      "title": "Documentation overhaul v1 \u2014 initial full replacement of inherited RA-H docs"
+    },
+    {
+      "branch": "codex/prd-13-auto-ingestion",
+      "completed_date": "2026-02-22",
+      "id": "auto-ingestion",
+      "prd": "docs/development/completed-prds/prd-13-auto-ingestion.md",
+      "title": "Auto-ingestion pipeline \u2014 hourly discovery, ingestion runs, and Discord fanout notifications"
+    },
+    {
+      "branch": "feature/data-refinement",
+      "completed_date": "2026-02-22",
+      "id": "hub-nodes",
+      "prd": "docs/development/completed-prds/prd-15-hub-nodes.md",
+      "title": "Hub node architecture \u2014 anchor LS properties and absorb storyline-ready narrative links"
+    },
+    {
+      "branch": "main + latent-space-bots/main",
+      "completed_date": "2026-02-22",
+      "id": "discord-bot-v2",
+      "prd": "docs/development/completed-prds/prd-11-discord-bot-v2.md",
+      "title": "Discord bot v2 \u2014 grounded guides, temporal context, and deterministic channel triggers"
+    },
+    {
+      "branch": "feature/documentation-overhaul-v2",
+      "completed_date": "2026-02-23",
+      "id": "documentation-overhaul-v2",
+      "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
+      "title": "Documentation overhaul v2 \u2014 user-facing /docs page, developer docs drift fixes, agent guides verification"
+    },
+    {
+      "branch": "feature/data-refinement",
+      "completed_date": "2026-02-22",
+      "id": "data-refinement",
+      "prd": "docs/development/prd-10-data-refinement.md",
+      "title": "Data refinement & hygiene \u2014 type migration, descriptions/notes, dates, edge cleanup"
+    }
+  ],
+  "projects": {
+    "builders-club-prep": {
+      "id": "builders-club-prep",
+      "notes": "Brad presenting LS Hub + Slop at Builders Club. Create presentation brief, demo flow script, pre-demo checklist, fallback screenshots. No code \u2014 documentation and preparation.",
+      "owner": "brad",
+      "prd": "docs/development/prd-28-builders-club-prep.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: Create presentation brief with talking points and structure"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Write demo flow script (8-step sequence)"
+        },
+        {
+          "done": false,
+          "text": "Part 3: Pre-demo checklist \u2014 verify all surfaces working"
+        },
+        {
+          "done": false,
+          "text": "Part 4: Capture fallback screenshots/recordings"
+        },
+        {
+          "done": false,
+          "text": "Part 5: Quick polish pass on demo-visible surfaces"
+        }
+      ],
+      "title": "Builders Club presentation prep \u2014 talking points, demo flow, checklist, fallback assets",
+      "type": "ops"
+    },
+    "entity-extraction-audit": {
+      "id": "entity-extraction-audit",
+      "notes": "Extraction logic duplicated in processing.ts and cron route. Race condition on dedup. No audit trail. Consolidate into shared entityExtractor.ts, fix dedup, validate AINews frontmatter, centralize explanation templates, extend blocklist.",
+      "prd": "docs/development/prd-27-entity-extraction-audit.md",
+      "priority": "medium",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: Create shared src/services/extraction/entityExtractor.ts"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Fix deduplication race condition (deduplicate before processing)"
+        },
+        {
+          "done": false,
+          "text": "Part 3: Add AINews frontmatter validation"
+        },
+        {
+          "done": false,
+          "text": "Part 4: Centralize explanation templates"
+        },
+        {
+          "done": false,
+          "text": "Part 5: Add extraction audit trail in node metadata"
+        },
+        {
+          "done": false,
+          "text": "Part 6: Extend blocklist and make configurable"
+        }
+      ],
+      "title": "Entity extraction pipeline audit & cleanup \u2014 deduplicate code, fix race conditions, add audit trail",
+      "type": "feature"
+    },
+    "eval-suite": {
+      "id": "eval-suite",
+      "notes": "Proper eval system with golden test cases (10-15 scenarios), automated runner, and scoring. Extends /evals dashboard with scenario results + comparison. References RA-H eval system. Cross-repo: needs Slop's soul file.",
+      "prd": "docs/development/prd-26-eval-suite.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: Define eval types and scenario schema (tests/evals/types.ts)"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Create golden dataset \u2014 10-15 scenarios covering search, entity lookup, personality, hallucination"
+        },
+        {
+          "done": false,
+          "text": "Part 3: Build eval runner (tests/evals/runner.ts) + eval API endpoint"
+        },
+        {
+          "done": false,
+          "text": "Part 4: Extend /evals dashboard \u2014 source filter, scenario results table, aggregate metrics"
+        },
+        {
+          "done": false,
+          "text": "Part 5: Add npm run evals script"
+        }
+      ],
+      "title": "Eval suite \u2014 golden dataset, automated scenario testing, scoring dashboard",
+      "type": "feature"
+    },
+    "evals-dashboard": {
+      "id": "evals-dashboard",
+      "notes": "Fix broken bot logging (column mismatch), capture tool calls + MCP operations + timing, build /evals dashboard to review traces. Uses existing chats table \u2014 no migration needed.",
+      "prd": "docs/development/prd-21-evals-dashboard.md",
+      "priority": "high",
+      "status": "ready",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: Rewrite bot logging \u2014 align to chats schema, capture tool calls + timing"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Build /evals dashboard \u2014 list view + expanded trace view"
+        },
+        {
+          "done": false,
+          "text": "Part 3: API route \u2014 paginated queries with filters"
+        }
+      ],
+      "title": "Evals dashboard \u2014 log and review Slop's Discord interactions with full tool traces",
+      "type": "feature"
+    },
+    "graph-bot-polish": {
+      "id": "graph-bot-polish",
+      "notes": "Code complete. Manual follow-ups: run companion backfill script, run entity extraction backfill, reclassify node 4050, implement Slop persona in latent-space-bots repo.",
+      "prd": "docs/development/prd-16-graph-bot-polish.md",
+      "priority": "high",
+      "status": "review",
+      "tasks": [
+        {
+          "done": true,
+          "text": "Part 1: Companion detection + edge creation for podcast/article pairs"
+        },
+        {
+          "done": true,
+          "text": "Part 1: Split notify \u2014 announce both, yap kickoff only for first (skip companions)"
+        },
+        {
+          "done": true,
+          "text": "Part 1: Backfill script for existing podcast/article companion pairs"
+        },
+        {
+          "done": false,
+          "text": "Part 1: Fix node 4050 misclassification (article \u2192 ainews) \u2014 manual DB update"
+        },
+        {
+          "done": true,
+          "text": "Part 2: Make entity extraction failures visible in run details"
+        },
+        {
+          "done": true,
+          "text": "Part 2: Add separate entity extraction cron endpoint"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Backfill entities for nodes with 0 edges \u2014 run cron or script"
+        },
+        {
+          "done": true,
+          "text": "Part 3: Rewrite typePrompt() to unified graph-insight prompt"
+        },
+        {
+          "done": true,
+          "text": "Part 3: Update buildYapContent() to Slop-only mention"
+        },
+        {
+          "done": true,
+          "text": "Part 3: Update .env.example with DISCORD_SLOP_USER_ID"
+        },
+        {
+          "done": true,
+          "text": "Part 3: Update bot guides (bots.md) to reflect Slop-only kickoff"
+        },
+        {
+          "done": true,
+          "text": "Part 3: Document Slop persona requirements for latent-space-bots repo"
+        },
+        {
+          "done": true,
+          "text": "Part 4: Dashboard stats \u2014 type breakdown row + compact aggregate totals"
+        }
+      ],
+      "title": "Graph & bot final polish \u2014 companion linking, entity extraction fix, Slop-first bot strategy, dashboard type breakdown",
+      "type": "feature"
+    },
+    "guides-to-skills": {
+      "id": "guides-to-skills",
+      "notes": "Full port of RA-H's guides\u2192skills migration. Two skill categories: system (db-operations, curation) and guides (welcome, agent-engineering, context-engineering, mcp-quickstart, slop). Rename all surfaces (service, tools, API, MCP, UI). Add read-only guide browsing in UI. Consolidate 5 MCP standalone guides into 1 db-operations skill. ~30 files affected.",
+      "prd": "docs/development/prd-29-guides-to-skills.md",
+      "priority": "medium",
+      "status": "completed",
+      "tasks": [
+        {
+          "done": true,
+          "text": "Part 1: Create skill service layer + convert guide service to stub"
+        },
+        {
+          "done": true,
+          "text": "Part 2: Create system skills (db-operations, curation) + move/refine 5 user guides"
+        },
+        {
+          "done": true,
+          "text": "Part 3: Create skill tools (internal) + delegate guide tools"
+        },
+        {
+          "done": true,
+          "text": "Part 4: Create skill API routes + delegate guide API routes"
+        },
+        {
+          "done": true,
+          "text": "Part 5: Build SkillsPane (read-only guides + editable user skills) + SkillsSettings"
+        },
+        {
+          "done": true,
+          "text": "Part 6: Update MCP standalone + HTTP servers with skill tools"
+        },
+        {
+          "done": true,
+          "text": "Part 7: Delete old guide files/components, update docs"
+        }
+      ],
+      "title": "Guides to skills migration \u2014 rename guides to skills, consolidate MCP guides into db-operations, add read-only guides UI",
+      "type": "feature"
+    },
+    "inbox": {
+      "id": "inbox",
+      "notes": "New /inbox route showing all Discord interactions grouped by user as conversations. Detail view per conversation. Inbox stats on dashboard. Reuses chats table. Future: email integration.",
+      "prd": "docs/development/prd-25-inbox.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: API routes \u2014 /api/inbox (list conversations) + /api/inbox/[userId] (conversation detail)"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Build /inbox page \u2014 conversation list with user avatars, last message preview, unread count"
+        },
+        {
+          "done": false,
+          "text": "Part 3: Conversation detail view \u2014 threaded message display with tool call traces"
+        },
+        {
+          "done": false,
+          "text": "Part 4: Add inbox stats to dashboard (total conversations, active users, messages today)"
+        },
+        {
+          "done": false,
+          "text": "Part 5: Add inbox to sidebar navigation"
+        }
+      ],
+      "title": "Inbox \u2014 conversation-style view of all bot interactions (Discord now, email later)",
+      "type": "feature"
+    },
+    "member-nodes": {
+      "id": "member-nodes",
+      "notes": "Adds 'member' node type, /join slash command, member-aware interactions (lookup before response, update after response), compounding knowledge per user. Changes span both latent-space-hub (type + category) and latent-space-bots (slash command + member lifecycle).",
+      "prd": "docs/development/prd-19-member-nodes.md",
+      "priority": "high",
+      "status": "ready",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: Add member NodeType, MemberMetadata, and category to latent-space-hub"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Add lookupMember() and createMemberNode() functions to latent-space-bots"
+        },
+        {
+          "done": false,
+          "text": "Part 3: Add /join slash command + handler to latent-space-bots"
+        },
+        {
+          "done": false,
+          "text": "Part 4: Modify handleMessage \u2014 member lookup + system prompt injection"
+        },
+        {
+          "done": false,
+          "text": "Part 5: Add updateMemberAfterInteraction() \u2014 notes, metadata, edges"
+        },
+        {
+          "done": false,
+          "text": "Part 6: Update slop.soul.md with member awareness section"
+        },
+        {
+          "done": false,
+          "text": "Part 7: End-to-end test \u2014 /join, chat, verify node + edges in graph"
+        }
+      ],
+      "title": "Member nodes \u2014 community members as first-class nodes in the knowledge graph",
+      "type": "feature"
+    },
+    "member-profiles": {
+      "id": "member-profiles",
+      "notes": "Two changes: (1) Bot captures Discord avatar URL in metadata on /join and refreshes on each interaction. (2) Hub FocusPanel renders a member profile card (avatar, role, company, location, interests, stats) when viewing member nodes. Data already exists in metadata \u2014 just not displayed.",
+      "prd": "docs/development/prd-23-member-profiles.md",
+      "priority": "high",
+      "status": "ready",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: Add avatar_url capture to /join + post-interaction update in latent-space-bots"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Add avatar_url to MemberMetadata type in latent-space-hub"
+        },
+        {
+          "done": false,
+          "text": "Part 3: Build MemberProfileCard component in FocusPanel"
+        },
+        {
+          "done": false,
+          "text": "Part 4: Backfill avatar URLs for existing member nodes"
+        },
+        {
+          "done": false,
+          "text": "Part 5: End-to-end test \u2014 /join, see avatar + profile in hub"
+        }
+      ],
+      "title": "Member profiles \u2014 Discord avatars + profile card display in hub",
+      "type": "feature"
+    },
+    "setup-handover": {
+      "id": "setup-handover",
+      "notes": "No code. Owner does 3 tasks (invite bot, create webhooks, test channel), then Brad tests and switches to live.",
+      "prd": "docs/development/prd-17-setup-handover.md",
+      "priority": "high",
+      "status": "ready",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Owner: Invite Slop bot to LS server"
+        },
+        {
+          "done": false,
+          "text": "Owner: Create announcement webhook, send URL"
+        },
+        {
+          "done": false,
+          "text": "Owner: Create yap webhook, send URL"
+        },
+        {
+          "done": false,
+          "text": "Owner: Create #slop-testing channel + webhook"
+        },
+        {
+          "done": false,
+          "text": "Brad: Test webhook post in #slop-testing"
+        },
+        {
+          "done": false,
+          "text": "Brad: Test @Slop mention in #slop-testing"
+        },
+        {
+          "done": false,
+          "text": "Brad: Test full ingestion pipeline"
+        },
+        {
+          "done": false,
+          "text": "Brad: Switch to live channels + redeploy"
+        },
+        {
+          "done": false,
+          "text": "Brad: Delete test channel, confirm first real ingestion"
+        }
+      ],
+      "title": "Setup & handover \u2014 get bot and webhooks live in the LS Discord server",
+      "type": "ops"
+    },
+    "user-persona-system": {
+      "id": "user-persona-system",
+      "notes": "Cross-repo (latent-space-hub types + latent-space-bots logic). Extends MemberMetadata with interaction_style. Post-interaction style observation via <style> block. System prompt injection of learned style. /style slash command for explicit preferences. Depends on member nodes (PRD 19).",
+      "prd": "docs/development/prd-30-user-persona-system.md",
+      "priority": "medium",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Part 1: Extend MemberMetadata with interaction_style fields"
+        },
+        {
+          "done": false,
+          "text": "Part 2: Add style observation to post-interaction updates (<style> block parsing)"
+        },
+        {
+          "done": false,
+          "text": "Part 3: Inject learned style into system prompt (formatMemberContext)"
+        },
+        {
+          "done": false,
+          "text": "Part 4: Build /style slash command with option parsing"
+        },
+        {
+          "done": false,
+          "text": "Part 5: Create persona skill document (user-personas.md)"
+        },
+        {
+          "done": false,
+          "text": "Part 6: Add /style reset functionality"
+        }
+      ],
+      "title": "User persona system \u2014 bot learns per-user interaction style (tone, verbosity, format)",
+      "type": "feature"
+    }
+  },
+  "queue": [
+    "setup-handover",
+    "graph-bot-polish",
+    "evals-dashboard",
+    "member-nodes",
+    "member-profiles",
+    "inbox",
+    "eval-suite",
+    "entity-extraction-audit",
+    "builders-club-prep",
+    "user-persona-system"
+  ],
+  "lastUpdated": "2026-03-07"
+}

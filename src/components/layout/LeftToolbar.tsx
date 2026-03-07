@@ -24,23 +24,23 @@ interface LeftToolbarProps {
   slotBType: PaneType | null;
 }
 
-// Map pane types to their icons (chat removed in rah-light)
+// Map pane types to their icons
 const PANE_TYPE_ICONS: Record<string, typeof LayoutList> = {
   views: LayoutList,
   map: Map,
   dimensions: Folder,
-  guides: FileText,
+  skills: FileText,
 };
 
 const PANE_TYPE_LABELS: Record<string, string> = {
   views: 'Feed',
   map: 'Map',
   dimensions: 'Dimensions',
-  guides: 'Guides',
+  skills: 'Skills',
 };
 
-// Pane types shown in the toolbar (excludes 'node' which is opened via Feed, chat removed in rah-light)
-const TOOLBAR_PANE_TYPES: PaneType[] = ['views', 'map', 'dimensions', 'guides'];
+// Pane types shown in the toolbar (excludes 'node' which is opened via Feed)
+const TOOLBAR_PANE_TYPES: PaneType[] = ['views', 'map', 'dimensions', 'skills'];
 
 interface ToolbarButtonProps {
   icon: typeof Search;

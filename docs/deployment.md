@@ -15,7 +15,7 @@ The web app deploys to Vercel from the `main` branch.
 
 **Readonly mode:** Production runs with `NEXT_PUBLIC_READONLY_MODE=true`. This disables:
 - Node creation/editing
-- Guide writes
+- Skill writes
 - Dimension changes
 - Any write operations from the UI
 

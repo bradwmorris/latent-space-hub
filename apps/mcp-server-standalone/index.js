@@ -12,8 +12,8 @@ const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio
 
 const APP_DIR = path.join(os.homedir(), '.latent-space-hub');
 const CONFIG_PATH = path.join(APP_DIR, 'config.json');
-const DEFAULT_GUIDES_DIR = path.join(APP_DIR, 'guides');
-const SYSTEM_GUIDES_DIR = path.join(__dirname, 'guides', 'system');
+const DEFAULT_SKILLS_DIR = path.join(APP_DIR, 'skills');
+const SYSTEM_SKILLS_DIR = path.join(__dirname, 'skills');
 
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
@@ -37,9 +37,9 @@ function loadConfig() {
   const fileConfig = readJsonFile(CONFIG_PATH) || {};
   const tursoUrl = process.env.TURSO_DATABASE_URL || fileConfig.tursoUrl || fileConfig.turso_url;
   const tursoToken = process.env.TURSO_AUTH_TOKEN || fileConfig.tursoToken || fileConfig.turso_token;
-  const guidesDir = process.env.LSH_GUIDES_DIR || fileConfig.guidesDir || DEFAULT_GUIDES_DIR;
+  const skillsDir = process.env.LSH_SKILLS_DIR || fileConfig.skillsDir || DEFAULT_SKILLS_DIR;
   const openAiApiKey = process.env.OPENAI_API_KEY || fileConfig.openAiApiKey || fileConfig.openai_api_key || null;
-  return { tursoUrl, tursoToken, guidesDir, openAiApiKey };
+  return { tursoUrl, tursoToken, skillsDir, openAiApiKey };
 }
 
 function failConfig(message) {
@@ -73,7 +73,7 @@ function parseFrontmatter(markdown) {
   return { frontmatter, body };
 }
 
-function slugifyGuideName(name) {
+function slugifyName(name) {
   return String(name)
     .toLowerCase()
     .replace(/[^a-z0-9-\s]/g, '')
@@ -91,11 +91,11 @@ function listMarkdownFiles(dirPath) {
     .map((entry) => path.join(dirPath, entry));
 }
 
-function readGuideFile(filePath, immutable) {
+function readSkillFile(filePath, immutable) {
   const markdown = fs.readFileSync(filePath, 'utf8');
   const { frontmatter, body } = parseFrontmatter(markdown);
   const fallbackName = path.basename(filePath, '.md');
-  const name = slugifyGuideName(frontmatter.name || fallbackName);
+  const name = slugifyName(frontmatter.name || fallbackName);
   return {
     name,
     title: frontmatter.name || fallbackName,
@@ -106,45 +106,45 @@ function readGuideFile(filePath, immutable) {
   };
 }
 
-function listGuides(guidesDir) {
-  ensureDir(guidesDir);
+function listSkills(skillsDir) {
+  ensureDir(skillsDir);
 
-  const system = listMarkdownFiles(SYSTEM_GUIDES_DIR).map((f) => readGuideFile(f, true));
-  const custom = listMarkdownFiles(guidesDir)
-    .map((f) => readGuideFile(f, false))
-    .filter((guide) => !system.some((sys) => sys.name === guide.name));
+  const system = listMarkdownFiles(SYSTEM_SKILLS_DIR).map((f) => readSkillFile(f, true));
+  const custom = listMarkdownFiles(skillsDir)
+    .map((f) => readSkillFile(f, false))
+    .filter((skill) => !system.some((sys) => sys.name === skill.name));
 
   return [...system, ...custom];
 }
 
-function writeGuide(guidesDir, name, content) {
-  ensureDir(guidesDir);
-  const slug = slugifyGuideName(name);
+function writeSkill(skillsDir, name, content) {
+  ensureDir(skillsDir);
+  const slug = slugifyName(name);
   if (!slug) {
-    throw new Error('Guide name must contain letters or numbers.');
+    throw new Error('Skill name must contain letters or numbers.');
   }
 
-  const systemNames = listMarkdownFiles(SYSTEM_GUIDES_DIR).map((f) => slugifyGuideName(path.basename(f, '.md')));
+  const systemNames = listMarkdownFiles(SYSTEM_SKILLS_DIR).map((f) => slugifyName(path.basename(f, '.md')));
   if (systemNames.includes(slug)) {
-    throw new Error('System guide names are immutable. Choose a different guide name.');
+    throw new Error('System skill names cannot be overwritten. Choose a different name.');
   }
 
-  const existingCustom = listMarkdownFiles(guidesDir);
+  const existingCustom = listMarkdownFiles(skillsDir);
   if (!existingCustom.some((f) => path.basename(f, '.md') === slug) && existingCustom.length >= 10) {
-    throw new Error('Maximum of 10 custom guides reached. Delete one before adding another.');
+    throw new Error('Maximum of 10 custom skills reached. Delete one before adding another.');
   }
 
-  const filePath = path.join(guidesDir, `${slug}.md`);
+  const filePath = path.join(skillsDir, `${slug}.md`);
   fs.writeFileSync(filePath, content, 'utf8');
   return filePath;
 }
 
-function deleteGuide(guidesDir, name) {
-  ensureDir(guidesDir);
-  const slug = slugifyGuideName(name);
-  const filePath = path.join(guidesDir, `${slug}.md`);
+function deleteSkill(skillsDir, name) {
+  ensureDir(skillsDir);
+  const slug = slugifyName(name);
+  const filePath = path.join(skillsDir, `${slug}.md`);
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Custom guide '${slug}' does not exist.`);
+    throw new Error(`Custom skill '${slug}' does not exist.`);
   }
   fs.unlinkSync(filePath);
 }
@@ -218,13 +218,13 @@ const updateNodeInputSchema = {
 };
 
 async function main() {
-  const { tursoUrl, tursoToken, guidesDir, openAiApiKey } = loadConfig();
+  const { tursoUrl, tursoToken, skillsDir, openAiApiKey } = loadConfig();
   if (!tursoUrl) {
     failConfig('Missing Turso URL.');
   }
 
   const db = createDbClient(tursoUrl, tursoToken);
-  ensureDir(guidesDir);
+  ensureDir(skillsDir);
 
   // Initialize services layer for hybrid search (vector + FTS + fallback)
   const { createLsHubServices } = require('./services/index.js');
@@ -234,7 +234,7 @@ async function main() {
     { name: 'latent-space-hub-mcp', version: '0.1.0' },
     {
       instructions:
-        'Latent Space Hub MCP server. Search nodes before creating new ones. Create explicit edges with explanations.'
+        'Latent Space Hub MCP server. Call ls_read_skill("start-here") first for orientation. Search nodes before creating new ones. Create explicit edges with explanations.'
     }
   );
 
@@ -242,13 +242,13 @@ async function main() {
     'ls_get_context',
     {
       title: 'Get context',
-      description: 'Get knowledge base stats, top nodes, dimensions, and available guides.',
+      description: 'Get knowledge base stats, top nodes, dimensions, and available skills. For operational guidance, read the "start-here" skill.',
       inputSchema: {},
       outputSchema: {
         stats: z.record(z.number()),
         hubNodes: z.array(z.object({ id: z.number(), title: z.string(), degree: z.number() })),
         dimensions: z.array(z.object({ name: z.string(), count: z.number() })),
-        guides: z.array(z.object({ name: z.string(), description: z.string(), immutable: z.boolean() }))
+        skills: z.array(z.object({ name: z.string(), description: z.string(), immutable: z.boolean() }))
       }
     },
     async () => {
@@ -276,7 +276,7 @@ async function main() {
         )
       ]);
 
-      const guides = listGuides(guidesDir).map((g) => ({ name: g.name, description: g.description, immutable: g.immutable }));
+      const skills = listSkills(skillsDir).map((g) => ({ name: g.name, description: g.description, immutable: g.immutable }));
       const stats = {
         nodes: Number(nodesRes.rows?.[0]?.c || 0),
         edges: Number(edgesRes.rows?.[0]?.c || 0),
@@ -297,7 +297,7 @@ async function main() {
 
       return {
         content: [{ type: 'text', text: `Loaded context for LS Hub (${stats.nodes} nodes, ${stats.edges} edges).` }],
-        structuredContent: { stats, hubNodes, dimensions, guides }
+        structuredContent: { stats, hubNodes, dimensions, skills }
       };
     }
   );
@@ -862,91 +862,78 @@ async function main() {
     }
   );
 
-  server.registerTool(
-    'ls_list_guides',
-    {
-      title: 'List guides',
-      description: 'List system and custom guides.',
-      inputSchema: {}
-    },
-    async () => {
-      const guides = listGuides(guidesDir).map((g) => ({
-        name: g.name,
-        description: g.description,
-        immutable: g.immutable
-      }));
+  // Skill tools (new names)
+  const listSkillsHandler = async () => {
+    const skills = listSkills(skillsDir).map((g) => ({
+      name: g.name,
+      description: g.description,
+      immutable: g.immutable
+    }));
 
-      return {
-        content: [{ type: 'text', text: `Loaded ${guides.length} guide(s).` }],
-        structuredContent: { count: guides.length, guides }
-      };
+    return {
+      content: [{ type: 'text', text: `Loaded ${skills.length} skill(s).` }],
+      structuredContent: { count: skills.length, skills }
+    };
+  };
+
+  const readSkillHandler = async ({ name }) => {
+    const slug = slugifyName(name);
+    const skills = listSkills(skillsDir);
+    const skill = skills.find((g) => g.name === slug);
+    if (!skill) {
+      throw new Error(`Skill '${slug}' not found.`);
     }
+
+    return {
+      content: [{ type: 'text', text: skill.content }],
+      structuredContent: {
+        name: skill.name,
+        description: skill.description,
+        immutable: skill.immutable,
+        content: skill.content
+      }
+    };
+  };
+
+  const writeSkillHandler = async ({ name, content }) => {
+    const filePath = writeSkill(skillsDir, name, content);
+    return {
+      content: [{ type: 'text', text: `Wrote skill '${slugifyName(name)}'.` }],
+      structuredContent: { success: true, filePath }
+    };
+  };
+
+  const deleteSkillHandler = async ({ name }) => {
+    deleteSkill(skillsDir, name);
+    return {
+      content: [{ type: 'text', text: `Deleted custom skill '${slugifyName(name)}'.` }],
+      structuredContent: { success: true }
+    };
+  };
+
+  // Register skill tools
+  server.registerTool(
+    'ls_list_skills',
+    { title: 'List skills', description: 'List system and custom skills.', inputSchema: {} },
+    listSkillsHandler
   );
 
   server.registerTool(
-    'ls_read_guide',
-    {
-      title: 'Read guide',
-      description: 'Read a guide by name.',
-      inputSchema: {
-        name: z.string().min(1)
-      }
-    },
-    async ({ name }) => {
-      const slug = slugifyGuideName(name);
-      const guides = listGuides(guidesDir);
-      const guide = guides.find((g) => g.name === slug);
-      if (!guide) {
-        throw new Error(`Guide '${slug}' not found.`);
-      }
-
-      return {
-        content: [{ type: 'text', text: guide.content }],
-        structuredContent: {
-          name: guide.name,
-          description: guide.description,
-          immutable: guide.immutable,
-          content: guide.content
-        }
-      };
-    }
+    'ls_read_skill',
+    { title: 'Read skill', description: 'Read a skill by name.', inputSchema: { name: z.string().min(1) } },
+    readSkillHandler
   );
 
   server.registerTool(
-    'ls_write_guide',
-    {
-      title: 'Write guide',
-      description: 'Create or overwrite a custom guide.',
-      inputSchema: {
-        name: z.string().min(1),
-        content: z.string().min(1)
-      }
-    },
-    async ({ name, content }) => {
-      const filePath = writeGuide(guidesDir, name, content);
-      return {
-        content: [{ type: 'text', text: `Wrote guide '${slugifyGuideName(name)}'.` }],
-        structuredContent: { success: true, filePath }
-      };
-    }
+    'ls_write_skill',
+    { title: 'Write skill', description: 'Create or overwrite a custom skill.', inputSchema: { name: z.string().min(1), content: z.string().min(1) } },
+    writeSkillHandler
   );
 
   server.registerTool(
-    'ls_delete_guide',
-    {
-      title: 'Delete guide',
-      description: 'Delete a custom guide.',
-      inputSchema: {
-        name: z.string().min(1)
-      }
-    },
-    async ({ name }) => {
-      deleteGuide(guidesDir, name);
-      return {
-        content: [{ type: 'text', text: `Deleted custom guide '${slugifyGuideName(name)}'.` }],
-        structuredContent: { success: true }
-      };
-    }
+    'ls_delete_skill',
+    { title: 'Delete skill', description: 'Delete a custom skill.', inputSchema: { name: z.string().min(1) } },
+    deleteSkillHandler
   );
 
   const transport = new StdioServerTransport();
