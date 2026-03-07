@@ -201,13 +201,39 @@ POST endpoint that creates the event node. Would need auth (member must be logge
 - Supports `--dry-run` flag
 
 ### Discord slash commands (latent-space-bots repo)
-- `/paper-club date:YYYY-MM-DD title:"Paper Title" [paper:URL]` — schedules Paper Club event
-- `/builders-club date:YYYY-MM-DD topic:"Session Topic"` — schedules Builders Club event
-- Validates: member exists, date is future, correct day of week (Wed for PC, Fri for BC)
-- Double-booking prevention: queries graph for existing scheduled event on same date+type
-- Creates event node via MCP, links to member, sends confirmation
+- `/paper-club` and `/builders-club` — no required params, conversational flow
+- Bot shows next 4 available dates (filters out already-booked slots)
+- User picks by number, provides title/topic in same message or follow-up
+- Validates: member exists (`/join` required), day of week (Wed for PC, Fri for BC), no double booking
+- Creates event node via MCP `ls_add_node`, links member → event via `ls_create_edge`
+- Scheduling sessions tracked per-thread with 10min auto-expiry
+- `McpGraphClient.checkEventSlot()` — single-date booking check
+- `McpGraphClient.getBookedDates()` — batch date availability check
+- `McpGraphClient.createEventNode()` — creates event with full metadata
 
-### Event scheduling skill
-- `src/config/skills/event-scheduling.md` — bot-facing skill documenting weekly schedule, validation rules, lifecycle
-- Paper Club: Wednesdays 12–1pm PT
-- Builders Club: Saturday 8am Sydney (Friday afternoon PT, varies with DST)
+### Event scheduling skill (hub + bots)
+- **Hub**: `src/config/skills/event-scheduling.md` — full skill with weekly schedule, validation rules, lifecycle, SQL queries
+- **Hub standalone MCP**: `apps/mcp-server-standalone/skills/event-scheduling.md` — copy for npm package
+- **Bots**: `skills/event-scheduling.md` — bot-local skill with frontmatter + body
+- Paper Club: Wednesdays 12–1pm PT (confirmed via Luma)
+- Builders Club: Saturday 8am Sydney / Friday afternoon PT (varies with DST)
+
+### Slop skill system refactor (latent-space-bots repo)
+- Replaced fragmented skill loading (MCP `readSkill` + hardcoded strings + local `guides/` dir) with unified system
+- Skills live as `.md` files in `skills/` dir with frontmatter: `name`, `description`, `when_to_use`
+- System prompt gets **frontmatter only** (~727 chars) — agent reads full body on demand via `ls_read_skill`
+- `ls_read_skill` intercepted in agentic loop: checks local `skills/` dir first, falls back to MCP
+- 3 bot skills: `event-scheduling`, `graph-search`, `member-profiles`
+- Fixed stale tool names in soul file: `ls_list_guides`/`ls_read_guide` → `ls_list_skills`/`ls_read_skill`
+- Added `scripts/debug-system-message.ts` — prints exact system message for validation
+- Added `docs/slop-system-message.md` — full reference of what Slop sees (~8,050 chars total)
+
+### Graph data seeded
+- Created member node for **yikesawjeez** (#4352) with discord_id
+- Created 5 resource nodes: Moltbook paper, Persona Selection thread, Anthropic Persona Selection Model, Skills for Claude thread
+- Created 2 upcoming event nodes:
+  - **Paper Club: Moltbook analysis + Persona Selection** (Mar 11, yikesawjeez) #4357
+  - **Paper Club: Anthropic complete guide to Skills for Claude** (Mar 18, swyx) #4358
+- All linked: presenters → events, resources → events, presenters → resources
+- Linked Swyx entity (#4141) → brad w morris member (#4191)
+- Linked Moltbook entity (#2304) → Moltbook paper (#4353)
