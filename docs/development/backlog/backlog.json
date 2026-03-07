@@ -2,6 +2,12 @@
   "completed": [
     {
       "completed_date": "2026-03-07",
+      "id": "paper-club-scheduling",
+      "prd": "docs/development/prd-32-paper-club-scheduling.md",
+      "title": "Event nodes \u2014 first-class events in sidebar, linked to recordings, Discord scheduling with double-booking prevention"
+    },
+    {
+      "completed_date": "2026-03-07",
       "id": "guides-to-skills",
       "prd": "docs/development/prd-29-guides-to-skills.md",
       "title": "Guides to skills migration \u2014 rename guides to skills, consolidate MCP guides, add read-only UI"
@@ -452,10 +458,10 @@
     },
     "paper-club-scheduling": {
       "id": "paper-club-scheduling",
-      "notes": "New 'event' node type in sidebar. Each paper-club/builders-club recording gets a linked event node. Upcoming/Past sections in Events view. Backfill script creates events for all existing recordings. Discord slash commands still needed in latent-space-bots.",
+      "notes": "Complete. Event node type, sidebar, Upcoming/Past UI, ingestion auto-link, 52 events backfilled, Discord slash commands with day-of-week + double-booking validation, event-scheduling skill.",
       "prd": "docs/development/prd-32-paper-club-scheduling.md",
       "priority": "medium",
-      "status": "review",
+      "status": "completed",
       "tasks": [
         {
           "done": true,
@@ -599,7 +605,6 @@
     "graph-bot-polish",
     "evals-dashboard",
     "member-nodes",
-    "paper-club-scheduling",
     "member-profiles",
     "inbox",
     "eval-suite",
