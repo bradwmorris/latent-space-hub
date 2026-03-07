@@ -200,6 +200,14 @@ POST endpoint that creates the event node. Would need auth (member must be logge
 - Creates edge from recording to event node
 - Supports `--dry-run` flag
 
-**Remaining (latent-space-bots repo):**
-- `/paper-club` Discord slash command (creates scheduled event node)
-- `/builders-club` Discord slash command (creates scheduled event node)
+### Discord slash commands (latent-space-bots repo)
+- `/paper-club date:YYYY-MM-DD title:"Paper Title" [paper:URL]` — schedules Paper Club event
+- `/builders-club date:YYYY-MM-DD topic:"Session Topic"` — schedules Builders Club event
+- Validates: member exists, date is future, correct day of week (Wed for PC, Fri for BC)
+- Double-booking prevention: queries graph for existing scheduled event on same date+type
+- Creates event node via MCP, links to member, sends confirmation
+
+### Event scheduling skill
+- `src/config/skills/event-scheduling.md` — bot-facing skill documenting weekly schedule, validation rules, lifecycle
+- Paper Club: Wednesdays 12–1pm PT
+- Builders Club: Saturday 8am Sydney (Friday afternoon PT, varies with DST)
