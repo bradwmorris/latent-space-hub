@@ -175,10 +175,28 @@ POST endpoint that creates the event node. Would need auth (member must be logge
 ## COMPLETED (latent-space-hub parts)
 **Date:** 2026-03-07
 **What was delivered:**
-- Added `PaperClubEventMetadata` type with event_status, presenter, paper details, recording link
-- Updated `NodeMetadataMap` to support event metadata for paper-club nodes
-- Added "Upcoming" badge in ListView for scheduled paper-club events (green badge)
-- Added `linkRecordingToEvent()` in ingestion pipeline — auto-links recordings to scheduled events within 3-day window, updates event status to "completed"
+
+### Types & metadata
+- Added `EventStatus` type (`'scheduled' | 'completed' | 'cancelled' | 'recording'`)
+- Added `event_status` to `ContentMetadata` for recording nodes
+- Added `ScheduledEventMetadata` (shared for paper-club + builders-club scheduled events)
+- Updated `NodeMetadataMap` for both `paper-club` and `builders-club`
+
+### UI — Upcoming / Past sections
+- `TypeNodeList` (main type view) splits paper-club and builders-club into **Upcoming** and **Past** sections
+- Upcoming events: green left border, "Upcoming" badge, presenter name, green date
+- Past recordings: standard display
+- `ListView` (feed view): green "Upcoming" badge for both types
+
+### Ingestion pipeline
+- New recordings auto-tagged with `event_status: 'recording'` in metadata
+- `linkRecordingToEvent()` auto-links recordings to scheduled events (3-day window match)
+- Works for both paper-club and builders-club
+
+### Backfill
+- Script: `npx tsx scripts/backfill-event-status.ts` tags existing nodes as recordings
+- Supports `--dry-run` flag
 
 **Remaining (latent-space-bots repo):**
-- Step 2: `/paper-club` Discord slash command (separate repo)
+- Step 2: `/paper-club` Discord slash command
+- Step 2 (future): `/builders-club` Discord slash command

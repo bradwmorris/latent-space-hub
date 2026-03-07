@@ -86,6 +86,25 @@ function TypeNodeList({
     );
   }
 
+  // For paper-club and builders-club, split into upcoming events and past recordings
+  const hasEventSections = selectedType === 'paper-club' || selectedType === 'builders-club';
+  const upcomingNodes = hasEventSections
+    ? nodes.filter(n => {
+        const status = (n.metadata as any)?.event_status;
+        return status === 'scheduled';
+      }).sort((a, b) => {
+        const dateA = a.event_date || '';
+        const dateB = b.event_date || '';
+        return dateA.localeCompare(dateB); // ascending — soonest first
+      })
+    : [];
+  const pastNodes = hasEventSections
+    ? nodes.filter(n => {
+        const status = (n.metadata as any)?.event_status;
+        return status !== 'scheduled';
+      })
+    : nodes;
+
   if (nodes.length === 0) {
     return (
       <div style={{
@@ -96,6 +115,29 @@ function TypeNodeList({
       </div>
     );
   }
+
+  const renderSectionHeader = (label: string, count: number) => (
+    <div style={{
+      padding: '12px 24px 8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      borderBottom: '1px solid var(--bg-elevated)',
+    }}>
+      <span style={{
+        fontSize: '11px',
+        fontWeight: 600,
+        color: label === 'Upcoming' ? '#34d399' : 'var(--text-muted)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+      }}>
+        {label}
+      </span>
+      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+        {count}
+      </span>
+    </div>
+  );
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -115,181 +157,223 @@ function TypeNodeList({
         </span>
       </div>
 
+      {/* Upcoming events section (paper-club / builders-club only) */}
+      {hasEventSections && upcomingNodes.length > 0 && (
+        <>
+          {renderSectionHeader('Upcoming', upcomingNodes.length)}
+          <div style={{ padding: '4px 0' }}>
+            {upcomingNodes.map(node => renderNodeRow(node, true))}
+          </div>
+        </>
+      )}
+
+      {/* Past / all section */}
+      {hasEventSections && renderSectionHeader('Past', pastNodes.length)}
+
       {/* Node list */}
       <div style={{ padding: '4px 0' }}>
-        {nodes.map(node => {
-          const isHovered = hoveredId === node.id;
-          const dims = node.dimensions?.slice(0, 3) || [];
-          const edgeCount = node.edge_count ?? 0;
-          const dateStr = node.event_date || node.updated_at || node.created_at;
-          const formattedDate = dateStr
-            ? (node.event_date ? formatAbsoluteDate(dateStr) : formatRelativeDate(dateStr))
-            : '';
-          const thumb = getYouTubeThumbnail(node.link);
-          const isMember = node.node_type === 'member';
-          const memberAvatar = isMember ? (node.metadata as any)?.avatar_url : null;
-
-          return (
-            <button
-              key={node.id}
-              onClick={() => onNodeClick(node.id)}
-              onMouseEnter={() => setHoveredId(node.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                gap: '12px',
-                padding: '12px 24px',
-                background: isHovered ? 'var(--bg-hover)' : 'transparent',
-                border: 'none',
-                borderBottom: '1px solid var(--bg-hover)',
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'background 0.12s ease',
-                alignItems: isMember ? 'center' : 'flex-start',
-              }}
-            >
-              {/* Thumbnail (podcasts) */}
-              {thumb && (
-                <img
-                  src={thumb}
-                  alt=""
-                  loading="lazy"
-                  style={{
-                    width: '96px',
-                    height: '54px',
-                    objectFit: 'cover',
-                    borderRadius: '4px',
-                    flexShrink: 0,
-                    background: 'var(--bg-elevated)',
-                    marginTop: '2px',
-                  }}
-                />
-              )}
-
-              {/* Avatar (members) */}
-              {isMember && (
-                memberAvatar ? (
-                  <img
-                    src={memberAvatar}
-                    alt=""
-                    loading="lazy"
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      objectFit: 'cover',
-                      borderRadius: '999px',
-                      flexShrink: 0,
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid #2f2f2f',
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '999px',
-                    flexShrink: 0,
-                    background: '#181818',
-                    border: '1px solid #2f2f2f',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--text-muted)',
-                    fontSize: '16px',
-                  }}>
-                    {node.title?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )
-              )}
-
-              {/* Text content */}
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {/* Title */}
-              <div style={{
-                fontSize: '13px',
-                fontWeight: 500,
-                color: isHovered ? 'var(--text-primary)' : '#e0e0e0',
-                lineHeight: 1.4,
-                transition: 'color 0.12s ease',
-              }}>
-                {node.title}
-              </div>
-
-              {/* Description */}
-              {node.description && (
-                <div style={{
-                  fontSize: '12px',
-                  color: 'var(--accent-dark)',
-                  lineHeight: 1.4,
-                  overflow: 'hidden',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                }}>
-                  {node.description}
-                </div>
-              )}
-
-              {/* Metadata row */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                flexWrap: 'wrap',
-                marginTop: '2px',
-              }}>
-                {/* Date */}
-                {formattedDate && (
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    {formattedDate}
-                  </span>
-                )}
-
-                {/* Edge count */}
-                {edgeCount > 0 && (
-                  <span style={{
-                    fontSize: '11px',
-                    color: 'var(--text-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '3px',
-                  }}>
-                    <span style={{ fontSize: '9px' }}>&#9679;</span>
-                    {edgeCount} edge{edgeCount !== 1 ? 's' : ''}
-                  </span>
-                )}
-
-                {/* Dimensions */}
-                {dims.length > 0 && (
-                  <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
-                    {dims.map(dim => (
-                      <span
-                        key={dim}
-                        style={{
-                          fontSize: '10px',
-                          color: 'var(--accent-dark)',
-                          background: 'var(--bg-elevated)',
-                          padding: '1px 6px',
-                          borderRadius: '3px',
-                          border: '1px solid var(--bg-elevated)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {dim}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              </div>{/* close text content wrapper */}
-            </button>
-          );
-        })}
+        {pastNodes.map(node => renderNodeRow(node, false))}
       </div>
     </div>
   );
+
+  function renderNodeRow(node: Node, isUpcoming: boolean) {
+    const isHovered = hoveredId === node.id;
+    const dims = node.dimensions?.slice(0, 3) || [];
+    const edgeCount = node.edge_count ?? 0;
+    const dateStr = node.event_date || node.updated_at || node.created_at;
+    const formattedDate = dateStr
+      ? (node.event_date ? formatAbsoluteDate(dateStr) : formatRelativeDate(dateStr))
+      : '';
+    const thumb = getYouTubeThumbnail(node.link);
+    const isMember = node.node_type === 'member';
+    const memberAvatar = isMember ? (node.metadata as any)?.avatar_url : null;
+    const meta = node.metadata as any;
+    const presenterName = isUpcoming ? meta?.presenter_name : null;
+
+    return (
+      <button
+        key={node.id}
+        onClick={() => onNodeClick(node.id)}
+        onMouseEnter={() => setHoveredId(node.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          gap: '12px',
+          padding: '12px 24px',
+          background: isHovered ? 'var(--bg-hover)' : (isUpcoming ? 'rgba(52, 211, 153, 0.04)' : 'transparent'),
+          border: 'none',
+          borderBottom: '1px solid var(--bg-hover)',
+          borderLeft: isUpcoming ? '2px solid #34d399' : '2px solid transparent',
+          color: 'var(--text-primary)',
+          cursor: 'pointer',
+          textAlign: 'left',
+          transition: 'background 0.12s ease',
+          alignItems: isMember ? 'center' : 'flex-start',
+        }}
+      >
+        {/* Thumbnail (podcasts) */}
+        {thumb && (
+          <img
+            src={thumb}
+            alt=""
+            loading="lazy"
+            style={{
+              width: '96px',
+              height: '54px',
+              objectFit: 'cover',
+              borderRadius: '4px',
+              flexShrink: 0,
+              background: 'var(--bg-elevated)',
+              marginTop: '2px',
+            }}
+          />
+        )}
+
+        {/* Avatar (members) */}
+        {isMember && (
+          memberAvatar ? (
+            <img
+              src={memberAvatar}
+              alt=""
+              loading="lazy"
+              style={{
+                width: '40px',
+                height: '40px',
+                objectFit: 'cover',
+                borderRadius: '999px',
+                flexShrink: 0,
+                background: 'var(--bg-elevated)',
+                border: '1px solid #2f2f2f',
+              }}
+            />
+          ) : (
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '999px',
+              flexShrink: 0,
+              background: '#181818',
+              border: '1px solid #2f2f2f',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-muted)',
+              fontSize: '16px',
+            }}>
+              {node.title?.charAt(0)?.toUpperCase() || '?'}
+            </div>
+          )
+        )}
+
+        {/* Text content */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {/* Title */}
+        <div style={{
+          fontSize: '13px',
+          fontWeight: 500,
+          color: isHovered ? 'var(--text-primary)' : '#e0e0e0',
+          lineHeight: 1.4,
+          transition: 'color 0.12s ease',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          {node.title}
+          {isUpcoming && (
+            <span style={{
+              fontSize: '9px',
+              fontWeight: 600,
+              color: '#34d399',
+              background: 'rgba(52, 211, 153, 0.12)',
+              border: '1px solid rgba(52, 211, 153, 0.25)',
+              padding: '1px 6px',
+              borderRadius: '3px',
+              flexShrink: 0,
+            }}>
+              Upcoming
+            </span>
+          )}
+        </div>
+
+        {/* Presenter (upcoming events) */}
+        {presenterName && (
+          <div style={{ fontSize: '12px', color: '#34d399', lineHeight: 1.4 }}>
+            Hosted by {presenterName}
+          </div>
+        )}
+
+        {/* Description */}
+        {node.description && (
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--accent-dark)',
+            lineHeight: 1.4,
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}>
+            {node.description}
+          </div>
+        )}
+
+        {/* Metadata row */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flexWrap: 'wrap',
+          marginTop: '2px',
+        }}>
+          {/* Date */}
+          {formattedDate && (
+            <span style={{ fontSize: '11px', color: isUpcoming ? '#34d399' : 'var(--text-muted)' }}>
+              {formattedDate}
+            </span>
+          )}
+
+          {/* Edge count */}
+          {edgeCount > 0 && (
+            <span style={{
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px',
+            }}>
+              <span style={{ fontSize: '9px' }}>&#9679;</span>
+              {edgeCount} edge{edgeCount !== 1 ? 's' : ''}
+            </span>
+          )}
+
+          {/* Dimensions */}
+          {dims.length > 0 && (
+            <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+              {dims.map(dim => (
+                <span
+                  key={dim}
+                  style={{
+                    fontSize: '10px',
+                    color: 'var(--accent-dark)',
+                    background: 'var(--bg-elevated)',
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                    border: '1px solid var(--bg-elevated)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {dim}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        </div>{/* close text content wrapper */}
+      </button>
+    );
+  }
 }
 
 // ─── Main Layout ─────────────────────────────────────────────────────────────

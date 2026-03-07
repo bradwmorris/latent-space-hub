@@ -36,6 +36,8 @@ export interface Node {
 
 // ─── Node Metadata Schemas (application-layer validation) ────────────────────
 
+export type EventStatus = 'scheduled' | 'completed' | 'cancelled' | 'recording';
+
 export interface ContentMetadata {
   source?: string;
   video_id?: string;
@@ -55,6 +57,7 @@ export interface ContentMetadata {
   format?: string;
   topic?: string;
   tools?: string[];
+  event_status?: EventStatus;
 }
 
 export interface GuestMetadata {
@@ -86,13 +89,14 @@ export interface HubMetadata {
   anchors_types?: string[];
 }
 
-export interface PaperClubEventMetadata {
+export interface ScheduledEventMetadata {
   event_status: 'scheduled' | 'completed' | 'cancelled';
   presenter_name: string;
   presenter_discord_id?: string;
   presenter_node_id?: number;
-  paper_url: string;
-  paper_title: string;
+  paper_url?: string;
+  paper_title?: string;
+  topic?: string;
   recording_node_id?: number | null;
   scheduled_at: string;
 }
@@ -114,8 +118,8 @@ export type NodeMetadataMap = {
   podcast: ContentMetadata;
   ainews: ContentMetadata;
   article: ContentMetadata;
-  'builders-club': ContentMetadata;
-  'paper-club': ContentMetadata | PaperClubEventMetadata;
+  'builders-club': ContentMetadata | ScheduledEventMetadata;
+  'paper-club': ContentMetadata | ScheduledEventMetadata;
   workshop: ContentMetadata;
   guest: GuestMetadata;
   entity: EntityMetadata;

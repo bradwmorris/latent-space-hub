@@ -110,7 +110,7 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                     {node.node_type}
                   </span>
                 )}
-                {node.node_type === 'paper-club' && node.metadata?.event_status === 'scheduled' && (
+                {(node.node_type === 'paper-club' || node.node_type === 'builders-club') && node.metadata?.event_status === 'scheduled' && (
                   <span style={{
                     padding: '1px 5px',
                     background: 'rgba(52, 211, 153, 0.12)',

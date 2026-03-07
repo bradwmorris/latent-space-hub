@@ -452,14 +452,14 @@
     },
     "paper-club-scheduling": {
       "id": "paper-club-scheduling",
-      "notes": "Members schedule Paper Club sessions via Discord /paper-club command. Creates a forward-looking event node. When cron ingests the recording later, it auto-links to the event node. Cross-repo: latent-space-hub (ingestion linking, UI) + latent-space-bots (slash command). Hub-side complete; bot slash command still needed.",
+      "notes": "Extended to cover both Paper Club and Builders Club. Event types, Upcoming/Past UI sections, recording auto-linking, backfill script. Hub-side complete; Discord slash commands still needed in latent-space-bots.",
       "prd": "docs/development/prd-32-paper-club-scheduling.md",
       "priority": "medium",
       "status": "review",
       "tasks": [
         {
           "done": true,
-          "text": "Step 1: Define event node metadata structure (event_status, presenter, paper_url)"
+          "text": "Step 1: Define event node metadata structure (event_status, presenter) for paper-club + builders-club"
         },
         {
           "done": false,
@@ -467,14 +467,18 @@
         },
         {
           "done": true,
-          "text": "Step 3: Show upcoming events in Paper Club category view"
+          "text": "Step 3: Show Upcoming/Past sections in Paper Club + Builders Club category views"
         },
         {
           "done": true,
-          "text": "Step 4: Auto-link recordings to event nodes in ingestion pipeline"
+          "text": "Step 4: Auto-link recordings to event nodes in ingestion pipeline (both types)"
+        },
+        {
+          "done": true,
+          "text": "Step 5: Backfill script to tag existing nodes as recordings"
         }
       ],
-      "title": "Paper Club scheduling \u2014 members schedule sessions, event nodes auto-link to recordings",
+      "title": "Paper Club + Builders Club scheduling \u2014 event nodes, Upcoming/Past UI, recording auto-link",
       "type": "feature"
     },
     "setup-handover": {

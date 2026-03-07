@@ -162,21 +162,21 @@ async function findCompanionNode(params: {
 }
 
 /**
- * When a Paper Club recording is ingested, find a matching scheduled event node
- * (within 3 days of the recording date) and link them.
+ * When a Paper Club or Builders Club recording is ingested, find a matching
+ * scheduled event node (within 3 days of the recording date) and link them.
  */
-async function linkRecordingToEvent(recordingNodeId: number, recordingDate?: string): Promise<void> {
+async function linkRecordingToEvent(recordingNodeId: number, nodeType: string, recordingDate?: string): Promise<void> {
   if (!recordingDate) return;
 
   const sqlite = getSQLiteClient();
   const result = await sqlite.query<{ id: number; metadata: string }>(
     `SELECT id, metadata FROM nodes
-     WHERE node_type = 'paper-club'
+     WHERE node_type = ?
        AND json_extract(metadata, '$.event_status') = 'scheduled'
        AND event_date BETWEEN date(?, '-3 days') AND date(?, '+3 days')
      ORDER BY ABS(julianday(event_date) - julianday(?))
      LIMIT 1`,
-    [recordingDate, recordingDate, recordingDate]
+    [nodeType, recordingDate, recordingDate, recordingDate]
   );
 
   if (result.rows.length === 0) return;
@@ -184,8 +184,10 @@ async function linkRecordingToEvent(recordingNodeId: number, recordingDate?: str
   const eventRow = result.rows[0];
   const eventId = Number(eventRow.id);
 
+  const label = nodeType === 'paper-club' ? 'Paper Club' : 'Builders Club';
+
   // Create edge: recording -> event
-  await ensureEdge(recordingNodeId, eventId, 'recording of scheduled Paper Club session');
+  await ensureEdge(recordingNodeId, eventId, `recording of scheduled ${label} session`);
 
   // Update event metadata: mark completed, store recording node ID
   let metadata: Record<string, unknown> = {};
@@ -200,7 +202,7 @@ async function linkRecordingToEvent(recordingNodeId: number, recordingDate?: str
     [JSON.stringify(metadata), eventId]
   );
 
-  console.log(`[ingestion] Linked Paper Club recording node ${recordingNodeId} -> event node ${eventId}`);
+  console.log(`[ingestion] Linked ${label} recording node ${recordingNodeId} -> event node ${eventId}`);
 }
 
 async function findOrCreateEntity(title: string, entityType: 'person' | 'organization' | 'topic'): Promise<number> {
@@ -569,6 +571,12 @@ export async function processDiscoveredItem(params: {
     const { nodeType, dimensions, metadataExtra } = targetNodeTypeAndDimensions(source, extracted.title);
     const description = buildDescription(extracted.title, extracted.chunk);
 
+    // Mark paper-club and builders-club recordings with event_status
+    const eventStatusExtra: Record<string, unknown> =
+      (nodeType === 'paper-club' || nodeType === 'builders-club')
+        ? { event_status: 'recording' }
+        : {};
+
     const node = await nodeService.createNode({
       title: extracted.title,
       node_type: nodeType,
@@ -581,18 +589,19 @@ export async function processDiscoveredItem(params: {
       metadata: {
         ...extracted.metadata,
         ...metadataExtra,
+        ...eventStatusExtra,
       },
     });
 
     const embeddingResult = await embedNodeContent(node.id);
     const chunksCreated = embeddingResult.chunk_embeddings.chunks_created || 0;
 
-    // Paper Club event linking: connect recordings to scheduled event nodes
-    if (nodeType === 'paper-club') {
+    // Event linking: connect recordings to scheduled event nodes (Paper Club + Builders Club)
+    if (nodeType === 'paper-club' || nodeType === 'builders-club') {
       try {
-        await linkRecordingToEvent(node.id, node.event_date || extracted.publishedAt);
+        await linkRecordingToEvent(node.id, nodeType, node.event_date || extracted.publishedAt);
       } catch (error) {
-        console.warn('[ingestion] Paper Club event linking failed; continuing', error);
+        console.warn(`[ingestion] ${nodeType} event linking failed; continuing`, error);
       }
     }
 
