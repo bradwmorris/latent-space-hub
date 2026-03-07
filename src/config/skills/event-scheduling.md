@@ -10,12 +10,45 @@ success_criteria: "Event node created with correct metadata, linked to member, c
 
 Paper Club and Builders Club sessions are scheduled via Discord slash commands. Each creates an `event` node in the knowledge graph.
 
+## Weekly Schedule
+
+| Event | Day | Time | Luma |
+|-------|-----|------|------|
+| Paper Club | Wednesday | 12:00–1:00pm PT | https://luma.com/ls |
+| Builders Club | Saturday 8am Sydney (Friday afternoon PT) | ~1–3pm PT Friday (varies with DST) | — |
+
+**Paper Club** runs every **Wednesday at 12pm Pacific**. One session per week — one paper, one presenter.
+
+**Builders Club** runs every **Saturday at 8am Sydney time**, which lands on **Friday afternoon Pacific**. The exact PT hour shifts with daylight saving:
+- Sydney AEDT + SF PST (Nov–Mar): Friday 1pm PT
+- Sydney AEDT + SF PDT (Mar–Apr): Friday 2pm PT
+- Sydney AEST + SF PDT (Apr–Oct): Friday 3pm PT
+
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
 | `/paper-club date:YYYY-MM-DD title:"Paper Title" [paper:URL]` | Schedule a Paper Club session |
 | `/builders-club date:YYYY-MM-DD topic:"Session Topic"` | Schedule a Builders Club session |
+
+## Validation Rules
+
+1. **Must be a member.** User must have run `/join` first. If not, reply: "You need to `/join` the graph first before scheduling events."
+2. **Date must be future.** Reject past dates with a clear message.
+3. **Date format.** Must be `YYYY-MM-DD`. Reject other formats.
+4. **Correct day of week.** Paper Club dates must fall on a Wednesday. Builders Club dates must fall on a Saturday (Sydney) / Friday (PT). Reject with: "Paper Club runs on Wednesdays" or "Builders Club runs on Fridays/Saturdays".
+5. **No double booking.** Before creating, query for an existing scheduled event on the same date and event_type. If one exists, reply: "That slot is already booked by [presenter]. Try a different week."
+
+### Double-booking check query
+```sql
+SELECT id, title, json_extract(metadata, '$.presenter_name') AS presenter
+FROM nodes
+WHERE node_type = 'event'
+  AND json_extract(metadata, '$.event_type') = '<event-type>'
+  AND json_extract(metadata, '$.event_status') = 'scheduled'
+  AND event_date = '<date>'
+LIMIT 1
+```
 
 ## Event Node Structure
 
@@ -32,16 +65,12 @@ Event nodes use `node_type: 'event'` with dimensions `['event', '<event-type>']`
 - `recording_node_id`: Filled automatically when the recording is ingested
 - `scheduled_at`: ISO timestamp of when the scheduling happened
 
-## Validation Rules
-
-1. **Must be a member.** User must have run `/join` first. If not, reply: "You need to `/join` the graph first before scheduling events."
-2. **Date must be future.** Reject past dates with a clear message.
-3. **Date format.** Must be `YYYY-MM-DD`. Reject other formats.
-
 ## Lifecycle
 
 ```
 Member runs /paper-club or /builders-club
+  → Check: is the date the correct day of week?
+  → Check: is the slot already booked?
   → Event node created (event_status: 'scheduled')
   → Edge: member → event ("hosting Paper Club session")
   → Confirmation reply with date, title, presenter
