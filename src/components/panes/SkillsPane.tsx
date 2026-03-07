@@ -10,7 +10,6 @@ import type { BasePaneProps } from './types';
 interface SkillMeta {
   name: string;
   description: string;
-  category: 'system' | 'guide' | 'user';
 }
 
 interface Skill extends SkillMeta {
@@ -67,10 +66,6 @@ export default function SkillsPane({
     setSelectedSkill(null);
   };
 
-  const guides = skills.filter(s => s.category === 'guide');
-  const systemSkills = skills.filter(s => s.category === 'system');
-  const userSkills = skills.filter(s => s.category === 'user');
-
   return (
     <div style={{
       height: '100%',
@@ -117,7 +112,7 @@ export default function SkillsPane({
               remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => (
-                  <h1 style={{ fontSize: '18px', fontWeight: 600, color: '#eee', margin: '0 0 16px 0' }}>{children}</h1>
+                  <h1 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px 0' }}>{children}</h1>
                 ),
                 h2: ({ children }) => (
                   <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: '20px 0 8px 0' }}>{children}</h2>
@@ -168,7 +163,7 @@ export default function SkillsPane({
                   <pre style={{ margin: '0 0 12px 0' }}>{children}</pre>
                 ),
                 strong: ({ children }) => (
-                  <strong style={{ color: '#eee', fontWeight: 600 }}>{children}</strong>
+                  <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>
                 ),
                 hr: () => (
                   <hr style={{ border: 'none', borderTop: '1px solid var(--border-default)', margin: '16px 0' }} />
@@ -187,48 +182,10 @@ export default function SkillsPane({
             </ReactMarkdown>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Guides section */}
-            {guides.length > 0 && (
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Guides
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {guides.map(skill => (
-                    <SkillButton key={skill.name} skill={skill} onClick={() => handleSelectSkill(skill.name)} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* System skills section */}
-            {systemSkills.length > 0 && (
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  System Skills
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {systemSkills.map(skill => (
-                    <SkillButton key={skill.name} skill={skill} onClick={() => handleSelectSkill(skill.name)} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* User skills section */}
-            {userSkills.length > 0 && (
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Custom Skills
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {userSkills.map(skill => (
-                    <SkillButton key={skill.name} skill={skill} onClick={() => handleSelectSkill(skill.name)} />
-                  ))}
-                </div>
-              </div>
-            )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {skills.map(skill => (
+              <SkillButton key={skill.name} skill={skill} onClick={() => handleSelectSkill(skill.name)} />
+            ))}
 
             {skills.length === 0 && (
               <div style={{ color: 'var(--accent-dark)', fontSize: '13px', textAlign: 'center', paddingTop: '24px' }}>

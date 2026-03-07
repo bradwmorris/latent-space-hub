@@ -59,7 +59,8 @@ Ask your agent:
 
 ## Tips
 
-- Start with `ls_get_context` to get an overview of the graph
+- Start with `ls_read_skill("start-here")` to understand the graph
+- Use `ls_get_context` to get live stats and top nodes
 - Use `ls_search_content` for deep searches through transcripts and articles
 - Use `ls_sqlite_query` for advanced filtering and aggregation
-- Read skills with `ls_read_skill("db-operations")` for graph operation policy
+- Read `ls_read_skill("db-operations")` for detailed graph operation policy

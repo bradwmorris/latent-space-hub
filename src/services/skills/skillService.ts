@@ -3,12 +3,9 @@ import path from 'path';
 import os from 'os';
 import matter from 'gray-matter';
 
-export type SkillCategory = 'system' | 'guide' | 'user';
-
 export interface SkillMeta {
   name: string;
   description: string;
-  category: SkillCategory;
 }
 
 export interface Skill extends SkillMeta {
@@ -17,14 +14,13 @@ export interface Skill extends SkillMeta {
 
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 
-const SYSTEM_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/system');
-const GUIDE_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/guides');
+const BUNDLED_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills');
 const USER_SKILLS_DIR = path.join(os.homedir(), '.latent-space-hub/skills');
 
 const MAX_USER_SKILLS = 10;
 
 const LEGACY_REDIRECTS: Record<string, string> = {
-  'start-here': 'db-operations',
+  'start-here': 'start-here',
   'schema': 'db-operations',
   'search': 'db-operations',
   'content-types': 'db-operations',
@@ -40,7 +36,7 @@ function ensureUserDir(): void {
   }
 }
 
-function readSkillsFromDir(dir: string, category: SkillCategory): Skill[] {
+function readSkillsFromDir(dir: string): Skill[] {
   if (!fs.existsSync(dir)) return [];
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
   return files.map(file => {
@@ -49,7 +45,6 @@ function readSkillsFromDir(dir: string, category: SkillCategory): Skill[] {
     return {
       name: data.name || file.replace('.md', ''),
       description: data.description || '',
-      category,
       content: content.trim(),
     };
   });
@@ -61,21 +56,20 @@ function resolveSkillName(name: string): string {
 }
 
 export function listSkills(): SkillMeta[] {
-  const system = readSkillsFromDir(SYSTEM_SKILLS_DIR, 'system');
-  const guides = readSkillsFromDir(GUIDE_SKILLS_DIR, 'guide');
+  const bundled = readSkillsFromDir(BUNDLED_SKILLS_DIR);
 
-  const skills: SkillMeta[] = [
-    ...system.map(s => ({ name: s.name, description: s.description, category: s.category })),
-    ...guides.map(s => ({ name: s.name, description: s.description, category: s.category })),
-  ];
+  const skills: SkillMeta[] = bundled.map(s => ({
+    name: s.name,
+    description: s.description,
+  }));
 
   if (!isReadOnly) {
     ensureUserDir();
-    const user = readSkillsFromDir(USER_SKILLS_DIR, 'user');
+    const user = readSkillsFromDir(USER_SKILLS_DIR);
     const bundledNames = new Set(skills.map(s => s.name.toLowerCase()));
     for (const s of user) {
       if (!bundledNames.has(s.name.toLowerCase())) {
-        skills.push({ name: s.name, description: s.description, category: s.category });
+        skills.push({ name: s.name, description: s.description });
       }
     }
   }
@@ -86,20 +80,15 @@ export function listSkills(): SkillMeta[] {
 export function readSkill(name: string): Skill | null {
   const resolved = resolveSkillName(name);
 
-  // Search system skills first
-  const system = readSkillsFromDir(SYSTEM_SKILLS_DIR, 'system');
-  const systemMatch = system.find(s => s.name.toLowerCase() === resolved);
-  if (systemMatch) return systemMatch;
-
-  // Then guide skills
-  const guides = readSkillsFromDir(GUIDE_SKILLS_DIR, 'guide');
-  const guideMatch = guides.find(s => s.name.toLowerCase() === resolved);
-  if (guideMatch) return guideMatch;
+  // Search bundled skills
+  const bundled = readSkillsFromDir(BUNDLED_SKILLS_DIR);
+  const bundledMatch = bundled.find(s => s.name.toLowerCase() === resolved);
+  if (bundledMatch) return bundledMatch;
 
   // Then user skills
   if (!isReadOnly) {
     ensureUserDir();
-    const user = readSkillsFromDir(USER_SKILLS_DIR, 'user');
+    const user = readSkillsFromDir(USER_SKILLS_DIR);
     const userMatch = user.find(s => s.name.toLowerCase() === resolved);
     if (userMatch) return userMatch;
   }

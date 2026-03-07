@@ -309,7 +309,7 @@ const handler = createMcpHandler(
         }
 
         const lines = skills.map(skill =>
-          `- ${skill.name} [${skill.category}]${skill.description ? ` — ${skill.description}` : ''}`
+          `- ${skill.name}${skill.description ? ` — ${skill.description}` : ''}`
         ).join('\n');
 
         return {

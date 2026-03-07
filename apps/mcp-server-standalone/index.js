@@ -13,7 +13,7 @@ const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio
 const APP_DIR = path.join(os.homedir(), '.latent-space-hub');
 const CONFIG_PATH = path.join(APP_DIR, 'config.json');
 const DEFAULT_SKILLS_DIR = path.join(APP_DIR, 'skills');
-const SYSTEM_SKILLS_DIR = path.join(__dirname, 'skills', 'system');
+const SYSTEM_SKILLS_DIR = path.join(__dirname, 'skills');
 
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
@@ -234,7 +234,7 @@ async function main() {
     { name: 'latent-space-hub-mcp', version: '0.1.0' },
     {
       instructions:
-        'Latent Space Hub MCP server. Search nodes before creating new ones. Create explicit edges with explanations.'
+        'Latent Space Hub MCP server. Call ls_read_skill("start-here") first for orientation. Search nodes before creating new ones. Create explicit edges with explanations.'
     }
   );
 
@@ -242,7 +242,7 @@ async function main() {
     'ls_get_context',
     {
       title: 'Get context',
-      description: 'Get knowledge base stats, top nodes, dimensions, and available skills.',
+      description: 'Get knowledge base stats, top nodes, dimensions, and available skills. For operational guidance, read the "start-here" skill.',
       inputSchema: {},
       outputSchema: {
         stats: z.record(z.number()),
