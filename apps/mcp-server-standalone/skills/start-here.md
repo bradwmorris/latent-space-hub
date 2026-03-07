@@ -23,9 +23,9 @@ You have access to the knowledge graph behind **Latent Space** — the AI engine
 **Entity nodes** (connection hubs, sort by edge count):
 - `guest` — People who appear in content
 - `entity` — Organizations, tools, topics, concepts
-- `member` — Community members (Discord)
+- `member` — Community members
 
-## How to interact
+## Answering questions about content
 
 **Start broad, drill deep:**
 
@@ -38,6 +38,26 @@ You have access to the knowledge graph behind **Latent Space** — the AI engine
 **Before writing:** always search first. Duplicates degrade the graph.
 
 **When citing:** name the source type naturally ("In a podcast episode...", "In last week's AINews...") and include the title, date, and URL.
+
+## Adding members to the graph
+
+When someone wants to join or be added as a member:
+
+```
+ls_add_node({
+  title: "Their Name",
+  description: "Brief bio — role, company, what they're interested in",
+  node_type: "member",
+  dimensions: ["community"],
+  metadata: {
+    role: "Engineer",
+    company: "Acme",
+    interests: ["agents", "RAG", "context engineering"]
+  }
+})
+```
+
+After creating the member node, create edges to topics they care about using `ls_create_edge`.
 
 ## Go deeper
 
