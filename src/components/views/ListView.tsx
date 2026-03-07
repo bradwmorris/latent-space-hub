@@ -110,6 +110,20 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                     {node.node_type}
                   </span>
                 )}
+                {node.node_type === 'paper-club' && node.metadata?.event_status === 'scheduled' && (
+                  <span style={{
+                    padding: '1px 5px',
+                    background: 'rgba(52, 211, 153, 0.12)',
+                    color: '#34d399',
+                    borderRadius: '3px',
+                    fontSize: '9px',
+                    fontWeight: 600,
+                    flexShrink: 0,
+                    border: '1px solid rgba(52, 211, 153, 0.25)'
+                  }}>
+                    Upcoming
+                  </span>
+                )}
                 <div style={{
                   fontSize: '13px',
                   fontWeight: 500,

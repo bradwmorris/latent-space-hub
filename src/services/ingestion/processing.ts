@@ -161,6 +161,48 @@ async function findCompanionNode(params: {
   return null;
 }
 
+/**
+ * When a Paper Club recording is ingested, find a matching scheduled event node
+ * (within 3 days of the recording date) and link them.
+ */
+async function linkRecordingToEvent(recordingNodeId: number, recordingDate?: string): Promise<void> {
+  if (!recordingDate) return;
+
+  const sqlite = getSQLiteClient();
+  const result = await sqlite.query<{ id: number; metadata: string }>(
+    `SELECT id, metadata FROM nodes
+     WHERE node_type = 'paper-club'
+       AND json_extract(metadata, '$.event_status') = 'scheduled'
+       AND event_date BETWEEN date(?, '-3 days') AND date(?, '+3 days')
+     ORDER BY ABS(julianday(event_date) - julianday(?))
+     LIMIT 1`,
+    [recordingDate, recordingDate, recordingDate]
+  );
+
+  if (result.rows.length === 0) return;
+
+  const eventRow = result.rows[0];
+  const eventId = Number(eventRow.id);
+
+  // Create edge: recording -> event
+  await ensureEdge(recordingNodeId, eventId, 'recording of scheduled Paper Club session');
+
+  // Update event metadata: mark completed, store recording node ID
+  let metadata: Record<string, unknown> = {};
+  try {
+    metadata = JSON.parse(eventRow.metadata);
+  } catch { /* use empty */ }
+  metadata.event_status = 'completed';
+  metadata.recording_node_id = recordingNodeId;
+
+  await sqlite.query(
+    'UPDATE nodes SET metadata = ?, updated_at = datetime() WHERE id = ?',
+    [JSON.stringify(metadata), eventId]
+  );
+
+  console.log(`[ingestion] Linked Paper Club recording node ${recordingNodeId} -> event node ${eventId}`);
+}
+
 async function findOrCreateEntity(title: string, entityType: 'person' | 'organization' | 'topic'): Promise<number> {
   const normalized = cleanEntity(title);
   if (!normalized) {
@@ -544,6 +586,15 @@ export async function processDiscoveredItem(params: {
 
     const embeddingResult = await embedNodeContent(node.id);
     const chunksCreated = embeddingResult.chunk_embeddings.chunks_created || 0;
+
+    // Paper Club event linking: connect recordings to scheduled event nodes
+    if (nodeType === 'paper-club') {
+      try {
+        await linkRecordingToEvent(node.id, node.event_date || extracted.publishedAt);
+      } catch (error) {
+        console.warn('[ingestion] Paper Club event linking failed; continuing', error);
+      }
+    }
 
     // Companion detection for podcast/article pairs
     let hasCompanion = false;

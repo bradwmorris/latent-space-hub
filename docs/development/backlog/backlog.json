@@ -452,13 +452,13 @@
     },
     "paper-club-scheduling": {
       "id": "paper-club-scheduling",
-      "notes": "Members schedule Paper Club sessions via Discord /paper-club command. Creates a forward-looking event node. When cron ingests the recording later, it auto-links to the event node. Cross-repo: latent-space-hub (ingestion linking, UI) + latent-space-bots (slash command).",
+      "notes": "Members schedule Paper Club sessions via Discord /paper-club command. Creates a forward-looking event node. When cron ingests the recording later, it auto-links to the event node. Cross-repo: latent-space-hub (ingestion linking, UI) + latent-space-bots (slash command). Hub-side complete; bot slash command still needed.",
       "prd": "docs/development/prd-32-paper-club-scheduling.md",
       "priority": "medium",
-      "status": "ready",
+      "status": "review",
       "tasks": [
         {
-          "done": false,
+          "done": true,
           "text": "Step 1: Define event node metadata structure (event_status, presenter, paper_url)"
         },
         {
@@ -466,11 +466,11 @@
           "text": "Step 2: Add /paper-club Discord slash command in latent-space-bots"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Step 3: Show upcoming events in Paper Club category view"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Step 4: Auto-link recordings to event nodes in ingestion pipeline"
         }
       ],

@@ -86,6 +86,17 @@ export interface HubMetadata {
   anchors_types?: string[];
 }
 
+export interface PaperClubEventMetadata {
+  event_status: 'scheduled' | 'completed' | 'cancelled';
+  presenter_name: string;
+  presenter_discord_id?: string;
+  presenter_node_id?: number;
+  paper_url: string;
+  paper_title: string;
+  recording_node_id?: number | null;
+  scheduled_at: string;
+}
+
 export interface MemberMetadata {
   discord_id: string;
   discord_handle: string;
@@ -104,7 +115,7 @@ export type NodeMetadataMap = {
   ainews: ContentMetadata;
   article: ContentMetadata;
   'builders-club': ContentMetadata;
-  'paper-club': ContentMetadata;
+  'paper-club': ContentMetadata | PaperClubEventMetadata;
   workshop: ContentMetadata;
   guest: GuestMetadata;
   entity: EntityMetadata;
