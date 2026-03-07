@@ -130,7 +130,7 @@
       "title": "Data refinement & hygiene \u2014 type migration, descriptions/notes, dates, edge cleanup"
     }
   ],
-  "lastUpdated": "2026-03-07",
+  "lastUpdated": "2026-03-08",
   "projects": {
     "builders-club-prep": {
       "id": "builders-club-prep",
@@ -491,6 +491,45 @@
       "title": "Event nodes \u2014 first-class events in sidebar, linked to recordings, Upcoming/Past UI",
       "type": "feature"
     },
+    "slop-system-message-overhaul": {
+      "id": "slop-system-message-overhaul",
+      "notes": "System message is 8k chars with duplicated tool info, redundant hardcoded lines, and sloppy skill integration. Audit soul file, eliminate duplication, define clear contract (soul vs skills vs tool defs), clean up skill loading, add size budget test, verify end-to-end. All changes in latent-space-bots repo.",
+      "prd": "docs/development/prd-33-slop-system-message-overhaul.md",
+      "priority": "high",
+      "status": "ready",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Audit and slim soul file — remove tool docs and member awareness, target ~3,500 chars"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Eliminate hardcoded grounding/style lines from generateAgenticResponse and generateResponse"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Document system message contract (what goes where, size budgets)"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Clean up skill system — delete dead guides/, move ls_read_skill intercept, validate loading"
+        },
+        {
+          "done": false,
+          "text": "Step 5: Review and improve each skill frontmatter and body"
+        },
+        {
+          "done": false,
+          "text": "Step 6: Add size budget test assertions"
+        },
+        {
+          "done": false,
+          "text": "Step 7: End-to-end test — 6 scenarios covering events, search, profiles, scheduling, greetings"
+        }
+      ],
+      "title": "Slop system message & skills overhaul \u2014 audit, slim down, define contract, test end-to-end",
+      "type": "feature"
+    },
     "setup-handover": {
       "id": "setup-handover",
       "notes": "No code. Owner does 3 tasks (invite bot, create webhooks, test channel), then Brad tests and switches to live.",
@@ -602,6 +641,7 @@
     }
   },
   "queue": [
+    "slop-system-message-overhaul",
     "graph-bot-polish",
     "evals-dashboard",
     "member-nodes",
