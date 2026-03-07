@@ -294,11 +294,23 @@ export { listSkills as listGuides, readSkill as readGuide, writeSkill as writeGu
 - [x] **MCP standalone skills flattened** — `skills/system/` → `skills/` with `start-here.md` added
 - [x] NPM republish required for Discord bot to see new skills
 
+### Phase 3 (guide removal)
+
+- [x] **Removed all backward-compatible guide aliases** — deleted 4 redundant tools (ls_list_guides, ls_read_guide, ls_write_guide, ls_delete_guide) from both MCP standalone server and HTTP transport route
+- [x] **Deleted all guide artifacts** — `src/config/guides/`, `src/services/guides/`, `src/tools/guides/`, `app/api/guides/`, `apps/mcp-server-standalone/guides/`
+- [x] **Renamed events** — `GUIDE_UPDATED` → `SKILL_UPDATED` in events.ts, writeSkill.ts, deleteSkill.ts, ThreePanelLayout.tsx; `guides:updated` → `skills:updated` in SkillsPane.tsx
+- [x] **Updated all docs** — architecture.md, interfaces.md, deployment.md, agents.md, handover/setup.md, CLAUDE.md, src/config/docs/interfaces.md (user-facing)
+- [x] **Updated MCP standalone** — package.json files field `guides/system` → `skills`, README tool list updated
+- [x] **CSS class rename** — `guide-content` → `skill-content` in SkillsPane
+- [x] Type-check passes, build passes
+
 ---
 ## COMPLETED
 **Date:** 2026-03-07
 **What was delivered:**
 
-**Phase 1:** Full guides-to-skills migration. Created skill service layer, 2 operational skills (db-operations consolidating 5 MCP guides, curation), 5 refined user-facing guides. MCP standalone and HTTP servers updated with ls_list_skills/ls_read_skill tools plus backward-compatible ls_list_guides/ls_read_guide aliases. Guide service converted to stub.
+**Phase 1:** Full guides-to-skills migration. Created skill service layer, 2 operational skills (db-operations consolidating 5 MCP guides, curation), 5 refined user-facing guides. MCP standalone and HTTP servers updated with ls_list_skills/ls_read_skill tools plus backward-compatible guide aliases. Guide service converted to stub.
 
-**Phase 2:** Removed all skill categories — no more system/guide/user distinction, just "skills". Created `start-here` orientation skill covering the two primary agent use cases (answering content questions, adding members). Added Skills and Evals as views in the left sidebar. Removed entire settings panel (2,862 lines deleted). Made EvalsClient theme-aware. MCP server instructions updated to reference start-here. NPM package needs republishing for Discord bot.
+**Phase 2:** Removed all skill categories — no more system/guide/user distinction, just "skills". Created `start-here` orientation skill covering the two primary agent use cases (answering content questions, adding members). Added Skills and Evals as views in the left sidebar. Removed entire settings panel (2,862 lines deleted). Made EvalsClient theme-aware. MCP server instructions updated to reference start-here.
+
+**Phase 3:** Complete guide elimination. Removed all 4 backward-compatible guide alias tools, deleted all guide directories/services/routes/tools, renamed events and CSS classes, updated all documentation. Zero references to "guides" remain in active code or docs (only in archive/ and natural English prose). NPM package needs republishing (version bump from 0.2.0).
