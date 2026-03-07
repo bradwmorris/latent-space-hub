@@ -1,5 +1,10 @@
 /**
- * Backfill event_status: 'recording' for existing paper-club and builders-club nodes.
+ * Backfill: Create event nodes for existing paper-club and builders-club recordings.
+ *
+ * For each existing paper-club or builders-club node:
+ * 1. Create a new 'event' node with event_type and event_status: 'completed'
+ * 2. Link the recording node to the event node
+ * 3. Tag the recording node metadata with event_status: 'recording'
  *
  * Run: npx tsx scripts/backfill-event-status.ts [--dry-run]
  */
@@ -19,42 +24,81 @@ const dryRun = process.argv.includes('--dry-run');
 async function main() {
   const db = createClient({ url: TURSO_URL, authToken: TURSO_TOKEN });
 
-  // Find all paper-club and builders-club nodes that don't have event_status set
+  // Find all paper-club and builders-club recording nodes
   const result = await db.execute({
-    sql: `SELECT id, node_type, title, metadata FROM nodes
+    sql: `SELECT id, node_type, title, event_date, metadata, dimensions FROM nodes
           WHERE node_type IN ('paper-club', 'builders-club')
-          AND (json_extract(metadata, '$.event_status') IS NULL)`,
+          ORDER BY event_date DESC`,
     args: [],
   });
 
-  console.log(`Found ${result.rows.length} nodes to backfill`);
+  console.log(`Found ${result.rows.length} recording nodes to process`);
 
   if (dryRun) {
     for (const row of result.rows) {
-      console.log(`  [dry-run] Would update node ${row.id}: ${row.title}`);
+      console.log(`  [dry-run] ${row.node_type} #${row.id}: ${row.title}`);
     }
+    console.log(`\nDry run complete. Would create ${result.rows.length} event nodes.`);
     return;
   }
 
-  let updated = 0;
+  let created = 0;
   for (const row of result.rows) {
-    let metadata: Record<string, unknown> = {};
+    const recordingId = row.id as number;
+    const nodeType = row.node_type as string;
+    const title = row.title as string;
+    const eventDate = row.event_date as string | null;
+    const label = nodeType === 'paper-club' ? 'Paper Club' : 'Builders Club';
+
+    // 1. Tag the recording node with event_status: 'recording'
+    let recordingMeta: Record<string, unknown> = {};
     try {
-      metadata = JSON.parse(row.metadata as string);
-    } catch {
-      // no existing metadata
-    }
-    metadata.event_status = 'recording';
+      recordingMeta = JSON.parse(row.metadata as string);
+    } catch { /* empty */ }
+    recordingMeta.event_status = 'recording';
 
     await db.execute({
       sql: 'UPDATE nodes SET metadata = ?, updated_at = datetime() WHERE id = ?',
-      args: [JSON.stringify(metadata), row.id as number],
+      args: [JSON.stringify(recordingMeta), recordingId],
     });
-    updated++;
-    console.log(`  Updated node ${row.id}: ${row.title}`);
+
+    // 2. Create the event node
+    const eventMeta = JSON.stringify({
+      event_status: 'completed',
+      event_type: nodeType,
+      recording_node_id: recordingId,
+    });
+
+    const dims = JSON.stringify(['event', nodeType]);
+
+    const insertResult = await db.execute({
+      sql: `INSERT INTO nodes (title, node_type, description, event_date, dimensions, metadata, created_at, updated_at)
+            VALUES (?, 'event', ?, ?, ?, ?, datetime(), datetime())`,
+      args: [title, `${label} session`, eventDate, dims, eventMeta],
+    });
+
+    const eventNodeId = Number(insertResult.lastInsertRowid);
+
+    // 3. Create edge: recording -> event
+    const edgeContext = JSON.stringify({
+      type: 'source_of',
+      confidence: 1,
+      inferred_at: new Date().toISOString(),
+      explanation: `recording of ${label} session`,
+      created_via: 'workflow',
+    });
+
+    await db.execute({
+      sql: `INSERT INTO edges (from_node_id, to_node_id, context, source, created_at)
+            VALUES (?, ?, ?, 'ai_similarity', datetime())`,
+      args: [recordingId, eventNodeId, edgeContext],
+    });
+
+    created++;
+    console.log(`  Created event #${eventNodeId} for ${nodeType} recording #${recordingId}: ${title}`);
   }
 
-  console.log(`Done. Updated ${updated} nodes.`);
+  console.log(`\nDone. Created ${created} event nodes and edges.`);
 }
 
 main().catch(console.error);

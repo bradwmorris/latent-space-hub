@@ -10,6 +10,7 @@ export type NodeType =
   | 'workshop'
   | 'ainews'
   | 'hub'
+  | 'event'        // Scheduled or completed community events (Paper Club, Builders Club)
   | 'member';     // Structural anchor + community member profiles
 
 export interface Node {
@@ -89,16 +90,17 @@ export interface HubMetadata {
   anchors_types?: string[];
 }
 
-export interface ScheduledEventMetadata {
-  event_status: 'scheduled' | 'completed' | 'cancelled';
-  presenter_name: string;
+export interface EventMetadata {
+  event_status: EventStatus;
+  event_type: 'paper-club' | 'builders-club';
+  presenter_name?: string;
   presenter_discord_id?: string;
   presenter_node_id?: number;
   paper_url?: string;
   paper_title?: string;
   topic?: string;
   recording_node_id?: number | null;
-  scheduled_at: string;
+  scheduled_at?: string;
 }
 
 export interface MemberMetadata {
@@ -118,12 +120,13 @@ export type NodeMetadataMap = {
   podcast: ContentMetadata;
   ainews: ContentMetadata;
   article: ContentMetadata;
-  'builders-club': ContentMetadata | ScheduledEventMetadata;
-  'paper-club': ContentMetadata | ScheduledEventMetadata;
+  'builders-club': ContentMetadata;
+  'paper-club': ContentMetadata;
   workshop: ContentMetadata;
   guest: GuestMetadata;
   entity: EntityMetadata;
   hub: HubMetadata;
+  event: EventMetadata;
   member: MemberMetadata;
 };
 

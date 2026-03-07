@@ -176,27 +176,30 @@ POST endpoint that creates the event node. Would need auth (member must be logge
 **Date:** 2026-03-07
 **What was delivered:**
 
-### Types & metadata
-- Added `EventStatus` type (`'scheduled' | 'completed' | 'cancelled' | 'recording'`)
-- Added `event_status` to `ContentMetadata` for recording nodes
-- Added `ScheduledEventMetadata` (shared for paper-club + builders-club scheduled events)
-- Updated `NodeMetadataMap` for both `paper-club` and `builders-club`
+### New `event` node type
+- Added `'event'` to `NodeType` — first-class events in the knowledge graph
+- Added `EventMetadata` interface (`event_status`, `event_type`, presenter info, `recording_node_id`)
+- Events are separate from recordings — each recording (paper-club/builders-club) gets a linked event node
+- Added to sidebar as "Events" category with CalendarDays icon
 
-### UI — Upcoming / Past sections
-- `TypeNodeList` (main type view) splits paper-club and builders-club into **Upcoming** and **Past** sections
-- Upcoming events: green left border, "Upcoming" badge, presenter name, green date
-- Past recordings: standard display
-- `ListView` (feed view): green "Upcoming" badge for both types
+### UI — Upcoming / Past sections in Events view
+- `TypeNodeList` splits events into **Upcoming** (scheduled, green highlight) and **Past** (completed) sections
+- Event rows show event_type badge (Paper Club = purple, Builders Club = amber)
+- Upcoming events: green left border, "Upcoming" badge, presenter name
+- `ListView` (feed view): green "Upcoming" badge for event nodes
 
 ### Ingestion pipeline
-- New recordings auto-tagged with `event_status: 'recording'` in metadata
-- `linkRecordingToEvent()` auto-links recordings to scheduled events (3-day window match)
-- Works for both paper-club and builders-club
+- Recording nodes tagged with `event_status: 'recording'` in metadata
+- `linkRecordingToEvent()` searches for matching scheduled `event` nodes (3-day window)
+- If no scheduled event found, auto-creates a completed event node and links it
+- Works for both paper-club and builders-club recordings
 
-### Backfill
-- Script: `npx tsx scripts/backfill-event-status.ts` tags existing nodes as recordings
+### Backfill script
+- `npx tsx scripts/backfill-event-status.ts` — creates event nodes for all existing recordings
+- Tags existing paper-club/builders-club nodes with `event_status: 'recording'`
+- Creates edge from recording to event node
 - Supports `--dry-run` flag
 
 **Remaining (latent-space-bots repo):**
-- Step 2: `/paper-club` Discord slash command
-- Step 2 (future): `/builders-club` Discord slash command
+- `/paper-club` Discord slash command (creates scheduled event node)
+- `/builders-club` Discord slash command (creates scheduled event node)

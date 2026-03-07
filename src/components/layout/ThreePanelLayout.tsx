@@ -86,8 +86,8 @@ function TypeNodeList({
     );
   }
 
-  // For paper-club and builders-club, split into upcoming events and past recordings
-  const hasEventSections = selectedType === 'paper-club' || selectedType === 'builders-club';
+  // For event type, split into upcoming and past
+  const hasEventSections = selectedType === 'event';
   const upcomingNodes = hasEventSections
     ? nodes.filter(n => {
         const status = (n.metadata as any)?.event_status;
@@ -157,7 +157,7 @@ function TypeNodeList({
         </span>
       </div>
 
-      {/* Upcoming events section (paper-club / builders-club only) */}
+      {/* Upcoming events section (event type only) */}
       {hasEventSections && upcomingNodes.length > 0 && (
         <>
           {renderSectionHeader('Upcoming', upcomingNodes.length)}
@@ -189,7 +189,9 @@ function TypeNodeList({
     const isMember = node.node_type === 'member';
     const memberAvatar = isMember ? (node.metadata as any)?.avatar_url : null;
     const meta = node.metadata as any;
-    const presenterName = isUpcoming ? meta?.presenter_name : null;
+    const isEvent = node.node_type === 'event';
+    const eventType = isEvent ? meta?.event_type : null; // 'paper-club' or 'builders-club'
+    const presenterName = meta?.presenter_name || null;
 
     return (
       <button
@@ -281,6 +283,20 @@ function TypeNodeList({
           gap: '8px',
         }}>
           {node.title}
+          {eventType && (
+            <span style={{
+              fontSize: '9px',
+              fontWeight: 500,
+              color: eventType === 'paper-club' ? '#818cf8' : '#f59e0b',
+              background: eventType === 'paper-club' ? 'rgba(129, 140, 248, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+              border: `1px solid ${eventType === 'paper-club' ? 'rgba(129, 140, 248, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+              padding: '1px 6px',
+              borderRadius: '3px',
+              flexShrink: 0,
+            }}>
+              {eventType === 'paper-club' ? 'Paper Club' : 'Builders Club'}
+            </span>
+          )}
           {isUpcoming && (
             <span style={{
               fontSize: '9px',
@@ -297,9 +313,9 @@ function TypeNodeList({
           )}
         </div>
 
-        {/* Presenter (upcoming events) */}
+        {/* Presenter */}
         {presenterName && (
-          <div style={{ fontSize: '12px', color: '#34d399', lineHeight: 1.4 }}>
+          <div style={{ fontSize: '12px', color: isUpcoming ? '#34d399' : 'var(--accent-dark)', lineHeight: 1.4 }}>
             Hosted by {presenterName}
           </div>
         )}
