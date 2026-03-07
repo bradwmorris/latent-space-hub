@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { nodeService, edgeService, searchService } from '@/services/database';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
 import { listGuides, readGuide } from '@/services/guides/guideService';
+import { listSkills, readSkill } from '@/services/skills/skillService';
 
 const ALLOW_WRITES = process.env.MCP_ALLOW_WRITES === 'true';
 const MCP_SHARED_SECRET = process.env.MCP_SHARED_SECRET?.trim();
@@ -293,18 +294,65 @@ const handler = createMcpHandler(
       }
     );
 
-    // ls_list_guides - List available guides
+    // ls_list_skills
+    server.registerTool(
+      'ls_list_skills',
+      {
+        title: 'List Latent Space skills',
+        description: 'List available skills and guides for exploring the Latent Space hub.',
+        inputSchema: {},
+      },
+      async () => {
+        const skills = listSkills();
+        if (skills.length === 0) {
+          return { content: [{ type: 'text' as const, text: 'No skills available.' }] };
+        }
+
+        const lines = skills.map(skill =>
+          `- ${skill.name} [${skill.category}]${skill.description ? ` — ${skill.description}` : ''}`
+        ).join('\n');
+
+        return {
+          content: [{ type: 'text' as const, text: `Available skills (${skills.length}):\n\n${lines}` }],
+        };
+      }
+    );
+
+    // ls_read_skill
+    server.registerTool(
+      'ls_read_skill',
+      {
+        title: 'Read a Latent Space skill',
+        description: 'Load the full text of a skill by name.',
+        inputSchema: {
+          name: z.string().min(1).max(120).describe('Skill name (case-insensitive)'),
+        },
+      },
+      async ({ name }) => {
+        const skill = readSkill(name.trim());
+        if (!skill) {
+          return { content: [{ type: 'text' as const, text: `Skill not found: ${name}` }] };
+        }
+
+        const header = `# ${skill.name}\n\n${skill.description ? `${skill.description}\n\n` : ''}`;
+        return {
+          content: [{ type: 'text' as const, text: `${header}${skill.content}` }],
+        };
+      }
+    );
+
+    // ls_list_guides (backward-compatible alias)
     server.registerTool(
       'ls_list_guides',
       {
-        title: 'List Latent Space guides',
-        description: 'List available reading guides for exploring the Latent Space hub.',
+        title: 'List Latent Space guides (alias)',
+        description: 'Alias for ls_list_skills. List available skills and guides.',
         inputSchema: {},
       },
       async () => {
         const guides = listGuides();
         if (guides.length === 0) {
-          return { content: [{ type: 'text', text: 'No guides available.' }] };
+          return { content: [{ type: 'text' as const, text: 'No guides available.' }] };
         }
 
         const lines = guides.map(guide =>
@@ -312,30 +360,30 @@ const handler = createMcpHandler(
         ).join('\n');
 
         return {
-          content: [{ type: 'text', text: `Available guides (${guides.length}):\n\n${lines}` }],
+          content: [{ type: 'text' as const, text: `Available guides (${guides.length}):\n\n${lines}` }],
         };
       }
     );
 
-    // ls_read_guide - Read a guide by name
+    // ls_read_guide (backward-compatible alias)
     server.registerTool(
       'ls_read_guide',
       {
-        title: 'Read a Latent Space guide',
-        description: 'Load the full text of a guide by name.',
+        title: 'Read a Latent Space guide (alias)',
+        description: 'Alias for ls_read_skill. Load the full text of a skill by name.',
         inputSchema: {
-          name: z.string().min(1).max(120).describe('Guide name (case-insensitive)'),
+          name: z.string().min(1).max(120).describe('Guide/skill name (case-insensitive)'),
         },
       },
       async ({ name }) => {
         const guide = readGuide(name.trim());
         if (!guide) {
-          return { content: [{ type: 'text', text: `Guide not found: ${name}` }] };
+          return { content: [{ type: 'text' as const, text: `Guide not found: ${name}` }] };
         }
 
         const header = `# ${guide.name}\n\n${guide.description ? `${guide.description}\n\n` : ''}`;
         return {
-          content: [{ type: 'text', text: `${header}${guide.content}` }],
+          content: [{ type: 'text' as const, text: `${header}${guide.content}` }],
         };
       }
     );

@@ -39,7 +39,7 @@ src/
   components/           — React UI components
     layout/             — ThreePanelLayout, LeftTypePanel, MainViewSwitcher
     dashboard/          — Dashboard with stats + category cards
-    panes/              — MapPane, NodePane, GuidesPane, DimensionsPane
+    panes/              — MapPane, NodePane, SkillsPane, DimensionsPane
     focus/              — FocusPanel (tabbed node editor), SourceReader
   services/
     database/           — Turso client, node/edge/chunk services
@@ -50,7 +50,7 @@ src/
   config/
     categories.ts       — 8-category taxonomy config
     prompts/            — Agent system prompts
-    guides/             — Built-in markdown guides (public-facing)
+    skills/             — Skills (system/ + guides/) — agent & user-facing
   types/
     database.ts         — Core TypeScript definitions
 apps/
@@ -91,14 +91,18 @@ git add . && git commit -m "feat: description"
 
 ### Backlog
 
-**File:** `docs/development/backlog.json`
+**File:** `docs/development/backlog/backlog.json`
+
+**Backlog UI:** `cd docs/development/backlog/ui && source venv/bin/activate && python server.py` → http://localhost:5561
 
 Queue of projects in priority order. Each project has:
-- `status`: `ready` → `in_progress` → `review` → `completed`
+- `status`: `prd` → `ready` → `in_progress` → `review` → `completed`
 - `prd`: path to the PRD file with implementation details
 - `tasks`: checklist of individual items
 
 PRDs are in `docs/development/` — they are the spec. Read the PRD before coding.
+
+**PRD template:** `docs/development/backlog/prd-template.md`
 
 ## Origin
 

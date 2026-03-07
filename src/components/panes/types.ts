@@ -1,7 +1,7 @@
 import React from 'react';
 import { Node } from '@/types/database';
 
-// Stub type for delegation (delegation system removed in rah-light)
+// Stub type for delegation (delegation system not used)
 export type AgentDelegation = {
   id: number;
   sessionId: string;
@@ -14,8 +14,8 @@ export type AgentDelegation = {
   updatedAt: string;
 };
 
-// The five pane types (chat removed in rah-light)
-export type PaneType = 'node' | 'guides' | 'dimensions' | 'map' | 'views';
+// The five pane types
+export type PaneType = 'node' | 'skills' | 'dimensions' | 'map' | 'views';
 
 // State for each slot
 export interface SlotState {
@@ -66,9 +66,9 @@ export interface HighlightedPassage {
   selectedText: string;
 }
 
-// ChatPaneProps removed in rah-light
+// ChatPaneProps not used
 
-// GuidesPaneProps - just uses BasePaneProps (guides are self-contained)
+// SkillsPaneProps - just uses BasePaneProps (skills are self-contained)
 
 // DimensionsPane specific props
 export interface DimensionsPaneProps extends BasePaneProps {
@@ -103,7 +103,7 @@ export interface PaneHeaderProps {
 // Labels for pane types
 export const PANE_LABELS: Record<PaneType, string> = {
   node: 'Nodes',
-  guides: 'Guides',
+  skills: 'Skills',
   dimensions: 'Dimensions',
   map: 'Map',
   views: 'Feed',
@@ -117,5 +117,5 @@ export const DEFAULT_SLOT_A: SlotState = {
 };
 
 export const DEFAULT_SLOT_B: SlotState = {
-  type: 'guides',
+  type: 'skills',
 };
