@@ -108,7 +108,6 @@ latent-space-hub/
 │   │   │   └── KanbanView         Kanban board
 │   │   ├── agents/                QuickAdd input UI
 │   │   ├── nodes/                 Search modal
-│   │   ├── settings/              Settings modal (logs, tools, keys, DB)
 │   │   ├── common/                Shared components (chips, dialogs)
 │   │   └── helpers/               Markdown renderer, node tokens
 │   │

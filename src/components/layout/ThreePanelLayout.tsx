@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import SettingsModal, { SettingsTab } from '../settings/SettingsModal';
+import SkillsPane from '../panes/SkillsPane';
 import SearchModal from '../nodes/SearchModal';
 import { Node } from '@/types/database';
 import { DatabaseEvent } from '@/services/events';
@@ -311,13 +311,7 @@ export default function ThreePanelLayout() {
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<number | null>(null);
 
-  // Settings modal state
-  const [showSettings, setShowSettings] = useState(false);
-  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTab>();
-  const handleCloseSettings = useCallback(() => {
-    setShowSettings(false);
-    setSettingsInitialTab(undefined);
-  }, []);
+  // Settings modal removed — no longer needed
 
   // Search modal state
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -348,7 +342,7 @@ export default function ThreePanelLayout() {
         setShowSearchModal(true);
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
-        if (document.activeElement?.closest('[data-rah-app]')) {
+        if (document.activeElement?.closest('[data-ls-app]')) {
           e.preventDefault();
           setShowAddStuff(true);
         }
@@ -560,6 +554,14 @@ export default function ThreePanelLayout() {
           />
         );
 
+      case 'skills':
+        return (
+          <SkillsPane
+            slot="A"
+            isActive={true}
+          />
+        );
+
       default:
         return null;
     }
@@ -568,7 +570,7 @@ export default function ThreePanelLayout() {
   return (
     <div
       ref={containerRef}
-      data-rah-app
+      data-ls-app
       style={{
         display: 'flex',
         height: '100vh',
@@ -596,10 +598,6 @@ export default function ThreePanelLayout() {
         onNodeSelect={handleNodeSelect}
         onSearchClick={() => setShowSearchModal(true)}
         onAddClick={() => setShowAddStuff(true)}
-        onSettingsClick={() => {
-          setSettingsInitialTab(undefined);
-          setShowSettings(true);
-        }}
       />
 
       {/* Main Workspace */}
@@ -641,15 +639,6 @@ export default function ThreePanelLayout() {
         onNodeSelect={handleSearchNodeSelect}
         existingFilters={[]}
       />
-
-      {/* Settings Modal */}
-      {!isReadOnly && (
-        <SettingsModal
-          isOpen={showSettings}
-          onClose={handleCloseSettings}
-          initialTab={settingsInitialTab}
-        />
-      )}
 
       {/* Add Stuff Modal */}
       {!isReadOnly && (
