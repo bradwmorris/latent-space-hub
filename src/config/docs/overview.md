@@ -47,11 +47,12 @@ Four cloud services, no self-hosted infrastructure.
 
 | Metric | Count |
 |--------|-------|
-| Total nodes | ~3,900 |
-| Content nodes | ~515 (podcasts, articles, AINews, workshops, paper clubs, builders clubs) |
-| People & entity nodes | ~3,360 (guests, organizations, topics) |
-| Edges | ~7,500 |
-| Chunks with embeddings | ~35,800 |
+| Total nodes | ~4,100+ |
+| Content nodes | ~530 (podcasts, articles, AINews, workshops, paper clubs, builders clubs) |
+| People & entity nodes | ~3,400 (guests, organizations, topics) |
+| Event nodes | ~50 (scheduled paper club and builders club sessions) |
+| Edges | ~8,100 |
+| Chunks with embeddings | ~36,000 |
 | Coverage | June 2023 → present, continuously updated |
 
 # Tech Stack

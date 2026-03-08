@@ -223,3 +223,22 @@ Review and update all 5 doc pages in `src/config/docs/`:
 ---
 
 **When complete:** Add `## COMPLETED` header with date and summary.
+
+---
+
+## COMPLETED
+**Date:** 2026-03-08
+**What was delivered:**
+
+1. **Theme system overhaul** — System preference is now the default. `prefers-color-scheme` media query auto-detects. Flash-of-wrong-theme prevented by inline script in `<head>`.
+2. **Typography system** — Added Inter as proportional body font (`--font-body`). Mono remains for UI chrome (`--font-mono`). Body text in descriptions, notes, docs, list/grid views uses Inter at 14-15px with 1.6 line-height.
+3. **Light mode fixes** — Improved all light mode CSS tokens: `--text-primary` darkened to `#111`, `--bg-surface` increased contrast to `#f0f0f0`, borders strengthened, added `--card-shadow` for card definition.
+4. **Docs page overhaul** — Full readability fix: all text uses CSS variables (no hardcoded colors), proper heading hierarchy, visible table borders, styled code blocks with borders, theme toggle added to docs header, sidebar active state with brand accent.
+5. **Dashboard** — Added "Recently Added" section showing 6 latest content nodes. Stat pills and category cards now have visible borders and box-shadow in light mode. Stats line under ASCII header uses `--text-secondary` for better contrast.
+6. **MainViewSwitcher** — Added Events tab with CalendarDays icon. Active tab now shows brand accent bottom border. Tab/breadcrumb hierarchy improved.
+7. **ListView & GridView** — Descriptions use body font. Consistent border-radius (4px/8px). Type badges use brand accent colors. Cards have subtle shadows in light mode.
+8. **Focus Panel** — Default tab changed from Notes → Description. Tab order: Description | Notes | Source. Tab active indicator uses `--accent-brand`. Tab labels use `--text-muted` for inactive.
+9. **Events Calendar** — New `EventsCalendarPane` component with month grid, color-coded events (green=upcoming, purple=paper-club, amber=builders-club, grey=completed/cancelled), today indicator, prev/next/today navigation. No external dependency — pure React.
+10. **Map pane** — Already had light mode styles in `map-styles.css` (background `#f8f8f8`, expanded node styling). CSS variables ensure proper contrast in both modes.
+11. **KanbanView** — Column headers updated to `font-family: var(--font-mono)`.
+12. **Docs content** — Updated overview stats, added Event node type to database docs, removed HTTP transport option from interfaces docs.

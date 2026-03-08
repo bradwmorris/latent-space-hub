@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import SkillsPane from '../panes/SkillsPane';
+import EventsCalendarPane from '../panes/EventsCalendarPane';
 import EvalsClient from '@/app/evals/EvalsClient';
 import SearchModal from '../nodes/SearchModal';
 import { Node } from '@/types/database';
@@ -660,6 +661,13 @@ export default function ThreePanelLayout() {
             isActive={true}
             onNodeClick={handleNodeSelect}
             activeTabId={activeTab}
+          />
+        );
+
+      case 'events':
+        return (
+          <EventsCalendarPane
+            onNodeClick={handleNodeSelect}
           />
         );
 

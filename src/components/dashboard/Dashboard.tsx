@@ -11,6 +11,7 @@ interface PreviewItem {
   date?: string;
   edge_count?: number;
   link?: string;
+  node_type?: string;
 }
 
 interface CategoryData {
@@ -24,6 +25,14 @@ interface TypeCount {
   key: string;
   label: string;
   count: number;
+}
+
+interface RecentNode {
+  id: number;
+  title: string;
+  node_type: string;
+  event_date?: string;
+  created_at: string;
 }
 
 interface DashboardData {
@@ -44,6 +53,7 @@ interface DashboardProps {
 
 export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [recentNodes, setRecentNodes] = useState<RecentNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
@@ -57,6 +67,15 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
       })
       .catch(err => console.error('Failed to fetch dashboard:', err))
       .finally(() => setLoading(false));
+
+    // Fetch recent content nodes
+    const contentTypes = ['podcast', 'article', 'ainews', 'latentspacetv', 'paper-club', 'builders-club'];
+    fetch(`/api/nodes?type=${contentTypes.join(',')}&limit=6&sortBy=created_at`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) setRecentNodes(res.data);
+      })
+      .catch(err => console.error('Failed to fetch recent nodes:', err));
   }, []);
 
   if (loading) {
@@ -161,12 +180,13 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                   gap: '10px',
                   padding: '10px 14px',
                   background: isActive ? 'var(--bg-elevated)' : 'var(--bg-hover)',
-                  border: `1px solid ${isActive ? 'var(--accent-brand-muted)' : 'var(--bg-elevated)'}`,
+                  border: `1px solid ${isActive ? 'var(--accent-brand-muted)' : 'var(--border-subtle)'}`,
                   borderRadius: '8px',
                   cursor: 'pointer',
                   transition: 'all 0.12s ease',
                   color: 'inherit',
                   textAlign: 'left',
+                  boxShadow: 'var(--card-shadow)',
                 }}
                 aria-label={`${tc.label}: ${tc.count}`}
               >
@@ -191,6 +211,88 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
           })}
         </div>
       </div>
+
+      {/* Recently added */}
+      {recentNodes.length > 0 && (
+        <div>
+          <div style={{
+            fontSize: '11px',
+            fontWeight: 600,
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            marginBottom: '12px',
+            fontFamily: 'var(--font-mono)',
+          }}>
+            Recently Added
+          </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+          }}>
+            {recentNodes.map((node) => {
+              const isItemHovered = hoveredNode === node.id;
+              const dateStr = node.event_date || node.created_at;
+              const date = dateStr ? new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+              return (
+                <button
+                  key={node.id}
+                  onClick={() => onNodeClick(node.id)}
+                  onMouseEnter={() => setHoveredNode(node.id)}
+                  onMouseLeave={() => setHoveredNode(null)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 8px',
+                    background: isItemHovered ? 'var(--bg-hover)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    transition: 'background 0.1s',
+                    width: '100%',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span style={{
+                    fontSize: '9px',
+                    fontWeight: 500,
+                    color: 'var(--accent-brand)',
+                    background: 'var(--accent-brand-subtle)',
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    flexShrink: 0,
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    {node.node_type}
+                  </span>
+                  <span style={{
+                    flex: 1,
+                    fontSize: '13px',
+                    color: isItemHovered ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    transition: 'color 0.1s',
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    {node.title}
+                  </span>
+                  <span style={{
+                    fontSize: '11px',
+                    color: 'var(--text-muted)',
+                    flexShrink: 0,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>
+                    {date}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Section divider */}
       <div style={{
@@ -227,11 +329,12 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
               style={{
                 background: isHovered ? 'var(--bg-elevated)' : 'var(--bg-hover)',
                 borderRadius: '8px',
-                border: '1px solid var(--bg-elevated)',
+                border: `1px solid ${isHovered ? 'var(--border-default)' : 'var(--border-subtle)'}`,
                 padding: '16px',
-                transition: 'background 0.12s ease',
+                transition: 'all 0.12s ease',
                 overflow: 'hidden',
                 minWidth: 0,
+                boxShadow: 'var(--card-shadow)',
               }}
             >
               {/* Card header with tree prefix */}

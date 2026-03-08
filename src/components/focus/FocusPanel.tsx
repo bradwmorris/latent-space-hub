@@ -264,8 +264,8 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
   // Description regeneration state
   const [regeneratingDescription, setRegeneratingDescription] = useState<number | null>(null);
 
-  // Content tab state: 'notes', 'desc', or 'source'
-  const [activeContentTab, setActiveContentTab] = useState<'notes' | 'desc' | 'source'>('notes');
+  // Content tab state: 'desc', 'notes', or 'source' — description first
+  const [activeContentTab, setActiveContentTab] = useState<'notes' | 'desc' | 'source'>('desc');
 
   // Desc (description) edit mode state
   const [descEditMode, setDescEditMode] = useState(false);
@@ -2299,15 +2299,32 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                 borderBottom: '1px solid var(--bg-elevated)'
               }}>
                 <button
+                  onClick={() => { setActiveContentTab('desc'); setNotesEditMode(false); setSourceEditMode(false); }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '11px',
+                    fontWeight: activeContentTab === 'desc' ? 600 : 400,
+                    color: activeContentTab === 'desc' ? 'var(--text-primary)' : 'var(--text-muted)',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: activeContentTab === 'desc' ? '2px solid var(--accent-brand)' : '2px solid transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    marginBottom: '-1px'
+                  }}
+                >
+                  Description
+                </button>
+                <button
                   onClick={() => { setActiveContentTab('notes'); setDescEditMode(false); setSourceEditMode(false); }}
                   style={{
                     padding: '8px 16px',
                     fontSize: '11px',
                     fontWeight: activeContentTab === 'notes' ? 600 : 400,
-                    color: activeContentTab === 'notes' ? 'var(--text-primary)' : 'var(--accent-dark)',
+                    color: activeContentTab === 'notes' ? 'var(--text-primary)' : 'var(--text-muted)',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: activeContentTab === 'notes' ? '2px solid var(--text-primary)' : '2px solid transparent',
+                    borderBottom: activeContentTab === 'notes' ? '2px solid var(--accent-brand)' : '2px solid transparent',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     marginBottom: '-1px'
@@ -2316,32 +2333,15 @@ export default function FocusPanel({ openTabs, activeTab, onTabSelect, onNodeCli
                   Notes
                 </button>
                 <button
-                  onClick={() => { setActiveContentTab('desc'); setNotesEditMode(false); setSourceEditMode(false); }}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '11px',
-                    fontWeight: activeContentTab === 'desc' ? 600 : 400,
-                    color: activeContentTab === 'desc' ? 'var(--text-primary)' : 'var(--accent-dark)',
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: activeContentTab === 'desc' ? '2px solid var(--text-primary)' : '2px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    marginBottom: '-1px'
-                  }}
-                >
-                  Desc
-                </button>
-                <button
                   onClick={() => { setActiveContentTab('source'); setDescEditMode(false); setNotesEditMode(false); }}
                   style={{
                     padding: '8px 16px',
                     fontSize: '11px',
                     fontWeight: activeContentTab === 'source' ? 600 : 400,
-                    color: activeContentTab === 'source' ? 'var(--text-primary)' : 'var(--accent-dark)',
+                    color: activeContentTab === 'source' ? 'var(--text-primary)' : 'var(--text-muted)',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: activeContentTab === 'source' ? '2px solid var(--text-primary)' : '2px solid transparent',
+                    borderBottom: activeContentTab === 'source' ? '2px solid var(--accent-brand)' : '2px solid transparent',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     marginBottom: '-1px'
