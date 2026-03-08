@@ -1,6 +1,6 @@
 ---
 title: Interfaces
-description: Four surfaces for interacting with the knowledge graph — web app, MCP server, Discord bot, and announcements webhook.
+description: Four surfaces for interacting with the wiki-base — web app, MCP server, Discord bot, and announcements webhook.
 ---
 
 # Web App
@@ -52,7 +52,7 @@ Fixed left panel with all 8 categories (icon + count badge), Quick Add input at 
 
 # MCP Server
 
-The knowledge graph is accessible to any MCP-compatible AI agent via the [Model Context Protocol](https://modelcontextprotocol.io/). Published to NPM as `latent-space-hub-mcp`.
+The wiki-base is accessible to any MCP-compatible AI agent via the [Model Context Protocol](https://modelcontextprotocol.io/). Published to NPM as `latent-space-hub-mcp`.
 
 ## Quick Start
 
@@ -147,7 +147,7 @@ Turso cloud SQLite
 
 ![Slop](/images/docs/slop-avatar.png)
 
-Slop is the community bot. Searches the knowledge graph, answers questions with source links, remembers members, and schedules community events.
+Slop is the community bot. Searches the wiki-base, answers questions with source links, remembers members, and schedules community events.
 
 | | |
 |---|---|
@@ -171,7 +171,7 @@ Mention @Slop in any allowed channel. Slop creates a thread, searches the graph 
 
 ## Member System
 
-`/join` creates a member node in the knowledge graph. Slop then remembers your role, company, interests, and interaction preferences across conversations. Each interaction creates edges linking you to the content you discuss.
+`/join` creates a member node in the wiki-base. Slop then remembers your role, company, interests, and interaction preferences across conversations. Each interaction creates edges linking you to the content you discuss.
 
 ## Full Documentation
 
@@ -199,4 +199,4 @@ The webhook uses a shared identity ("Latent Space Hub") with configurable avatar
 | Webhook | Posts to `DISCORD_YAP_WEBHOOK_URL` | Fallback when bot kickoff isn't configured |
 | Bot API (preferred) | Calls `DISCORD_BOT_KICKOFF_URL` | Slop gets full agentic tool access to discuss the content |
 
-The bot API mode is preferred because Slop searches the knowledge graph with its own tools and produces a richer, more contextual opening post.
+The bot API mode is preferred because Slop searches the wiki-base with its own tools and produces a richer, more contextual opening post.

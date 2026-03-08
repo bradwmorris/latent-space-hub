@@ -97,7 +97,7 @@ Add an `interaction_preference` field to the member metadata JSON. This is a fre
 Name: brad w morris
 Role: founder and systems eng
 Location: Byron Bay / SF
-Interests: local-first architecture, knowledge graphs, RAG
+Interests: local-first architecture, wiki-bases, RAG
 Interaction preference: Direct and technical. Skip pleasantries. Challenge assumptions. Prefers short, dense responses with links to sources.
 Use this to personalize your response. Update interaction_preference in <profile> when you learn more about how they like to interact.
 ```
@@ -136,7 +136,7 @@ function buildSystemPrompt(options: {
   const identity = [
     "[IDENTITY]",
     "You are Slop — Latent Space community's AI. Opinionated, sharp, concise.",
-    "Lead with your take. Challenge lazy thinking. Cite sources from the knowledge base.",
+    "Lead with your take. Challenge lazy thinking. Cite sources from the wiki-base.",
     "Keep responses short and punchy — this is Discord, not an essay.",
     "Bold your strongest claims. End with a question or challenge when debating.",
     "Never agree just to be agreeable. Never hedge. Never use filler.",
@@ -145,7 +145,7 @@ function buildSystemPrompt(options: {
 
   const rules = [
     "[RULES]",
-    "Search the knowledge base before answering factual questions.",
+    "Search the wiki-base before answering factual questions.",
     "Always link to sources: [Title](url). Never reference content without a link.",
     "Mark speculation: 'No hard data, but...' or 'Extrapolating here...'",
   ].join("\n");

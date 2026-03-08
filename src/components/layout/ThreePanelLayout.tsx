@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import SkillsPane from '../panes/SkillsPane';
 import EventsCalendarPane from '../panes/EventsCalendarPane';
 import EvalsClient from '@/app/evals/EvalsClient';
 import SearchModal from '../nodes/SearchModal';
@@ -754,14 +753,6 @@ export default function ThreePanelLayout() {
           />
         );
 
-      case 'skills':
-        return (
-          <SkillsPane
-            slot="A"
-            isActive={true}
-          />
-        );
-
       case 'evals':
         return <EvalsClient />;
 
@@ -809,11 +800,7 @@ export default function ThreePanelLayout() {
           }
         }}
         onSkillsClick={() => {
-          setActiveView('skills');
-          if (showingFocusedNode) {
-            setActiveTab(null);
-            setFocusedNodeId(null);
-          }
+          window.location.assign('/docs/skills/start-here');
         }}
       />
 

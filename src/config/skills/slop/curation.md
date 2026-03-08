@@ -1,14 +1,15 @@
 ---
 name: Curation
-description: "Content quality standards, entity extraction rules, and deduplication policy."
-when_to_use: "When creating or refining nodes, edges, or dimensions."
-when_not_to_use: "Read-only queries or pure search."
-success_criteria: "Graph quality improves — no duplicates, clear descriptions, proper typing."
+skill_group: slop
+description: "Slop-specific curation policy for graph writes triggered by Discord workflows."
+when_to_use: "When Slop writes or refines nodes, edges, or dimensions after Discord interactions."
+when_not_to_use: "Read-only retrieval with no write intent."
+success_criteria: "Discord-driven graph updates stay clean: no duplicates, clear descriptions, correct metadata."
 ---
 
 # Curation
 
-Standards for maintaining quality in the Latent Space knowledge graph.
+Quality standards for **Slop** write paths in the Latent Space wiki-base.
 
 ## Deduplication Policy
 

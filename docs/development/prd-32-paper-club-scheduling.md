@@ -177,7 +177,7 @@ POST endpoint that creates the event node. Would need auth (member must be logge
 **What was delivered:**
 
 ### New `event` node type
-- Added `'event'` to `NodeType` — first-class events in the knowledge graph
+- Added `'event'` to `NodeType` — first-class events in the wiki-base
 - Added `EventMetadata` interface (`event_status`, `event_type`, presenter info, `recording_node_id`)
 - Events are separate from recordings — each recording (paper-club/builders-club) gets a linked event node
 - Added to sidebar as "Events" category with CalendarDays icon
@@ -212,7 +212,7 @@ POST endpoint that creates the event node. Would need auth (member must be logge
 - `McpGraphClient.createEventNode()` — creates event with full metadata
 
 ### Event scheduling skill (hub + bots)
-- **Hub**: `src/config/skills/event-scheduling.md` — full skill with weekly schedule, validation rules, lifecycle, SQL queries
+- **Hub**: `src/config/skills/slop/event-scheduling.md` — full skill with weekly schedule, validation rules, lifecycle, SQL queries
 - **Hub standalone MCP**: `apps/mcp-server-standalone/skills/event-scheduling.md` — copy for npm package
 - **Bots**: `skills/event-scheduling.md` — bot-local skill with frontmatter + body
 - Paper Club: Wednesdays 12–1pm PT (confirmed via Luma)

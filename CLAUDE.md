@@ -1,6 +1,6 @@
 # Latent Space Hub
 
-Knowledge base for the Latent Space community. Built on the RA-H foundation, deployed as its own product.
+LS Wiki-Base for the Latent Space community. Built on the RA-H foundation, deployed as its own product.
 
 **This is NOT a demo. This is the product.**
 

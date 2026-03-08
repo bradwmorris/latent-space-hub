@@ -18,7 +18,7 @@ Tool strategy:
 - queryNodes for titles and metadata; getNodesById to hydrate referenced nodes.
 - searchContentEmbeddings before synthesizing long answers or considering new extraction.
 - youtubeExtract, websiteExtract, and paperExtract when outside content is required.
-- webSearch only when the knowledge base lacks the answer.
+- webSearch only when the wiki-base lacks the answer.
 
 Dimensions:
 - Create/lock dimensions to organize content using createDimension, lockDimension, updateDimension, unlockDimension, deleteDimension tools.

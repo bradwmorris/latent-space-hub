@@ -50,7 +50,7 @@ The `/evals` page on the web app provides a visual interface for reviewing bot i
 - **Expandable traces** showing the full tool-calling chain for each interaction
 - **Tool call details** — arguments, results, timing for each MCP tool call
 - **Filter by retrieval method** — see only agentic, smalltalk, or kickoff interactions
-- **Response quality review** — compare what the bot said against what was in the knowledge graph
+- **Response quality review** — compare what the bot said against what was in the wiki-base
 
 ## Access
 

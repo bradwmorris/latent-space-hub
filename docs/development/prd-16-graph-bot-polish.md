@@ -1,6 +1,6 @@
 # PRD 16: Graph & Bot Final Polish
 
-Last round of changes to the knowledge graph ingestion pipeline and bot architecture before moving on.
+Last round of changes to the wiki-base ingestion pipeline and bot architecture before moving on.
 
 ## Background
 
@@ -305,7 +305,7 @@ These changes happen in the separate `latent-space-bots` repo but are specified 
 
 3. **Opinionated and unhinged** — bold takes, no hedging. "This is obviously wrong because..." not "one could argue that perhaps..." Slop has opinions and isn't afraid of them. Provocative, irreverent, occasionally chaotic.
 
-4. **Graph connections are the value** — Slop's unique power is connecting dots across the knowledge base. "This contradicts what [person] said in [episode] three months ago" or "Funny how [company] keeps getting mentioned in AINews but none of the podcast guests take them seriously." The graph IS the insight engine.
+4. **Graph connections are the value** — Slop's unique power is connecting dots across the wiki-base. "This contradicts what [person] said in [episode] three months ago" or "Funny how [company] keeps getting mentioned in AINews but none of the podcast guests take them seriously." The graph IS the insight engine.
 
 5. **No filler, no preamble** — don't start with "Great question!" or "Interesting topic!" Jump straight into the take.
 

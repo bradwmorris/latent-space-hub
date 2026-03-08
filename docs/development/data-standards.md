@@ -8,7 +8,7 @@
 ## Design Principles
 
 1. **AI-first** — Every field is written so an LLM can read it and immediately understand what this node IS and why it matters.
-2. **LS-centric** — Node types map to Latent Space offerings. This is the LS knowledge base, not a general AI wiki.
+2. **LS-centric** — Node types map to Latent Space offerings. This is the LS Wiki-Base, not a general AI wiki.
 3. **Dense, not verbose** — Descriptions are 1-2 sentences. Notes are bullet points. No filler ("This is a video discussing...").
 4. **Opinionated** — Notes capture the actual takes and insights, not neutral summaries.
 

@@ -1,6 +1,6 @@
 # Latent Space Hub
 
-Knowledge base for the [Latent Space](https://www.latent.space/) community. Podcasts, articles, AI news, conference talks, papers — searchable via semantic vector search and connected in a knowledge graph.
+LS Wiki-Base for the [Latent Space](https://www.latent.space/) community. Podcasts, articles, AI news, conference talks, papers — searchable via semantic vector search and connected in a wiki-base.
 
 Built on the [RA-H](https://github.com/bradwmorris/ra-h_os) foundation, deployed as its own product.
 
@@ -53,6 +53,10 @@ docs/                   System documentation
 docs/development/       Dev workflow, backlog, PRDs
 ```
 
+## Agent Entrypoint
+
+For agent context and ordered skill loading, start at [AGENTS.md](./AGENTS.md).
+
 ## Commands
 
 | Command | Description |
@@ -78,7 +82,7 @@ Connect Claude Code or any MCP-compatible assistant:
 
 ## Want to Self-Host Your Own?
 
-This repo is the Latent Space community knowledge base. If you want to run your own local-first knowledge graph with a private SQLite database, use the open-source version: [RA-H Open Source](https://github.com/bradwmorris/ra-h_os).
+This repo is the Latent Space community wiki-base. If you want to run your own local-first wiki-base with a private SQLite database, use the open-source version: [RA-H Open Source](https://github.com/bradwmorris/ra-h_os).
 
 ## Contributing
 

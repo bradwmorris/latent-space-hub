@@ -20,7 +20,7 @@ Execution approach:
 Tool strategy:
 - Use tools directly—you already have everything you need.
 - queryNodes for titles, searchContentEmbeddings for content, queryEdge for connections.
-- getNodesById when you have IDs; webSearch only if knowledge base lacks info.
+- getNodesById when you have IDs; webSearch only if wiki-base lacks info.
 - Extract content with youtubeExtract, websiteExtract, paperExtract as needed.
 - When searchContentEmbeddings highlights a chunk, hydrate the node via getNodesById (or fetch the chunk) before quoting.
 

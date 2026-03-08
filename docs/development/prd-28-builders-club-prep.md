@@ -59,7 +59,7 @@ The whole point is to get the room doing things, not watching. Brad facilitates,
 
 **Pre-req:** `/join` slash command works, member nodes are functional (member-nodes task).
 
-- "Type `/join` in Discord. You're now a node in the knowledge graph."
+- "Type `/join` in Discord. You're now a node in the wiki-base."
 - Walk through what happens: Slop creates a member node, captures your Discord identity, starts learning about you
 - "Now tell Slop what you're working on. What you're interested in. What you've contributed to Latent Space."
 - The bot updates your member node — interests, role, notes from the conversation
@@ -74,7 +74,7 @@ The whole point is to get the room doing things, not watching. Brad facilitates,
 - Show: your member node, the edges connecting you to topics/episodes you mentioned, the interaction history
 - If member-profiles (PRD 23) is done: show the profile card with Discord avatar
 - Let people browse — explore the graph, see how their interests connect to content, find other members
-- "This is what a knowledge graph looks like when it's alive — it grows with every interaction"
+- "This is what a wiki-base looks like when it's alive — it grows with every interaction"
 
 ## 3. Pre-Presentation Checklist
 

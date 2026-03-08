@@ -10,6 +10,8 @@ import type { BasePaneProps } from './types';
 interface SkillMeta {
   name: string;
   description: string;
+  skillGroup: 'slop' | 'agent';
+  fileName: string;
 }
 
 interface Skill extends SkillMeta {
@@ -27,6 +29,8 @@ export default function SkillsPane({
   const [skills, setSkills] = useState<SkillMeta[]>([]);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [loading, setLoading] = useState(true);
+  const slopSkills = skills.filter((skill) => skill.skillGroup === 'slop');
+  const agentSkills = skills.filter((skill) => skill.skillGroup === 'agent');
 
   useEffect(() => {
     fetchSkills();
@@ -95,7 +99,7 @@ export default function SkillsPane({
               <ArrowLeft size={16} />
             </button>
             <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
-              {selectedSkill.name}
+              {selectedSkill.fileName}
             </span>
           </div>
         )}
@@ -183,8 +187,18 @@ export default function SkillsPane({
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {skills.map(skill => (
-              <SkillButton key={skill.name} skill={skill} onClick={() => handleSelectSkill(skill.name)} />
+            {slopSkills.length > 0 && (
+              <SectionLabel label="Slop Skills" />
+            )}
+            {slopSkills.map(skill => (
+              <SkillButton key={skill.fileName} skill={skill} onClick={() => handleSelectSkill(skill.fileName)} />
+            ))}
+
+            {agentSkills.length > 0 && (
+              <SectionLabel label="Agent Skills" />
+            )}
+            {agentSkills.map(skill => (
+              <SkillButton key={skill.fileName} skill={skill} onClick={() => handleSelectSkill(skill.fileName)} />
             ))}
 
             {skills.length === 0 && (
@@ -225,11 +239,27 @@ function SkillButton({ skill, onClick }: { skill: SkillMeta; onClick: () => void
       }}
     >
       <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
-        {skill.name}
+        {skill.fileName}
       </span>
       <span style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: '1.4' }}>
         {skill.description}
       </span>
     </button>
+  );
+}
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div style={{
+      marginTop: '10px',
+      marginBottom: '4px',
+      color: 'var(--text-muted)',
+      fontSize: '11px',
+      fontWeight: 600,
+      letterSpacing: '0.06em',
+      textTransform: 'uppercase',
+    }}>
+      {label}
+    </div>
   );
 }

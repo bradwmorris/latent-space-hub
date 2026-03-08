@@ -1,10 +1,12 @@
-# Agent Context — Latent Space Hub
+# Agent Deep Reference — Latent Space Hub
 
-Universal context for any AI agent working on this repo.
+Deep reference for agent work in this repo.
+
+Start with [`AGENTS.md`](../../../AGENTS.md) first. This file is the long-form companion for durable implementation details and learnings.
 
 ## What This Is
 
-Knowledge base for the Latent Space community (podcasts, articles, AI news, conference talks, papers). Deployed on Vercel as a standalone product.
+LS Wiki-Base for the Latent Space community (podcasts, articles, AI news, conference talks, papers). Deployed on Vercel as a standalone product.
 
 ## Architecture
 
@@ -30,7 +32,7 @@ Turso cloud SQLite. NOT a local file. NOT better-sqlite3.
 - **API routes:** Next.js App Router in `app/api/`
 - **Tools:** MCP tools in `src/tools/`, registered in MCP server
 - **Prompts:** Agent system prompts in `src/config/prompts/`
-- **Skills:** Built-in skills in `src/config/skills/`
+- **Skills:** Built-in skills in `src/config/skills/slop/` and `src/config/skills/agents/`
 
 ## Testing
 

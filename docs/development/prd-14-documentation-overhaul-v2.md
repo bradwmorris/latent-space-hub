@@ -47,7 +47,7 @@ An AI engineer who follows Latent Space. They listen to the podcast, read the Su
 
 ### What Do They Need to Know?
 
-**One core message:** The Latent Space Hub is a knowledge graph of everything Latent Space has ever produced — every podcast episode, article, AI News digest, conference talk, paper club, builders club session — structured, connected, and searchable. There are three ways to use it.
+**One core message:** The Latent Space Hub is a wiki-base of everything Latent Space has ever produced — every podcast episode, article, AI News digest, conference talk, paper club, builders club session — structured, connected, and searchable. There are three ways to use it.
 
 ### Content Plan
 
@@ -60,7 +60,7 @@ The docs should be a single published page (or a small set of pages) at `/docs`.
 The hook. Why should someone care?
 
 **Key points:**
-- A knowledge graph of the entire Latent Space universe
+- A wiki-base of the entire Latent Space universe
 - Every podcast, article, AINews digest, conference talk, paper club, builders club — structured and connected
 - Not a static archive — a living graph where content is connected by who appeared, what topics were covered, which ideas contradict or build on each other
 - Automatically updated — new content is ingested within an hour of publication
@@ -100,7 +100,7 @@ Brief explanation of what each category contains:
 
 #### Section 3: Talk to Slop in Discord
 
-Slop is an AI bot in the Latent Space Discord with full access to the knowledge graph.
+Slop is an AI bot in the Latent Space Discord with full access to the wiki-base.
 
 **What Slop does:**
 - Answers questions about anything covered in Latent Space content
@@ -111,7 +111,7 @@ Slop is an AI bot in the Latent Space Discord with full access to the knowledge 
 
 **How to use Slop:**
 - `/ask` — Ask a question. Slop searches the graph and responds.
-- `/search` — Search the knowledge base directly.
+- `/search` — Search the wiki-base directly.
 - `/episode` — Find specific episodes by topic or guest.
 - `/debate` — Get Slop to argue both sides of a topic.
 - Or just @ mention Slop in any channel.
@@ -120,13 +120,13 @@ Slop is an AI bot in the Latent Space Discord with full access to the knowledge 
 When new content drops (a new podcast episode, article, or AINews digest), Slop automatically kicks off a discussion in #yap. It digs into the graph, surfaces the most interesting connections and insights, and links back to the source. Community jumps in from there.
 
 **Slop's personality:**
-Slop is not a polite assistant. It's opinionated, provocative, and occasionally unhinged — but always grounded in the knowledge base. It exists to spark discussion, not to give safe answers.
+Slop is not a polite assistant. It's opinionated, provocative, and occasionally unhinged — but always grounded in the wiki-base. It exists to spark discussion, not to give safe answers.
 
 ---
 
 #### Section 4: Connect Your AI Agent (MCP)
 
-Plug your AI agent directly into the knowledge graph via Model Context Protocol.
+Plug your AI agent directly into the wiki-base via Model Context Protocol.
 
 **Works with:** Claude Code, Cursor, Windsurf, or any MCP-compatible agent.
 

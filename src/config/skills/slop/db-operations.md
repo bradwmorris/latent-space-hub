@@ -1,14 +1,15 @@
 ---
 name: DB Operations
-description: "Core graph read/write policy for the Latent Space knowledge graph."
-when_to_use: "Any graph read/write operation via MCP tools."
-when_not_to_use: "Pure conversation with no graph interaction."
-success_criteria: "Writes are explicit, deduplicated, and correctly structured."
+skill_group: slop
+description: "Slop-specific graph read/write policy for Discord interactions."
+when_to_use: "When Slop needs to read or update wiki-base data while answering Discord mentions, thread replies, or slash-command workflows."
+when_not_to_use: "General agent setup tasks or non-Slop assistants."
+success_criteria: "Slop retrieval is accurate and write operations are explicit, deduplicated, and consistent with Discord bot workflows."
 ---
 
 # DB Operations
 
-Latent Space Hub is the knowledge graph behind the Latent Space ecosystem — an AI engineering media platform founded by swyx (Shawn Wang) and Alessio Rinaldi.
+DB policy for **Slop**. Use this when Slop is retrieving or mutating wiki-base data during Discord conversations.
 
 ## Core Rules
 
@@ -17,6 +18,7 @@ Latent Space Hub is the knowledge graph behind the Latent Space ecosystem — an
 3. **Dimensions are required.** At least 1, max 5 per node. Use existing dimensions when possible.
 4. **Edge explanations matter.** Every edge needs a human-readable `explanation` field.
 5. **Use `ls_sqlite_query` for read-only inspection** — SELECT/WITH/PRAGMA only.
+6. **Discord-first framing.** Query results must be transformed into concise thread-friendly responses with source links.
 
 ## Schema
 

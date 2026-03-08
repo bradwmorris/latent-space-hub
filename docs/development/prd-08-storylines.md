@@ -6,7 +6,7 @@ Merged into PRD-15 (`docs/development/prd-15-hub-nodes.md`) as storyline carryov
 
 ## Background
 
-The BBC's knowledge graph architecture separates three layers: **content** (what you publish), **domain entities** (people, orgs, topics), and **storylines** (temporal narrative arcs that evolve over time). The storyline layer is what makes their system powerful for editorial workflows — it connects content to real-world developments and enables questions like "what have we covered about X over time?"
+The BBC's wiki-base architecture separates three layers: **content** (what you publish), **domain entities** (people, orgs, topics), and **storylines** (temporal narrative arcs that evolve over time). The storyline layer is what makes their system powerful for editorial workflows — it connects content to real-world developments and enables questions like "what have we covered about X over time?"
 
 This is distinct from topics. A topic is static ("AI agents"). A storyline is temporal and evolving ("the rise of AI agents from AutoGPT to Claude Code — how the narrative shifted from hype to production tooling over 18 months").
 

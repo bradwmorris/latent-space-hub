@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Menu, X, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Menu, X, Moon, Sun, User, Bot } from 'lucide-react';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -10,6 +10,8 @@ import rehypeRaw from 'rehype-raw';
 interface PageLink {
   slug: string;
   title: string;
+  href?: string;
+  section?: 'Docs' | 'Getting Started (Human)' | 'Slop Skills' | 'Agent Skills';
 }
 
 interface Section {
@@ -26,17 +28,24 @@ interface DocsLayoutProps {
 }
 
 function extractSections(markdown: string): Section[] {
-  const sections: Section[] = [];
+  const h2Sections: Section[] = [];
+  const h1Sections: Section[] = [];
   const lines = markdown.split('\n');
   for (const line of lines) {
-    const match = line.match(/^# (.+)$/);
-    if (match) {
-      const title = match[1];
+    const h2Match = line.match(/^## (.+)$/);
+    if (h2Match) {
+      const title = h2Match[1];
       const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      sections.push({ id, title });
+      h2Sections.push({ id, title });
+      continue;
     }
+    const h1Match = line.match(/^# (.+)$/);
+    if (!h1Match) continue;
+    const title = h1Match[1];
+    const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    h1Sections.push({ id, title });
   }
-  return sections;
+  return h2Sections.length > 0 ? h2Sections : h1Sections;
 }
 
 export default function DocsLayout({ content, title, description, currentSlug, pages }: DocsLayoutProps) {
@@ -44,6 +53,10 @@ export default function DocsLayout({ content, title, description, currentSlug, p
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const sections = extractSections(content);
+  const docsPages = pages.filter((p) => (p.section || 'Docs') === 'Docs');
+  const gettingStartedPages = pages.filter((p) => p.section === 'Getting Started (Human)');
+  const slopSkillPages = pages.filter((p) => p.section === 'Slop Skills');
+  const agentSkillPages = pages.filter((p) => p.section === 'Agent Skills');
   const { theme, resolved, setTheme } = useTheme();
   const isLight = resolved === 'light';
 
@@ -81,7 +94,7 @@ export default function DocsLayout({ content, title, description, currentSlug, p
       { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
     );
 
-    const headings = contentRef.current?.querySelectorAll('h1[id]');
+    const headings = contentRef.current?.querySelectorAll('h1[id], h2[id]');
     headings?.forEach((h) => observer.observe(h));
     return () => observer.disconnect();
   }, [content]);
@@ -185,81 +198,256 @@ export default function DocsLayout({ content, title, description, currentSlug, p
       {/* Main layout */}
       <div style={{
         display: 'flex',
-        maxWidth: '980px',
+        maxWidth: '1240px',
         margin: '0 auto',
         padding: '0 32px',
+        gap: '44px',
       }}>
         {/* Sidebar — page nav + section nav */}
         <nav
           className="docs-sidebar"
           style={{
             position: 'sticky',
-            top: '60px',
-            width: '180px',
+            top: '72px',
+            width: '280px',
             flexShrink: 0,
-            height: 'calc(100vh - 60px)',
-            paddingTop: '32px',
-            paddingRight: '24px',
+            height: 'calc(100vh - 72px)',
+            paddingTop: '28px',
+            paddingRight: '18px',
+            borderRight: '1px solid var(--border-subtle)',
             overflowY: 'auto',
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {pages.map((page) => {
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '11px',
+            letterSpacing: '0.04em',
+            color: 'var(--text-muted)',
+            marginBottom: '10px',
+            fontFamily: 'var(--font-mono)',
+          }}>
+            <User size={12} />
+            DOCS
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {docsPages.map((page) => {
               const isCurrent = page.slug === currentSlug;
               return (
                 <div key={page.slug}>
                   <a
-                    href={`/docs/${page.slug}`}
+                    href={page.href || `/docs/${page.slug}`}
                     style={{
                       display: 'block',
-                      padding: '6px 10px',
-                      borderRadius: '4px',
+                      padding: '9px 12px',
+                      borderRadius: '10px',
                       cursor: 'pointer',
-                      fontSize: '13px',
+                      fontSize: '14px',
                       lineHeight: 1.4,
                       textDecoration: 'none',
-                      fontFamily: 'var(--font-mono)',
-                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-muted)',
+                      fontFamily: 'var(--font-body)',
+                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
                       fontWeight: isCurrent ? 600 : 400,
                       background: isCurrent ? 'var(--bg-surface)' : 'transparent',
-                      borderLeft: isCurrent ? '2px solid var(--accent-brand)' : '2px solid transparent',
+                      border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
                       transition: 'all 0.15s',
                     }}
                   >
                     {page.title}
                   </a>
-                  {/* Show within-page sections for the current page */}
-                  {isCurrent && sections.length > 1 && (
-                    <div style={{ paddingLeft: '16px', marginTop: '4px' }}>
-                      {sections.map((s) => (
-                        <button
-                          key={s.id}
-                          onClick={() => scrollToSection(s.id)}
-                          style={{
-                            display: 'block',
-                            background: 'none',
-                            border: 'none',
-                            textAlign: 'left',
-                            padding: '3px 8px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            lineHeight: 1.4,
-                            fontFamily: 'var(--font-mono)',
-                            color: activeSection === s.id ? 'var(--text-primary)' : 'var(--text-muted)',
-                            fontWeight: activeSection === s.id ? 500 : 400,
-                            transition: 'all 0.15s',
-                          }}
-                        >
-                          {s.title}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               );
             })}
           </div>
+
+          {gettingStartedPages.length > 0 && (
+            <>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                letterSpacing: '0.04em',
+                color: 'var(--text-muted)',
+                marginTop: '20px',
+                marginBottom: '10px',
+                fontFamily: 'var(--font-mono)',
+              }}>
+                <User size={12} />
+                GETTING STARTED (HUMAN)
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {gettingStartedPages.map((page) => {
+                  const isCurrent = page.slug === currentSlug;
+                  return (
+                    <a
+                      key={page.slug}
+                      href={page.href || `/docs/${page.slug}`}
+                      style={{
+                        display: 'block',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        lineHeight: 1.4,
+                        textDecoration: 'none',
+                        fontFamily: 'var(--font-body)',
+                        color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontWeight: isCurrent ? 600 : 400,
+                        background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                        border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {page.title}
+                    </a>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {slopSkillPages.length > 0 && (
+            <>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                letterSpacing: '0.04em',
+                color: 'var(--text-muted)',
+                marginTop: '20px',
+                marginBottom: '10px',
+                fontFamily: 'var(--font-mono)',
+              }}>
+                <Bot size={12} />
+                SLOP SKILLS
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {slopSkillPages.map((page) => {
+                  const isCurrent = page.slug === currentSlug;
+                  return (
+                    <a
+                      key={page.slug}
+                      href={page.href || `/docs/${page.slug}`}
+                      style={{
+                        display: 'block',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        lineHeight: 1.4,
+                        textDecoration: 'none',
+                        fontFamily: 'var(--font-body)',
+                        color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontWeight: isCurrent ? 600 : 400,
+                        background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                        border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {page.title}
+                    </a>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {agentSkillPages.length > 0 && (
+            <>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                letterSpacing: '0.04em',
+                color: 'var(--text-muted)',
+                marginTop: '20px',
+                marginBottom: '10px',
+                fontFamily: 'var(--font-mono)',
+              }}>
+                <Bot size={12} />
+                AGENT SKILLS
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {agentSkillPages.map((page) => {
+                  const isCurrent = page.slug === currentSlug;
+                  return (
+                    <a
+                      key={page.slug}
+                      href={page.href || `/docs/${page.slug}`}
+                      style={{
+                        display: 'block',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        lineHeight: 1.4,
+                        textDecoration: 'none',
+                        fontFamily: 'var(--font-body)',
+                        color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontWeight: isCurrent ? 600 : 400,
+                        background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                        border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {page.title}
+                    </a>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {sections.length > 0 && (
+            <>
+              <div style={{
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'var(--text-muted)',
+                marginTop: '26px',
+                marginBottom: '10px',
+                fontFamily: 'var(--font-mono)',
+              }}>
+                On this page
+              </div>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                paddingLeft: '10px',
+                borderLeft: '1px solid var(--border-subtle)',
+              }}>
+                {sections.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => scrollToSection(s.id)}
+                    style={{
+                      display: 'block',
+                      background: 'none',
+                      border: 'none',
+                      textAlign: 'left',
+                      padding: '5px 8px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      lineHeight: 1.35,
+                      fontFamily: 'var(--font-mono)',
+                      color: activeSection === s.id ? 'var(--text-primary)' : 'var(--text-muted)',
+                      fontWeight: activeSection === s.id ? 600 : 400,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </nav>
 
         {/* Mobile nav dropdown */}
@@ -283,7 +471,7 @@ export default function DocsLayout({ content, title, description, currentSlug, p
             {pages.map((page) => (
               <a
                 key={page.slug}
-                href={`/docs/${page.slug}`}
+                href={page.href || `/docs/${page.slug}`}
                 onClick={() => setMobileNavOpen(false)}
                 style={{
                   display: 'block',
@@ -307,28 +495,30 @@ export default function DocsLayout({ content, title, description, currentSlug, p
           style={{
             flex: 1,
             minWidth: 0,
-            maxWidth: '720px',
-            padding: '32px 0 100px',
+            maxWidth: '780px',
+            padding: '36px 0 110px',
           }}
         >
           {/* Hero */}
           <div style={{ marginBottom: '48px' }}>
             <h1 style={{
-              fontSize: '28px',
+              fontSize: '34px',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              margin: '0 0 12px 0',
+              margin: '0 0 14px 0',
               letterSpacing: '-0.02em',
               fontFamily: 'var(--font-body)',
+              lineHeight: 1.15,
             }}>
               {title}
             </h1>
             <p style={{
-              fontSize: '16px',
+              fontSize: '18px',
               color: 'var(--text-secondary)',
               lineHeight: 1.6,
               margin: 0,
               fontFamily: 'var(--font-body)',
+              maxWidth: '70ch',
             }}>
               {description}
             </p>
@@ -361,17 +551,23 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                     </h1>
                   );
                 },
-                h2: ({ children }) => (
-                  <h2 style={{
-                    fontSize: '20px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    margin: '36px 0 12px 0',
-                    fontFamily: 'var(--font-body)',
-                  }}>
-                    {children}
-                  </h2>
-                ),
+                h2: ({ children }) => {
+                  const text = String(children);
+                  const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                  return (
+                    <h2 id={id} style={{
+                      fontSize: '22px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                      margin: '40px 0 12px 0',
+                      fontFamily: 'var(--font-body)',
+                      scrollMarginTop: '84px',
+                      letterSpacing: '-0.01em',
+                    }}>
+                      {children}
+                    </h2>
+                  );
+                },
                 h3: ({ children }) => (
                   <h3 style={{
                     fontSize: '17px',
@@ -385,10 +581,10 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                 ),
                 p: ({ children }) => (
                   <p style={{
-                    margin: '0 0 16px 0',
+                    margin: '0 0 18px 0',
                     color: 'var(--text-primary)',
                     lineHeight: 1.7,
-                    maxWidth: '680px',
+                    maxWidth: '72ch',
                   }}>{children}</p>
                 ),
                 ul: ({ children }) => (
@@ -536,9 +732,18 @@ export default function DocsLayout({ content, title, description, currentSlug, p
 
       {/* Responsive styles */}
       <style>{`
+        .docs-sidebar a:hover {
+          background: var(--bg-surface);
+          color: var(--text-primary);
+        }
         @media (max-width: 768px) {
           .docs-sidebar { display: none !important; }
           .docs-mobile-toggle { display: flex !important; }
+        }
+        @media (max-width: 1024px) {
+          .docs-sidebar {
+            width: 230px !important;
+          }
         }
         @media (min-width: 769px) {
           .docs-mobile-nav { display: none !important; }

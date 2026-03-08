@@ -1,6 +1,6 @@
 # PRD: LS Wiki-Base Rebrand
 
-**Status:** Draft | **Created:** 2026-03-08
+**Status:** In Progress | **Created:** 2026-03-08 | **Updated:** 2026-03-09
 
 ## 1. Background
 
@@ -8,31 +8,39 @@ Rebrand from "knowledge graph" / "context graph" to **LS Wiki-Base** — a combi
 
 ## 2. Plan
 
-1. **Terminology sweep** — Find and replace every "knowledge graph" / "context graph" reference across the entire codebase with "wiki-base" or "LS Wiki-Base"
-2. **Documentation unification** — Merge dev docs (`docs/development/`) and user-facing docs (`docs/`) into a single coherent structure with clear navigation
-3. **Documentation overhaul** — Rewrite all docs for clarity, accuracy, and legibility; remove stale/duplicate content
-4. **Code ↔ docs integration** — Add inline references between code and docs (doc comments pointing to docs, docs pointing to source files with line references)
-5. **Database ↔ docs integration** — Auto-generate schema docs from the live database; ensure docs/database.md is always derivable from the actual schema
-6. **Living docs system** — Add pre-commit hooks and/or CI checks that flag when code changes aren't reflected in docs
-7. **Legibility pass** — Consistent formatting, clear hierarchy, table of contents, reading-order guidance across all docs
+1. **Terminology sweep (bounded)** — Replace product-language references to "knowledge graph" / "context graph" with "wiki-base" or "LS Wiki-Base" in explicitly in-scope files only
+2. **Documentation unification** — Keep `src/config/docs/` as source of truth and align dev docs (`docs/development/`) to it
+3. **Documentation overhaul** — Rewrite docs for clarity, accuracy, and legibility; remove stale/duplicate content
+4. **Legibility pass** — Apply consistent formatting, hierarchy, links, and freshness markers
+
+### Out of Scope for PRD-35 (defer)
+
+- Code annotation conventions (for example `@docs` tags in source)
+- New scripts, CI checks, or pre-commit hooks for docs enforcement
+- Schema auto-generation tooling
 
 ## 3. Implementation Details
 
 ### Step 1: Terminology Sweep
 
-**Goal:** Zero references to "knowledge graph" or "context graph" anywhere in the repo.
+**Goal:** Zero legacy product-language references in in-scope files.
 
-**Files to audit (48+ files reference "knowledge graph"):**
-- `docs/overview.md` — "Two repos, one knowledge graph" → "Two repos, one wiki-base"
-- `docs/README.md`, `docs/database.md`, `docs/interfaces.md`, `docs/ingestion.md`, `docs/architecture.md`
+**In scope (this PRD):**
+- `src/config/docs/*.md` — all 6 user-facing docs (source of truth)
+- `docs/README.md` — documentation index
 - `CLAUDE.md` — project instructions
 - `README.md` (root)
 - `apps/mcp-server-standalone/README.md` and package metadata
 - `src/config/prompts/` — agent system prompts
 - `src/config/skills/` — skill definitions
-- All PRD files in `docs/development/` (update completed ones too for consistency)
-- Component files, service files — grep for "knowledge graph", "knowledge base", "context graph"
-- `package.json` description fields
+- Active PRDs in `docs/development/` (exclude `docs/development/completed-prds/`)
+- `package.json` description fields when user-facing
+
+**Out of scope (leave unchanged):**
+- `docs/archive/` and other historical/archive content
+- `docs/development/completed-prds/` historical records
+- Database schema/table/column names
+- Vendor/third-party code and lockfiles
 
 **Replacement rules:**
 | Old term | New term | Context |
@@ -43,167 +51,125 @@ Rebrand from "knowledge graph" / "context graph" to **LS Wiki-Base** — a combi
 | LS knowledge base | LS Wiki-Base | Branded references |
 | context graph | wiki-base | If found anywhere |
 
+**Style guide (final):**
+- Branded name: `LS Wiki-Base`
+- Generic running text: `wiki-base`
+- Do not use `Wiki-base` or `wiki base`
+
 **Keep as-is:**
 - "graph" when referring to the technical graph structure (nodes + edges) — that's still accurate
 - Database table/column names — no schema migration needed
 - Edge/node terminology — those are correct graph terms
 
-### Step 2: Documentation Unification
+### Step 2: Documentation Consolidation ✅ COMPLETED
 
-**Goal:** One documentation tree, no separation between "dev docs" and "user docs."
+**Goal:** Single source of truth for all documentation. No duplicate content across locations.
+
+**Problem discovered:** Three overlapping documentation locations existed:
+1. `docs/` — 13 markdown files in the repo root (zero programmatic consumers)
+2. `src/config/docs/` — 6 markdown files (the actual source of truth, read by `docsService.ts` and rendered at `/docs` in the web app)
+3. `app/docs/` — 6 Next.js page files (plumbing that connects docsService to URLs, not content)
+
+Six files were duplicated between `docs/` and `src/config/docs/` (overview, database, ingestion, interfaces, slop-bot, evals). The config versions were consistently better — they had frontmatter, images, and cleaner formatting.
+
+**What was done:**
+
+1. **Made `src/config/docs/` the single source of truth.** These 6 files are what `docsService.ts` reads and renders at `/docs` in the web app:
+   ```
+   src/config/docs/
+     overview.md      ← system overview, indexing pipeline, architecture, tech stack
+     ingestion.md     ← content sources, cron, pipeline, search indexing, extractors
+     database.md      ← schema, categories, edge context model, metadata examples, queries
+     interfaces.md    ← web app, MCP server (18 tools), Discord bot, webhook
+     slop-bot.md      ← bot internals, slash commands, member system, skills, traces
+     evals.md         ← trace logging, dashboard, metadata JSON, SQL queries
+   ```
+
+2. **Migrated important content from `docs/` into config docs before deletion:**
+   - `overview.md` ← added indexing pipeline summary (steps 1-7)
+   - `database.md` ← added EdgeContext TypeScript interface, metadata JSON examples by category, 4 example SQL queries
+   - `ingestion.md` ← added extractors technology table, expanded search indexing with RRF formula/fallback chain/chunking details (from `search.md`)
+   - `interfaces.md` ← added HTTP transport MCP setup option
+   - `evals.md` ← added full metadata JSON example, 3 SQL query examples for trace debugging
+
+3. **Moved developer-only docs to `docs/development/`:**
+   - `deployment.md` → `docs/development/deployment.md`
+   - `TROUBLESHOOTING.md` → `docs/development/TROUBLESHOOTING.md`
+
+4. **Updated `CLAUDE.md`** — replaced slim directory listing with full project structure tree + key patterns section (from `architecture.md`)
+
+5. **Deleted 9 files from `docs/`:** overview, database, evals, ingestion, interfaces, slop-bot, architecture, search, WALKTHROUGH
+
+6. **Updated `docs/README.md`** — now points to new file locations, references `src/config/docs/` as source of truth
 
 **Current state:**
 ```
 docs/
-  README.md              ← user-facing index
-  overview.md            ← system overview
-  database.md            ← schema reference
-  interfaces.md          ← surfaces (web, MCP, bot)
-  ingestion.md           ← pipeline docs
-  architecture.md        ← architecture
-  search.md              ← search system
-  contributing.md        ← contributor guide
-  deployment.md          ← deploy guide
-  evals.md               ← eval system
-  TROUBLESHOOTING.md     ← troubleshooting
-  slop-bot.md            ← bot docs
-  development/           ← PRDs, backlog, process
-    backlog/             ← backlog system
-    completed-prds/      ← finished PRDs
-  archive/               ← stale RA-H docs
+  README.md              ← Documentation index (updated)
+  contributing.md        ← Contribution guidelines (kept)
+  development/           ← PRDs, backlog, deployment, troubleshooting
+  archive/               ← Stale RA-H docs (still to be deleted)
+  handover/              ← Setup guide (still to be reviewed)
+
+src/config/docs/         ← SOURCE OF TRUTH (6 files, rendered at /docs in web app)
+  overview.md
+  ingestion.md
+  database.md
+  interfaces.md
+  slop-bot.md
+  evals.md
 ```
 
-**Target state:**
-```
-docs/
-  README.md              ← Master index / table of contents (the "front page" of the wiki-base)
+**Still TODO:**
+- Review `docs/handover/` (contains `setup.md`, may be redundant with deployment docs)
+- Decide whether `docs/archive/` should be removed in a separate cleanup PRD
 
-  # Core reference (what the system IS)
-  overview.md            ← System overview — what LS Wiki-Base is
-  database.md            ← Schema reference (auto-verified against live DB)
-  architecture.md        ← Architecture diagram + module map
-
-  # How things work (operational docs)
-  ingestion.md           ← Content pipeline
-  search.md              ← Search system (vector + FTS + hybrid)
-  interfaces.md          ← All surfaces (web, MCP, bot, Discord)
-  slop-bot.md            ← Bot-specific docs
-
-  # Contributing & running
-  contributing.md        ← How to contribute
-  deployment.md          ← Deploy guide
-  TROUBLESHOOTING.md     ← Common issues
-
-  # Development
-  development/
-    README.md            ← Dev workflow, conventions, how PRDs work
-    backlog/             ← Backlog system (unchanged)
-    completed-prds/      ← Finished PRDs (unchanged)
-    [active PRDs]        ← In-progress PRDs (unchanged)
-
-  # DELETED
-  archive/               ← Remove entirely (stale RA-H docs, never referenced)
-```
-
-**Key changes:**
-- Delete `docs/archive/` — stale, never referenced, causes confusion
-- `docs/README.md` becomes the master index with reading order, last-updated dates, and links to every doc
-- Every doc gets a consistent header: title, one-line description, last-updated date
-- Every doc gets a "Source files" section linking to the relevant code
-
-### Step 3: Documentation Overhaul
+### Step 3: Documentation Overhaul (Partially Complete)
 
 **Goal:** Every doc is accurate, complete, and legible.
 
 **Per-document audit checklist:**
 - [ ] Content matches current codebase (no stale references)
 - [ ] Consistent formatting (headers, code blocks, tables)
-- [ ] Has a clear one-line description at the top
+- [x] Has a clear one-line description at the top (all 6 config docs have frontmatter with title + description)
 - [ ] Has "Related docs" links at the bottom
 - [ ] Has "Source files" section pointing to relevant code paths
-- [ ] No duplicate information across docs (single source of truth per topic)
-- [ ] Readable in 5 minutes or less per doc
+- [x] No duplicate information across docs (consolidation eliminated duplicates)
+- [ ] Doc length stays under ~500 lines and each section stays concise
 
-**Specific rewrites needed:**
-- `overview.md` — Update to wiki-base framing, refresh numbers, add module map
-- `database.md` — Verify all tables/columns match actual schema, add examples
-- `ingestion.md` — Update entity extraction details (now gpt-4.1-mini, orgs+research_fields only per PRD-27)
-- `interfaces.md` — Update MCP tool count, add skill list
-- `architecture.md` — Add dependency diagram, update file tree
-- `contributing.md` — Add "how docs work" section
-- `evals.md` — Align with PRD-21 status
+**Remaining rewrites needed:**
+- All 6 docs in `src/config/docs/` — Update "knowledge graph" terminology to "wiki-base"
+- `src/config/docs/overview.md` — Refresh graph counts, update to wiki-base framing
+- `src/config/docs/ingestion.md` — Update entity extraction details (now gpt-4.1-mini, orgs+research_fields only per PRD-27)
+- `docs/contributing.md` — Add "how docs work" section explaining `src/config/docs/` as source of truth
+- `CLAUDE.md` — Update "knowledge graph" references to wiki-base
+- Root `AGENTS.md` — Keep as the stable start-here map for agents (progressive disclosure + links to task-specific skills)
+- Skill trigger tightening — Refine `description`/`when_to_use` in `start-here` and `slop` to reduce undertriggering/overtriggering
 
 ### Step 4: Code → Docs Integration
 
-**Goal:** Code files reference their docs, docs reference their source files.
+**Status:** Deferred to follow-up PRD (out of scope for PRD-35).
 
-**Implementation:**
-1. Add a `@docs` JSDoc tag convention to key modules:
-   ```typescript
-   /**
-    * Node CRUD operations for the wiki-base.
-    * @docs docs/database.md#nodes
-    */
-   ```
-2. Key files to annotate:
-   - `src/services/database/*.ts` → `docs/database.md`
-   - `src/services/agents/*.ts` → `docs/ingestion.md`
-   - `src/services/embedding/*.ts` → `docs/search.md`
-   - `src/tools/*.ts` → `docs/interfaces.md`
-   - `apps/mcp-server*/` → `docs/interfaces.md`
-
-3. Each doc gets a "Source files" section at the bottom:
-   ```markdown
-   ## Source Files
-   - `src/services/database/nodeService.ts` — Node CRUD
-   - `src/services/database/edgeService.ts` — Edge CRUD
-   - `src/services/database/client.ts` — Turso connection
-   ```
+**Reason:** This introduces new code conventions and touches many source files; PRD-35 is limited to terminology + documentation updates.
 
 ### Step 5: Database → Docs Integration
 
-**Goal:** Schema docs are always in sync with the actual database.
+**Status:** Deferred to follow-up PRD (out of scope for PRD-35).
 
-**Implementation:**
-1. Create `scripts/generate-schema-docs.ts`:
-   - Connects to Turso
-   - Runs `SELECT sql FROM sqlite_master WHERE type='table'`
-   - Generates a markdown table for each table (columns, types, constraints)
-   - Outputs to `docs/database.md` (or a section within it)
-   - Compares against existing `docs/database.md` and warns on drift
+**Constraint for follow-up:** Do not require live Turso access in CI or pre-commit.
 
-2. Add to `package.json`:
-   ```json
-   "scripts": {
-     "docs:schema": "tsx scripts/generate-schema-docs.ts",
-     "docs:check": "tsx scripts/generate-schema-docs.ts --check"
-   }
-   ```
-
-3. The `--check` flag exits non-zero if schema docs are out of date (usable in CI/pre-commit).
+**Preferred design for follow-up:**
+1. Generate schema docs from a deterministic local source (checked-in schema SQL or migration files), not from production/live DB.
+2. Optional local verification can run against a local SQLite DB artifact.
+3. `--check` should be deterministic and network-independent.
 
 ### Step 6: Living Docs System
 
-**Goal:** Documentation is always updated when code changes.
+**Status:** Deferred to follow-up PRD (out of scope for PRD-35).
 
-**Implementation:**
-1. Add a `docs:check` script that:
-   - Verifies schema docs match live DB (`scripts/generate-schema-docs.ts --check`)
-   - Checks that key docs exist and have been updated recently
-   - Validates all internal doc links (no broken `docs/*.md` references)
+**Note for follow-up:** Use objective checks only (existence, link validity, required sections), not subjective checks like "updated recently".
 
-2. Add to `CLAUDE.md` under Development section:
-   ```markdown
-   ### Documentation
-   - When changing database schema, run `npm run docs:schema` to update docs/database.md
-   - When adding new services or tools, add @docs JSDoc tags and update relevant docs
-   - Every PR that changes code should update corresponding docs
-   ```
-
-3. Add a lightweight pre-commit reminder (not blocking, just informational):
-   - If `.ts` files changed but no `.md` files changed, print: "Reminder: check if docs need updating"
-
-### Step 7: Legibility Pass
+### Step 4 (from current plan): Legibility Pass
 
 **Goal:** Every doc is scannable, consistent, and pleasant to read.
 
@@ -216,13 +182,14 @@ docs/
 - **Length:** No doc exceeds ~500 lines. Split if needed.
 - **Updated date:** Every doc has `*Last updated: YYYY-MM-DD*` under the title
 
-## 4. Open Questions / Notes
+## 4. Notes
 
-- **"Wiki-Base" capitalization:** Settling on "Wiki-Base" (hyphenated, capital W and B) for the branded term, lowercase "wiki-base" in running text. Open to adjustment.
+- **Terminology decision (locked):** Use `LS Wiki-Base` for branded references and `wiki-base` in running text.
+- **Agent entrypoint decision (locked):** Use root `AGENTS.md` (exact filename) as the canonical start-here map; keep deeper operational notes in `docs/development/process/agents.md`.
 - **MCP server name:** The NPM package is `latent-space-hub-mcp`. Does it need renaming? Probably not — "hub" is still accurate, the wiki-base is what lives inside the hub.
-- **Completed PRDs:** Should we update terminology in completed PRDs? Leaning yes for consistency, but these are historical records. Decision: update them — they're reference docs, not museum pieces.
+- **Completed PRDs:** Keep unchanged as historical records (out of scope for this PRD).
 - **Bot prompts:** Slop's system prompt in `latent-space-bots` repo also references "knowledge graph." That's a separate repo — note it here, fix it separately.
-- **Scope guard:** This PRD is about terminology + documentation. No schema migrations, no new features, no UI changes beyond text labels.
+- **Scope guard:** This PRD is terminology + documentation only. No schema migrations, no new scripts/hooks/CI jobs, and no feature work.
 
 ---
 

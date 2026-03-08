@@ -20,7 +20,7 @@
 
 ## Context
 
-The Latent Space Hub knowledge graph has ~3,900+ nodes. Most entity/guest/topic nodes are unsearchable via vector search because:
+The Latent Space Hub wiki-base has ~3,900+ nodes. Most entity/guest/topic nodes are unsearchable via vector search because:
 
 1. They have no chunks (no transcript/article body) — so `vector_top_k('chunks_embedding_idx', ...)` never finds them
 2. `nodes.embedding` exists as a plain `BLOB` column — the `NodeEmbedder` writes to it, but **there is no vector index on nodes.embedding**

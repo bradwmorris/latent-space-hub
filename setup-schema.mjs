@@ -116,6 +116,11 @@ CREATE INDEX IF NOT EXISTS idx_edges_to ON edges(to_node_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_node ON chunks(node_id);
 CREATE INDEX IF NOT EXISTS idx_chats_thread ON chats(thread_id);
 CREATE INDEX IF NOT EXISTS idx_logs_table ON logs(table_name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_nodes_member_discord_id_unique
+  ON nodes(json_extract(metadata, '$.discord_id'))
+  WHERE node_type = 'member'
+    AND json_extract(metadata, '$.discord_id') IS NOT NULL
+    AND json_extract(metadata, '$.discord_id') != '';
 `;
 
 // ─── Migration Steps (idempotent — safe to re-run) ───────────────────────────

@@ -1,6 +1,6 @@
 ---
 title: Ingestion
-description: How content gets into the knowledge graph — four sources, hourly cron, AI enrichment, and Discord notifications.
+description: How content gets into the wiki-base — four sources, hourly cron, AI enrichment, and Discord notifications.
 ---
 
 # Content Sources

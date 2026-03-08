@@ -1,11 +1,11 @@
 ---
 title: Slop Bot
-description: How Slop works — the Discord bot that searches the Latent Space knowledge graph, remembers members, and schedules community events.
+description: How Slop works — the Discord bot that searches the Latent Space wiki-base, remembers members, and schedules community events.
 ---
 
 # Slop Bot
 
-Slop is Latent Space's Discord bot. It searches the knowledge graph, answers questions with source links, remembers who you are, and schedules community events.
+Slop is Latent Space's Discord bot. It searches the wiki-base, answers questions with source links, remembers who you are, and schedules community events.
 
 | | |
 |---|---|
@@ -22,7 +22,7 @@ Slop is Latent Space's Discord bot. It searches the knowledge graph, answers que
 
 1. You send a message mentioning @Slop (or use a slash command)
 2. Slop builds a system prompt with its personality, your member profile, and a list of skills
-3. The LLM gets 9 read-only tools it can call to search the knowledge graph
+3. The LLM gets 9 read-only tools it can call to search the wiki-base
 4. The LLM decides what to search, calls tools, reads results, and may search again (up to 5 rounds)
 5. The LLM generates a response with source links
 6. Slop posts the response in a Discord thread
@@ -87,7 +87,7 @@ Three commands registered with Discord. These are typed directly in the message 
 
 **Usage:** `/join`
 
-Creates your member profile in the knowledge graph. After joining:
+Creates your member profile in the wiki-base. After joining:
 - Slop remembers your role, company, interests across conversations
 - Your interactions create edges to content you discuss
 - Slop personalizes responses based on your profile
@@ -102,7 +102,7 @@ Schedule a Paper Club session (every Wednesday, 12-1pm PT).
 
 1. Slop shows the next 4 available Wednesdays (skips dates already booked)
 2. You reply with a number and your paper title (optionally with a URL)
-3. Slop creates an event node in the knowledge graph and confirms
+3. Slop creates an event node in the wiki-base and confirms
 
 **Example flow:**
 ```
@@ -147,11 +147,14 @@ Skills are instruction sets that Slop loads on demand. The system prompt always 
 
 | Skill | What it covers | When Slop reads it |
 |-------|---------------|-------------------|
+| **Start Here** | Slop runtime orientation and routing to specialist skills | First reference for most Slop interactions |
 | **Graph Search** | Content types in the graph, search strategy (which tool for what), citation format | Any factual question about Latent Space content |
-| **Event Scheduling** | How events work, SQL queries for upcoming/past events, directing users to slash commands | Questions about Paper Club or Builders Club |
 | **Member Profiles** | How to build profiles over time, the `<profile>` block format, interaction preferences | When users share personal info or ask about their profile |
+| **DB Operations** | Graph read/write policy, schema assumptions, citation rules | When Slop needs operational DB guardrails |
+| **Curation** | Deduplication and quality standards for graph updates | When Slop writes or refines graph data |
+| **Event Scheduling** | How events work, SQL queries for upcoming/past events, directing users to slash commands | Questions about Paper Club or Builders Club |
 
-Skills live in the `skills/` directory of the bots repo as markdown files with YAML frontmatter. The frontmatter (name, description, when to use) appears in the system prompt. The body is fetched on demand — this keeps the system prompt small.
+Skills live in the `skills/` directory of the bots repo as markdown files with YAML frontmatter. The frontmatter (name, description, when to use) appears in the system prompt. The body is fetched on demand from local bot files — this keeps the system prompt small.
 
 ---
 
@@ -198,11 +201,11 @@ Slop's LLM has access to 9 read-only tools via the MCP protocol. The bot spawns 
 | `ls_search_content` | Vector + keyword search through transcript and article text |
 | `ls_get_nodes` | Load full node records by ID |
 | `ls_sqlite_query` | Read-only SQL for structured queries (latest content, counts, date ranges) |
-| `ls_get_context` | Overview of the knowledge graph (stats, top nodes) |
+| `ls_get_context` | Overview of the wiki-base (stats, top nodes) |
 | `ls_query_edges` | Find connections from a node |
 | `ls_list_dimensions` | List all categories/tags with counts |
 | `ls_list_skills` | List available skills |
-| `ls_read_skill` | Read full skill instructions (served from local files first, MCP fallback) |
+| `ls_read_skill` | Read full skill instructions (served from local bot files) |
 
 The LLM decides which tools to call based on the question. It can call multiple tools across up to 5 rounds before generating its response.
 
@@ -220,7 +223,7 @@ The hub sends a POST to Slop's internal API (`/internal/kickoff`) with:
 
 Slop then:
 1. Creates a thread in the configured channel
-2. Searches the knowledge graph for context on the new content
+2. Searches the wiki-base for context on the new content
 3. Generates an opening take with the full agentic tool loop
 4. Posts it for the community to discuss
 

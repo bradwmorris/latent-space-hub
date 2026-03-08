@@ -1,4 +1,4 @@
-# PRD-19: Member Nodes — Community members in the knowledge graph
+# PRD-19: Member Nodes — Community members in the wiki-base
 
 **Status:** completed
 **Type:** feature
@@ -10,7 +10,7 @@
 
 ## Goal
 
-Add community members as first-class nodes in the knowledge graph. When someone interacts with Slop in Discord, the bot recognizes them, remembers their interests, and connects them to relevant content — compounding knowledge about each member over time.
+Add community members as first-class nodes in the wiki-base. When someone interacts with Slop in Discord, the bot recognizes them, remembers their interests, and connects them to relevant content — compounding knowledge about each member over time.
 
 ---
 
@@ -142,7 +142,7 @@ In `registerSlashCommands()`, add:
 ```typescript
 new SlashCommandBuilder()
   .setName("join")
-  .setDescription("Add yourself to the Latent Space knowledge graph")
+  .setDescription("Add yourself to the Latent Space wiki-base")
 ```
 
 ### Handler flow
@@ -178,7 +178,7 @@ new SlashCommandBuilder()
 
 1. Call `lookupMember(discordUserId)` via MCP (`ls_sqlite_query`)
 2. If member NOT found:
-   - Add to system prompt: `"[MEMBER STATUS] This user is not in the knowledge graph. Mention that they can use /join to be remembered across conversations."`
+   - Add to system prompt: `"[MEMBER STATUS] This user is not in the wiki-base. Mention that they can use /join to be remembered across conversations."`
    - Slop naturally weaves this in (not every time — use judgment)
 3. If member found:
    - Add to system prompt: `"[MEMBER CONTEXT] Name: {title}. Interests: {metadata.interests}. Last active: {metadata.last_active}. Recent interactions: {last 3 lines of notes}. Use this to personalize your response — reference their interests, connect new content to what they've asked about before."`
@@ -227,7 +227,7 @@ Add to `personas/slop.soul.md`:
 ```markdown
 ## Member Awareness
 
-You have access to member profiles from the knowledge graph. When a member's context is provided:
+You have access to member profiles from the wiki-base. When a member's context is provided:
 - Reference their known interests naturally ("You've been digging into RAG — this episode is right up your alley")
 - Connect new content to their past questions
 - Don't recite their profile back — use it to be relevant

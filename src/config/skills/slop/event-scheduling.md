@@ -1,14 +1,15 @@
 ---
 name: Event Scheduling
+skill_group: slop
 description: "How to handle Paper Club and Builders Club event scheduling via Discord commands."
-when_to_use: "When a user runs /paper-club or /builders-club, or asks about upcoming events."
-when_not_to_use: "General conversation not about event scheduling."
-success_criteria: "Event node created with correct metadata, linked to member, confirmation sent."
+when_to_use: "When Discord users run /paper-club or /builders-club, or ask Slop about upcoming events."
+when_not_to_use: "Non-Discord contexts or general discussion unrelated to Paper Club/Builders Club scheduling."
+success_criteria: "Slash-command flow validates correctly and creates/updates event data with proper member linkage and confirmation."
 ---
 
 # Event Scheduling
 
-Paper Club and Builders Club sessions are scheduled via Discord slash commands. Each creates an `event` node in the knowledge graph.
+Paper Club and Builders Club sessions are scheduled via **Slop Discord slash commands**. Each creates an `event` node in the wiki-base.
 
 ## Weekly Schedule
 
@@ -97,5 +98,7 @@ WHERE node_type = 'event'
 AND json_extract(metadata, '$.event_status') = 'scheduled'
 ORDER BY event_date ASC
 ```
+
+Important: do not query `paper-club` or `builders-club` node types for upcoming sessions. Those are recording nodes. Upcoming sessions are `node_type = 'event'` with `event_status = 'scheduled'`.
 
 If no upcoming events, say so and mention they can schedule one with `/paper-club` or `/builders-club`.

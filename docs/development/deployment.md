@@ -93,7 +93,7 @@ Two different things post in Discord — they are different:
 | Component | Type | How it works |
 |-----------|------|-------------|
 | **Latent Space Hub** | Webhook (not a bot) | Posts content announcements. Just a name + avatar on webhook messages. Sent by Vercel via webhook URL. No invite needed. |
-| **Slop** | Real Discord bot | Responds to @mentions, creates threads, discusses content from the knowledge base. Needs a bot invite with appropriate permissions. |
+| **Slop** | Real Discord bot | Responds to @mentions, creates threads, discusses content from the wiki-base. Needs a bot invite with appropriate permissions. |
 
 ## MCP Server (NPM)
 

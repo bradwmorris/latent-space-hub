@@ -1,11 +1,15 @@
 ---
 name: MCP Quickstart
-description: Connect your AI agent to the Latent Space knowledge graph in 2 minutes.
+skill_group: agent
+description: Quick setup guide for connecting an AI agent to the Latent Space wiki-base via MCP. Use when users ask for MCP installation, config, or first tool usage.
+when_to_use: User asks how to connect Claude Code, Cursor, or another MCP client to Latent Space Hub.
+when_not_to_use: Deep graph curation policy, Slop behavior policy, or content learning-path requests.
+success_criteria: User can connect successfully and run first `ls_*` queries.
 ---
 
 # MCP Quickstart
 
-Connect any MCP-compatible AI agent to the Latent Space Hub knowledge graph.
+Connect any MCP-compatible AI agent to the Latent Space Hub wiki-base.
 
 ## Setup (2 minutes)
 
@@ -30,7 +34,7 @@ Restart your AI assistant. The `ls_*` tools should now be available.
 
 ## What You Can Do
 
-### Search the Knowledge Base
+### Search the Wiki-Base
 
 Ask your agent:
 - "Search Latent Space for episodes about agents"

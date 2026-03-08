@@ -565,6 +565,11 @@ echo "Ensuring performance indexes exist..."
 "$SQLITE_BIN" "$DB_PATH" <<'SQL'
 CREATE INDEX IF NOT EXISTS idx_nodes_updated_at ON nodes(updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_chats_created_at ON chats(created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_nodes_member_discord_id_unique
+  ON nodes(json_extract(metadata, '$.discord_id'))
+  WHERE type = 'member'
+    AND json_extract(metadata, '$.discord_id') IS NOT NULL
+    AND json_extract(metadata, '$.discord_id') != '';
 SQL
 
 echo "Running VACUUM and ANALYZE..."

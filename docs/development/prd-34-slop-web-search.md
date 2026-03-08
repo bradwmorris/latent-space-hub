@@ -4,7 +4,7 @@
 
 ## 1. Background
 
-Give Slop the ability to search the web when the knowledge graph doesn't have the answer. When a user asks about something not in the graph — or when grounding/recency matters — Slop should autonomously decide to search the web, synthesize results, and respond with citations. The hub already has a Tavily-based `webSearch` tool; the main work is exposing it to Slop and teaching it when to use it.
+Give Slop the ability to search the web when the wiki-base doesn't have the answer. When a user asks about something not in the graph — or when grounding/recency matters — Slop should autonomously decide to search the web, synthesize results, and respond with citations. The hub already has a Tavily-based `webSearch` tool; the main work is exposing it to Slop and teaching it when to use it.
 
 ## 2. Options Analysis
 
@@ -69,7 +69,7 @@ Other providers worth noting for future consideration:
 
 **Option A (Tavily MCP tool)** is the clear winner:
 1. The tool already exists — this is primarily a wiring task
-2. Agentic control means Slop decides when to search (knowledge graph first, web fallback)
+2. Agentic control means Slop decides when to search (wiki-base first, web fallback)
 3. Provider-agnostic — works if we switch from OpenRouter to direct Anthropic later
 4. Consistent with the existing 9-tool MCP pattern
 
@@ -95,7 +95,7 @@ If Tavily quality or pricing becomes an issue, swapping to Exa or Brave is a one
 ```javascript
 {
   name: 'ls_web_search',
-  description: 'Search the web for current information. Use when the knowledge graph lacks the answer or when recency matters.',
+  description: 'Search the web for current information. Use when the wiki-base lacks the answer or when recency matters.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -124,7 +124,7 @@ If Tavily quality or pricing becomes an issue, swapping to Exa or Brave is a one
 
 Add to the `[SKILLS]` index in the system prompt:
 ```
-- web-search: When to search the web vs use the knowledge graph
+- web-search: When to search the web vs use the wiki-base
 ```
 
 Add `ls_web_search` to the tool list (currently 9 tools → becomes 10):
@@ -139,8 +139,8 @@ Add `ls_web_search` to the tool list (currently 9 tools → becomes 10):
 ```markdown
 ---
 name: Web Search
-description: When and how to use web search vs knowledge graph
-when_to_use: When deciding whether to search the web or use the knowledge graph
+description: When and how to use web search vs wiki-base
+when_to_use: When deciding whether to search the web or use the wiki-base
 ---
 
 # Web Search
@@ -148,14 +148,14 @@ when_to_use: When deciding whether to search the web or use the knowledge graph
 ## When to search the web
 
 Use `ls_web_search` when:
-- The knowledge graph search returns no relevant results
+- The wiki-base search returns no relevant results
 - The user asks about something recent (news, releases, events)
 - The user explicitly asks you to "look up" or "search for" something
 - You need to verify or ground a claim with a current source
 - The topic is outside the Latent Space community's typical coverage
 
 Do NOT search the web when:
-- The knowledge graph has a clear answer
+- The wiki-base has a clear answer
 - The question is about Latent Space community content (episodes, papers, members)
 - The user is asking about internal community operations
 

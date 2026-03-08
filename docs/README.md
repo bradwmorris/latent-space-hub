@@ -1,10 +1,24 @@
 # Latent Space Hub — Documentation
 
-A knowledge graph for the Latent Space universe — podcasts, articles, AI News, conference talks, paper clubs, and more. Searchable via hybrid vector + keyword search, connected in a graph, accessible via web UI, MCP tools, and Discord bot.
+A wiki-base for the Latent Space universe — podcasts, articles, AI News, conference talks, paper clubs, and more. Searchable via hybrid vector + keyword search, connected in a graph, accessible via web UI, MCP tools, and Discord bot.
 
 ## Documentation
 
 The source of truth for all user-facing documentation lives in `src/config/docs/` and is rendered at `/docs` in the web app.
+Skills shown in the Hub and `/docs` are sourced from:
+- `src/config/skills/slop/` (Slop skills)
+- `src/config/skills/agents/` (general agent skills)
+
+## Agent Start Here
+
+For agent workflows, use this order:
+
+1. [`AGENTS.md`](../AGENTS.md) - entrypoint map and guardrails
+2. `src/config/skills/slop/start-here.md` - baseline wiki-base orientation
+3. Choose a skill track:
+   - Slop skills (read order): `start-here.md` -> `graph-search.md` -> `member-profiles.md` -> `db-operations.md` -> `curation.md` -> `event-scheduling.md`
+   - Agent skills (read order): `agent.md` -> `mcp-quickstart.md`
+4. The references in this `docs/` tree only when deeper detail is needed
 
 | # | Doc | What it covers |
 |---|-----|---------------|
@@ -37,7 +51,7 @@ npm run dev                   # localhost:3000
 
 ## MCP Integration
 
-Connect any AI agent to the knowledge graph:
+Connect any AI agent to the wiki-base:
 
 ```json
 {

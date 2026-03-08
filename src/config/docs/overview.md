@@ -1,11 +1,11 @@
 ---
 title: Overview
-description: The knowledge graph for the Latent Space community — two repos, one database, four surfaces.
+description: The wiki-base for the Latent Space community — two repos, one database, four surfaces.
 ---
 
 # The System
 
-Two repos, one knowledge graph.
+Two repos, one wiki-base.
 
 | Repo | What it is | Deployed on |
 |------|-----------|-------------|
@@ -79,4 +79,4 @@ Four cloud services, no self-hosted infrastructure.
 | MCP | Model Context Protocol server — `npx latent-space-hub-mcp` |
 | Bot | Discord.js + OpenRouter → Claude Sonnet 4.6 |
 
-Built on [RA-H](https://github.com/bradwmorris/ra-h_os), a local-first personal knowledge graph.
+Built on [RA-H](https://github.com/bradwmorris/ra-h_os), a local-first personal wiki-base.

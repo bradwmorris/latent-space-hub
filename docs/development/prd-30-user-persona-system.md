@@ -183,7 +183,7 @@ This clears `interaction_style` from their member metadata and lets the bot star
 ## 5. Flags
 
 - **Cross-repo:** Changes span both `latent-space-hub` (types) and `latent-space-bots` (bot logic). Need to coordinate deployment.
-- **Privacy:** Style preferences are stored in the knowledge graph. Users should know this — the `/style` response should mention that preferences are stored. The `/join` flow already implies this.
+- **Privacy:** Style preferences are stored in the wiki-base. Users should know this — the `/style` response should mention that preferences are stored. The `/join` flow already implies this.
 - **Cold start:** New users have no style data. The bot should behave naturally (match energy) until enough signal accumulates. Don't default to any style — absence of style = adapt per message.
 - **Style block in responses:** The `<style>` block will be visible in Discord messages. Need to strip it before sending to Discord (same pattern as `<profile>` block stripping).
 - **Depends on:** Member nodes (PRD 19 — completed). Does NOT depend on guides→skills migration (PRD 29), but the persona skill file location may change if that lands first.
