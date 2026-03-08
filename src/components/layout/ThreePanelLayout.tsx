@@ -131,12 +131,21 @@ function TypeNodeList({
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      borderBottom: '1px solid var(--bg-elevated)',
+      borderBottom: '1px solid var(--border-subtle)',
     }}>
+      {label === 'Upcoming' && (
+        <span style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: 'var(--success)',
+          flexShrink: 0,
+        }} />
+      )}
       <span style={{
         fontSize: '11px',
         fontWeight: 600,
-        color: label === 'Upcoming' ? '#34d399' : 'var(--text-muted)',
+        color: label === 'Upcoming' ? 'var(--success)' : 'var(--text-muted)',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
       }}>
@@ -213,10 +222,10 @@ function TypeNodeList({
           display: 'flex',
           gap: '12px',
           padding: '12px 24px',
-          background: isHovered ? 'var(--bg-hover)' : (isUpcoming ? 'rgba(52, 211, 153, 0.04)' : 'transparent'),
+          background: isHovered ? 'var(--bg-hover)' : (isUpcoming ? 'rgba(22, 163, 74, 0.06)' : 'transparent'),
           border: 'none',
           borderBottom: '1px solid var(--bg-hover)',
-          borderLeft: isUpcoming ? '2px solid #34d399' : '2px solid transparent',
+          borderLeft: isUpcoming ? '3px solid var(--success)' : '3px solid transparent',
           color: 'var(--text-primary)',
           cursor: 'pointer',
           textAlign: 'left',
@@ -308,14 +317,15 @@ function TypeNodeList({
           )}
           {isUpcoming && (
             <span style={{
-              fontSize: '9px',
-              fontWeight: 600,
-              color: '#34d399',
-              background: 'rgba(52, 211, 153, 0.12)',
-              border: '1px solid rgba(52, 211, 153, 0.25)',
-              padding: '1px 6px',
-              borderRadius: '3px',
+              fontSize: '10px',
+              fontWeight: 700,
+              color: 'var(--success)',
+              background: 'rgba(22, 163, 74, 0.1)',
+              border: '1px solid rgba(22, 163, 74, 0.3)',
+              padding: '2px 8px',
+              borderRadius: '4px',
               flexShrink: 0,
+              letterSpacing: '0.02em',
             }}>
               Upcoming
             </span>
@@ -324,7 +334,7 @@ function TypeNodeList({
 
         {/* Presenter */}
         {presenterName && (
-          <div style={{ fontSize: '12px', color: isUpcoming ? '#34d399' : 'var(--accent-dark)', lineHeight: 1.4 }}>
+          <div style={{ fontSize: '12px', color: isUpcoming ? 'var(--success)' : 'var(--text-secondary)', lineHeight: 1.4 }}>
             Hosted by {presenterName}
           </div>
         )}
@@ -352,9 +362,15 @@ function TypeNodeList({
           flexWrap: 'wrap',
           marginTop: '2px',
         }}>
-          {/* Date */}
+          {/* Date — prominent */}
           {formattedDate && (
-            <span style={{ fontSize: '11px', color: isUpcoming ? '#34d399' : 'var(--text-muted)' }}>
+            <span style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: isUpcoming ? 'var(--success)' : 'var(--text-secondary)',
+              fontVariantNumeric: 'tabular-nums',
+              fontFamily: 'var(--font-mono)',
+            }}>
               {formattedDate}
             </span>
           )}
