@@ -164,6 +164,7 @@
     }
   ],
   "lastUpdated": "2026-03-08",
+  "nextPrdNumber": 36,
   "projects": {
     "builders-club-prep": {
       "id": "builders-club-prep",
@@ -306,6 +307,46 @@
       "title": "Inbox — conversation-style view of all bot interactions (Discord now, email later)",
       "type": "feature"
     },
+    "wiki-base-rebrand": {
+      "id": "wiki-base-rebrand",
+      "notes": "Rebrand from knowledge graph to LS Wiki-Base. Terminology sweep, documentation unification and overhaul, code↔docs integration, database↔docs integration, living docs system, legibility pass. No schema migrations or UI changes — pure terminology + documentation.",
+      "owner": "brad",
+      "prd": "docs/development/prd-35-wiki-base-rebrand.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Terminology sweep — replace all knowledge graph / context graph references with wiki-base"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Documentation unification — merge dev docs and user docs into one coherent tree"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Documentation overhaul — rewrite all docs for accuracy, completeness, legibility"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Code → docs integration — @docs JSDoc tags, source file references in docs"
+        },
+        {
+          "done": false,
+          "text": "Step 5: Database → docs integration — auto-generate schema docs, drift detection"
+        },
+        {
+          "done": false,
+          "text": "Step 6: Living docs system — pre-commit reminders, docs:check script, CLAUDE.md rules"
+        },
+        {
+          "done": false,
+          "text": "Step 7: Legibility pass — consistent formatting, headers, updated dates, reading order"
+        }
+      ],
+      "title": "LS Wiki-Base rebrand — terminology, documentation overhaul, code↔docs↔database integration",
+      "type": "refactor"
+    },
     "setup-handover": {
       "id": "setup-handover",
       "notes": "No code. Owner does 3 tasks (invite bot, create webhooks, test channel), then Brad tests and switches to live.",
@@ -355,6 +396,7 @@
     }
   },
   "queue": [
+    "wiki-base-rebrand",
     "evals-dashboard",
     "inbox",
     "entity-extraction-audit",
