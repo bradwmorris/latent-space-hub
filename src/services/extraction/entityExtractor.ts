@@ -1,0 +1,434 @@
+import OpenAI from 'openai';
+import { edgeService, nodeService } from '@/services/database';
+import { getSQLiteClient } from '@/services/database/sqlite-client';
+import { NodeType } from '@/types/database';
+
+// --- Types ---
+
+export interface EntityExtractionResult {
+  organizations: string[];
+  research_fields: string[];
+}
+
+interface ExtractionAuditTrail {
+  status: 'success' | 'failed';
+  extracted_at: string;
+  method: 'gpt-4.1-mini' | 'frontmatter';
+  entities_found: { organizations: string[]; research_fields: string[] };
+  edges_created: number;
+}
+
+// --- Constants ---
+
+export const ENTITY_BLOCKLIST = new Set([
+  'ai', 'llm', 'ml', 'tech', 'product', 'today', 'week',
+  'artificial intelligence', 'machine learning', 'deep learning',
+  'scaling', 'data', 'software', 'hardware',
+]);
+
+export const HOST_ALIAS_REPLACEMENTS: Array<{ pattern: RegExp; replacement: string }> = [
+  { pattern: /\bswixs\b/gi, replacement: 'swyx' },
+  { pattern: /\bswix\b/gi, replacement: 'swyx' },
+  { pattern: /\bswitz\b/gi, replacement: 'swyx' },
+  { pattern: /\balesio\b/gi, replacement: 'Alessio' },
+  { pattern: /\ballesio\b/gi, replacement: 'Alessio' },
+  { pattern: /\ballesop\b/gi, replacement: 'Alessio' },
+];
+
+// --- Helpers ---
+
+export function cleanEntity(name: string): string {
+  let value = name;
+  for (const rule of HOST_ALIAS_REPLACEMENTS) {
+    value = value.replace(rule.pattern, rule.replacement);
+  }
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries - 1) {
+        await sleep(2 ** attempt * 1000);
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Retry failed');
+}
+
+function getOpenAIClient(): OpenAI {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
+
+// --- Fuzzy matching ---
+
+function normalizeForMatch(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Check if two entity names are fuzzy matches.
+ * Handles typos like "Cherney" vs "Cherny", abbreviations, etc.
+ */
+export function isFuzzyMatch(a: string, b: string): boolean {
+  const na = normalizeForMatch(a);
+  const nb = normalizeForMatch(b);
+
+  // Exact match after normalization
+  if (na === nb) return true;
+
+  // One is a substring of the other (handles "OpenAI" vs "OpenAI Inc")
+  if (na.includes(nb) || nb.includes(na)) return true;
+
+  // Levenshtein-based: for short strings, allow edit distance proportional to length
+  const maxLen = Math.max(na.length, nb.length);
+  if (maxLen === 0) return false;
+
+  const distance = levenshtein(na, nb);
+  // Allow 1 edit per 5 chars, minimum 1
+  const threshold = Math.max(1, Math.floor(maxLen / 5));
+  return distance <= threshold;
+}
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// --- LLM calls ---
+
+/**
+ * Extract entities (organizations + research fields) from content using gpt-5-mini.
+ */
+export async function extractEntities(
+  title: string,
+  chunk: string
+): Promise<EntityExtractionResult> {
+  if (!process.env.OPENAI_API_KEY) {
+    return { organizations: [], research_fields: [] };
+  }
+
+  const openai = getOpenAIClient();
+  const normalizedTitle = cleanEntity(title);
+  const normalizedChunk = cleanEntity(chunk);
+
+  const prompt = [
+    'Extract major entities from this content. Return strict JSON only.',
+    'Schema: {"organizations": string[], "research_fields": string[]}',
+    'Rules:',
+    '- organizations: Only major companies, labs, or institutions (e.g. "OpenAI", "DeepMind", "Stanford"). Not products, not projects.',
+    '- research_fields: Only established fields or subfields of research (e.g. "reinforcement learning", "mechanistic interpretability", "constitutional AI"). Not generic topics like "AI" or "scaling".',
+    '- Keep names in standard capitalization.',
+    '- Max 5 organizations, max 5 research fields.',
+    '- If unsure, leave it out.',
+    '',
+    `Title: ${normalizedTitle}`,
+    `Content: ${normalizedChunk.slice(0, 2500)}`,
+  ].join('\n');
+
+  const response = await withRetry(async () => {
+    return openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      temperature: 0,
+      max_tokens: 500,
+      response_format: { type: 'json_object' },
+      messages: [{ role: 'user', content: prompt }],
+    });
+  });
+
+  const content = response.choices[0]?.message?.content || '{}';
+  const parsed = JSON.parse(content) as Partial<EntityExtractionResult>;
+
+  const dedupe = (arr: string[] | undefined): string[] => {
+    if (!arr) return [];
+    return [...new Set(arr.map(cleanEntity).filter(Boolean))].filter(
+      (value) => !ENTITY_BLOCKLIST.has(value.toLowerCase())
+    );
+  };
+
+  return {
+    organizations: dedupe(parsed.organizations),
+    research_fields: dedupe(parsed.research_fields),
+  };
+}
+
+/**
+ * Generate a proper description + notes for a new entity node.
+ */
+async function generateEntityDescription(
+  entityName: string,
+  entityType: 'organization' | 'research_field',
+  sourceContent: { title: string; chunk: string }
+): Promise<{ description: string; notes: string }> {
+  if (!process.env.OPENAI_API_KEY) {
+    return {
+      description: `${entityType === 'organization' ? 'Organization' : 'Research field'}: ${entityName}`,
+      notes: '',
+    };
+  }
+
+  const openai = getOpenAIClient();
+
+  const response = await withRetry(async () => {
+    return openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      temperature: 0,
+      max_tokens: 300,
+      response_format: { type: 'json_object' },
+      messages: [{
+        role: 'user',
+        content: `Generate a description and notes for this entity based on the source content.
+
+Entity: "${entityName}"
+Type: ${entityType}
+Source: "${sourceContent.title}"
+Content: ${sourceContent.chunk.slice(0, 1500)}
+
+Return JSON:
+{
+  "description": "One sentence. What this entity IS. For an org: what they do and why they matter in AI/ML. For a research field: what it studies and why it matters. Be specific, not generic.",
+  "notes": "2-3 sentences of additional context from the source content. What was said about this entity? Why is it relevant to the Latent Space community?"
+}
+
+Examples of GOOD descriptions:
+- "Anthropic is an AI safety company that builds Claude, focused on constitutional AI and interpretability research."
+- "Mechanistic interpretability is the study of reverse-engineering neural network internals to understand how models represent and process information."
+
+Examples of BAD descriptions:
+- "organization extracted from auto-ingestion"
+- "A company in the AI space"
+- "An important research area"`,
+      }],
+    });
+  });
+
+  const content = response.choices[0]?.message?.content || '{}';
+  const parsed = JSON.parse(content) as { description?: string; notes?: string };
+
+  return {
+    description: parsed.description || `${entityType === 'organization' ? 'Organization' : 'Research field'}: ${entityName}`,
+    notes: parsed.notes || '',
+  };
+}
+
+/**
+ * Generate a one-sentence description for a content node (podcast, article, etc.).
+ */
+export async function generateContentDescription(
+  title: string,
+  nodeType: string,
+  chunk: string
+): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) {
+    return title;
+  }
+
+  const openai = getOpenAIClient();
+
+  const response = await withRetry(async () => {
+    return openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      temperature: 0,
+      max_tokens: 200,
+      messages: [{
+        role: 'user',
+        content: `Write a one-sentence description for this ${nodeType}.
+
+Title: "${title}"
+Content: ${chunk.slice(0, 2000)}
+
+Rules:
+- Start with what it IS: "A Latent Space podcast episode featuring X, discussing Y."
+- Include who's involved and what they talk about.
+- One sentence, max 50 words.
+- No fluff, no opinions. Just facts.
+
+Examples:
+- "Latent Space podcast episode featuring Ilya Sutskever, discussing scaling laws, compute efficiency, and the future of foundation models."
+- "AI News daily digest covering OpenAI's GPT-5 release, Google's Gemini updates, and new research on chain-of-thought reasoning."
+- "Latent Space blog post by swyx analyzing the shift from RAG to long-context models, with benchmarks and practical recommendations."`,
+      }],
+    });
+  });
+
+  return response.choices[0]?.message?.content?.trim() || title;
+}
+
+// --- Entity dedup + creation ---
+
+/**
+ * Find or create an entity node with proper dedup (exact + fuzzy match)
+ * and meaningful descriptions.
+ */
+export async function findOrCreateEntity(
+  name: string,
+  entityType: 'organization' | 'research_field',
+  sourceContext: { contentTitle: string; chunk: string }
+): Promise<number> {
+  const normalized = cleanEntity(name);
+  if (!normalized) {
+    throw new Error('Entity title is empty');
+  }
+
+  const sqlite = getSQLiteClient();
+
+  // Step 1: Exact match (fast)
+  const exact = await sqlite.query<{ id: number }>(
+    "SELECT id FROM nodes WHERE LOWER(title) = LOWER(?) AND node_type = 'entity' LIMIT 1",
+    [normalized]
+  );
+  if (exact.rows.length > 0) return Number(exact.rows[0].id);
+
+  // Step 2: Fuzzy match — search for similar titles
+  const words = normalized.split(' ').filter(w => w.length > 2);
+  if (words.length > 0) {
+    const fuzzy = await sqlite.query<{ id: number; title: string }>(
+      `SELECT id, title FROM nodes
+       WHERE node_type = 'entity'
+         AND (${words.map(() => 'LOWER(title) LIKE ?').join(' OR ')})
+       LIMIT 10`,
+      words.map(w => `%${w.toLowerCase()}%`)
+    );
+
+    for (const row of fuzzy.rows) {
+      if (isFuzzyMatch(normalized, row.title)) {
+        return Number(row.id);
+      }
+    }
+  }
+
+  // Step 3: No match — create new entity with proper description
+  const { description, notes } = await generateEntityDescription(
+    normalized,
+    entityType,
+    { title: sourceContext.contentTitle, chunk: sourceContext.chunk }
+  );
+
+  const node = await nodeService.createNode({
+    title: normalized,
+    node_type: 'entity',
+    description,
+    notes,
+    chunk: notes,
+    dimensions: ['entity'],
+    metadata: {
+      entity_type: entityType,
+      extraction_method: 'gpt-4.1-mini',
+      first_seen_in: sourceContext.contentTitle,
+    },
+  });
+
+  return node.id;
+}
+
+// --- Edge creation (bidirectional check) ---
+
+export async function ensureEdge(fromNodeId: number, toNodeId: number, explanation: string): Promise<void> {
+  // Check both directions
+  const existsForward = await edgeService.edgeExists(fromNodeId, toNodeId);
+  if (existsForward) return;
+  const existsReverse = await edgeService.edgeExists(toNodeId, fromNodeId);
+  if (existsReverse) return;
+
+  await edgeService.createEdge({
+    from_node_id: fromNodeId,
+    to_node_id: toNodeId,
+    explanation,
+    created_via: 'workflow',
+    source: 'entity_extraction',
+  });
+}
+
+// --- Main orchestrator ---
+
+/**
+ * Extract entities for a node and create entity nodes + edges.
+ * Writes extraction audit trail to node metadata.
+ */
+export async function extractEntitiesForNode(params: {
+  nodeId: number;
+  nodeType: NodeType;
+  title: string;
+  chunk: string;
+  metadata: Record<string, unknown>;
+}): Promise<void> {
+  const { nodeId, nodeType, title, chunk, metadata } = params;
+
+  let entities: EntityExtractionResult = { organizations: [], research_fields: [] };
+  let method: 'gpt-4.1-mini' | 'frontmatter' = 'gpt-4.1-mini';
+
+  // AINews: try frontmatter entities first
+  if (nodeType === 'ainews') {
+    const frontmatter = metadata.frontmatter_entities as
+      | { companies?: string[]; topics?: string[] }
+      | undefined;
+    const hasFrontmatter =
+      Boolean(frontmatter?.companies?.length);
+    if (hasFrontmatter) {
+      entities = {
+        organizations: (frontmatter?.companies || []).map(cleanEntity),
+        research_fields: [], // frontmatter topics are too generic
+      };
+      method = 'frontmatter';
+    } else {
+      entities = await extractEntities(title, chunk);
+    }
+  } else {
+    entities = await extractEntities(title, chunk);
+  }
+
+  const uniqueOrgs = [...new Set(entities.organizations)].filter(Boolean);
+  const uniqueFields = [...new Set(entities.research_fields)].filter(Boolean);
+
+  let edgesCreated = 0;
+  const sourceContext = { contentTitle: title, chunk };
+
+  for (const org of uniqueOrgs) {
+    const orgId = await findOrCreateEntity(org, 'organization', sourceContext);
+    await ensureEdge(nodeId, orgId, `covers ${org}`);
+    edgesCreated++;
+  }
+
+  for (const field of uniqueFields) {
+    const fieldId = await findOrCreateEntity(field, 'research_field', sourceContext);
+    await ensureEdge(nodeId, fieldId, `covers ${field}`);
+    edgesCreated++;
+  }
+
+  // Write extraction audit trail to node metadata
+  const sqlite = getSQLiteClient();
+  const auditTrail: ExtractionAuditTrail = {
+    status: 'success',
+    extracted_at: new Date().toISOString(),
+    method,
+    entities_found: { organizations: uniqueOrgs, research_fields: uniqueFields },
+    edges_created: edgesCreated,
+  };
+
+  const updatedMetadata = { ...metadata, entity_extraction: auditTrail };
+  await sqlite.query(
+    'UPDATE nodes SET metadata = ?, updated_at = datetime() WHERE id = ?',
+    [JSON.stringify(updatedMetadata), nodeId]
+  );
+}

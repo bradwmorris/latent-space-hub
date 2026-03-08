@@ -1,7 +1,13 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { edgeService, nodeService } from '@/services/database';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
 import { embedNodeContent } from '@/services/embedding/ingestion';
+import {
+  cleanEntity,
+  ensureEdge,
+  extractEntitiesForNode,
+  generateContentDescription,
+  withRetry,
+} from '@/services/extraction/entityExtractor';
 import { extractWebsite } from '@/services/typescript/extractors/website';
 import { extractYouTube } from '@/services/typescript/extractors/youtube';
 import { NodeType } from '@/types/database';
@@ -29,63 +35,6 @@ export interface ProcessItemResult {
   hasCompanion?: boolean;
   entityExtractionStatus?: 'success' | 'failed' | 'skipped';
   entityExtractionError?: string;
-}
-
-interface EntityExtractionResult {
-  people: string[];
-  organizations: string[];
-  topics: string[];
-}
-
-const ENTITY_BLOCKLIST = new Set([
-  'ai',
-  'llm',
-  'ml',
-  'tech',
-  'product',
-  'today',
-  'week',
-]);
-
-const HOST_ALIAS_REPLACEMENTS: Array<{ pattern: RegExp; replacement: string }> = [
-  { pattern: /\bswixs\b/gi, replacement: 'swyx' },
-  { pattern: /\bswix\b/gi, replacement: 'swyx' },
-  { pattern: /\bswitz\b/gi, replacement: 'swyx' },
-  { pattern: /\balesio\b/gi, replacement: 'Alessio' },
-  { pattern: /\ballesio\b/gi, replacement: 'Alessio' },
-  { pattern: /\ballesop\b/gi, replacement: 'Alessio' },
-];
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < retries; attempt += 1) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-      if (attempt < retries - 1) {
-        await sleep(2 ** attempt * 1000);
-      }
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error('Retry failed');
-}
-
-function cleanEntity(name: string): string {
-  let value = name;
-  for (const rule of HOST_ALIAS_REPLACEMENTS) {
-    value = value.replace(rule.pattern, rule.replacement);
-  }
-  return value.replace(/\s+/g, ' ').trim();
-}
-
-function buildDescription(title: string, chunk: string): string {
-  const preview = cleanEntity(chunk).replace(/\s+/g, ' ').trim().slice(0, 500);
-  return `${title}${preview ? `\n\n${preview}` : ''}`;
 }
 
 function parseDate(input?: string): string | undefined {
@@ -164,7 +113,6 @@ async function findCompanionNode(params: {
 /**
  * When a Paper Club or Builders Club recording is ingested, find a matching
  * scheduled event node (within 3 days of the recording date) and link them.
- * Returns true if a match was found and linked.
  */
 async function linkRecordingToEvent(recordingNodeId: number, nodeType: string, recordingDate?: string): Promise<boolean> {
   if (!recordingDate) return false;
@@ -185,13 +133,10 @@ async function linkRecordingToEvent(recordingNodeId: number, nodeType: string, r
 
   const eventRow = result.rows[0];
   const eventId = Number(eventRow.id);
-
   const label = nodeType === 'paper-club' ? 'Paper Club' : 'Builders Club';
 
-  // Create edge: recording -> event
   await ensureEdge(recordingNodeId, eventId, `recording of scheduled ${label} session`);
 
-  // Update event metadata: mark completed, store recording node ID
   let metadata: Record<string, unknown> = {};
   try {
     metadata = JSON.parse(eventRow.metadata);
@@ -236,106 +181,8 @@ async function createEventNodeForRecording(
   console.log(`[ingestion] Created event node ${eventNode.id} for ${label} recording ${recordingNodeId}`);
 }
 
-async function findOrCreateEntity(title: string, entityType: 'person' | 'organization' | 'topic'): Promise<number> {
-  const normalized = cleanEntity(title);
-  if (!normalized) {
-    throw new Error('Entity title is empty');
-  }
-
-  const sqlite = getSQLiteClient();
-  const existing = await sqlite.query<{ id: number }>(
-    "SELECT id FROM nodes WHERE LOWER(title) = LOWER(?) AND node_type = 'entity' LIMIT 1",
-    [normalized]
-  );
-  if (existing.rows.length > 0) {
-    return Number(existing.rows[0].id);
-  }
-
-  const node = await nodeService.createNode({
-    title: normalized,
-    node_type: 'entity',
-    dimensions: ['entity'],
-    description: `${entityType} extracted from auto-ingestion`,
-    metadata: {
-      entity_type: entityType,
-      extraction_method: 'auto-ingestion-v1',
-    },
-  });
-
-  return node.id;
-}
-
-async function ensureEdge(fromNodeId: number, toNodeId: number, explanation: string): Promise<void> {
-  const exists = await edgeService.edgeExists(fromNodeId, toNodeId);
-  if (exists) return;
-  await edgeService.createEdge({
-    from_node_id: fromNodeId,
-    to_node_id: toNodeId,
-    explanation,
-    created_via: 'workflow',
-    source: 'ai_similarity',
-  });
-}
-
-async function extractEntitiesWithClaude(title: string, description: string, chunk: string): Promise<EntityExtractionResult> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return { people: [], organizations: [], topics: [] };
-  }
-
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const normalizedTitle = cleanEntity(title);
-  const normalizedDescription = cleanEntity(description);
-  const normalizedChunk = cleanEntity(chunk);
-
-  const prompt = [
-    'Extract prominent entities from this content. Return strict JSON only.',
-    'Schema: {"people": string[], "organizations": string[], "topics": string[]}',
-    'Rules:',
-    '- Only include entities that are clearly central, not incidental mentions.',
-    '- Keep names in normal capitalization.',
-    '- Keep topics short (1-4 words).',
-    '- Canonicalize host aliases to: swyx, Alessio.',
-    '',
-    `Title: ${normalizedTitle}`,
-    `Description: ${normalizedDescription}`,
-    `Content sample: ${normalizedChunk.slice(0, 2500)}`,
-  ].join('\n');
-
-  const response = await withRetry(async () => {
-    return client.messages.create({
-      model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      temperature: 0,
-      messages: [{ role: 'user', content: prompt }],
-    });
-  });
-
-  const textContent = response.content
-    .map((block) => (block.type === 'text' ? block.text : ''))
-    .join('\n')
-    .trim();
-
-  const jsonText = textContent.match(/\{[\s\S]*\}/)?.[0] || '{}';
-  const parsed = JSON.parse(jsonText) as Partial<EntityExtractionResult>;
-
-  const dedupe = (arr: string[] | undefined): string[] => {
-    if (!arr) return [];
-    return [...new Set(arr.map(cleanEntity).filter(Boolean))].filter((value) => {
-      return !ENTITY_BLOCKLIST.has(value.toLowerCase());
-    });
-  };
-
-  return {
-    people: dedupe(parsed.people),
-    organizations: dedupe(parsed.organizations),
-    topics: dedupe(parsed.topics),
-  };
-}
-
 /**
  * Extract guest/topic portion from a podcast title.
- * Latent Space titles follow the pattern: "Topic — Guest Name(s)"
- * Returns normalized lowercase tokens for fuzzy matching.
  */
 function extractGuestTokens(title: string): string[] {
   const afterDash = title.split(/\s[—–-]\s/).slice(1).join(' ');
@@ -347,8 +194,7 @@ function extractGuestTokens(title: string): string[] {
 }
 
 /**
- * Find a matching Substack article for a podcast episode by comparing
- * guest names / key terms from the title.
+ * Find a matching Substack article for a podcast episode.
  */
 async function findMatchingSubstackArticle(podcastTitle: string): Promise<string | null> {
   try {
@@ -375,7 +221,6 @@ async function findMatchingSubstackArticle(podcastTitle: string): Promise<string
 
 async function extractForSource(source: IngestionSourceKey, item: DiscoveredItem): Promise<ExtractedContent> {
   if (source === 'podcasts' || source === 'latentspacetv') {
-    // Try YouTube transcript first
     const extracted = await withRetry(async () => extractYouTube(item.url));
     if (extracted.success) {
       return {
@@ -392,13 +237,11 @@ async function extractForSource(source: IngestionSourceKey, item: DiscoveredItem
       };
     }
 
-    // YouTube failed — fall back to matching Substack article for transcript
     console.warn(`[ingestion] YouTube extraction failed for "${item.title}", trying Substack article fallback`);
     const articleUrl = await findMatchingSubstackArticle(item.title);
     if (articleUrl) {
       const articleExtracted = await withRetry(async () => extractWebsite(articleUrl));
       if (articleExtracted.chunk && articleExtracted.chunk.trim().length >= 100) {
-        // Get YouTube metadata (thumbnail, channel) via oEmbed even though transcript failed
         let videoMetadata: Record<string, unknown> = {};
         try {
           const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(item.url)}&format=json`;
@@ -468,64 +311,6 @@ async function extractForSource(source: IngestionSourceKey, item: DiscoveredItem
   }
 
   throw new Error(`Unsupported source: ${source}`);
-}
-
-async function extractEntitiesForNode(params: {
-  nodeId: number;
-  nodeType: NodeType;
-  title: string;
-  description: string;
-  chunk: string;
-  metadata: Record<string, unknown>;
-}): Promise<void> {
-  const { nodeId, nodeType, title, description, chunk, metadata } = params;
-
-  let entities: EntityExtractionResult = { people: [], organizations: [], topics: [] };
-
-  if (nodeType === 'ainews') {
-    const frontmatter = metadata.frontmatter_entities as
-      | { companies?: string[]; models?: string[]; topics?: string[]; people?: string[] }
-      | undefined;
-    const hasFrontmatter =
-      Boolean(frontmatter?.people?.length) ||
-      Boolean(frontmatter?.companies?.length) ||
-      Boolean(frontmatter?.topics?.length) ||
-      Boolean(frontmatter?.models?.length);
-    if (hasFrontmatter) {
-      entities = {
-        people: (frontmatter?.people || []).map(cleanEntity),
-        organizations: (frontmatter?.companies || []).map(cleanEntity),
-        topics: [...(frontmatter?.topics || []), ...(frontmatter?.models || [])].map(cleanEntity),
-      };
-    } else {
-      entities = await extractEntitiesWithClaude(title, description, chunk);
-    }
-  } else {
-    entities = await extractEntitiesWithClaude(title, description, chunk);
-  }
-
-  const uniquePeople = [...new Set(entities.people)].filter(Boolean);
-  const uniqueOrganizations = [...new Set(entities.organizations)].filter(Boolean);
-  const uniqueTopics = [...new Set(entities.topics)].filter(Boolean);
-
-  for (const person of uniquePeople) {
-    const personId = await findOrCreateEntity(person, 'person');
-    if (nodeType === 'podcast' || nodeType === 'builders-club' || nodeType === 'paper-club' || nodeType === 'workshop') {
-      await ensureEdge(personId, nodeId, `appeared on ${title}`);
-    } else {
-      await ensureEdge(nodeId, personId, `covers ${person}`);
-    }
-  }
-
-  for (const org of uniqueOrganizations) {
-    const orgId = await findOrCreateEntity(org, 'organization');
-    await ensureEdge(nodeId, orgId, `covers ${org}`);
-  }
-
-  for (const topic of uniqueTopics) {
-    const topicId = await findOrCreateEntity(topic, 'topic');
-    await ensureEdge(nodeId, topicId, `covers ${topic}`);
-  }
 }
 
 function targetNodeTypeAndDimensions(source: IngestionSourceKey, title: string): {
@@ -600,9 +385,10 @@ export async function processDiscoveredItem(params: {
   try {
     const extracted = await extractForSource(source, item);
     const { nodeType, dimensions, metadataExtra } = targetNodeTypeAndDimensions(source, extracted.title);
-    const description = buildDescription(extracted.title, extracted.chunk);
 
-    // Mark paper-club and builders-club recordings with event_status
+    // Generate a proper one-sentence description instead of title + preview
+    const description = await generateContentDescription(extracted.title, nodeType, extracted.chunk);
+
     const eventStatusExtra: Record<string, unknown> =
       (nodeType === 'paper-club' || nodeType === 'builders-club')
         ? { event_status: 'recording' }
@@ -632,7 +418,6 @@ export async function processDiscoveredItem(params: {
       try {
         const linked = await linkRecordingToEvent(node.id, nodeType, node.event_date || extracted.publishedAt);
         if (!linked) {
-          // No scheduled event found — create a completed event node
           await createEventNodeForRecording(node.id, nodeType, node.title, node.event_date || extracted.publishedAt);
         }
       } catch (error) {
@@ -657,7 +442,7 @@ export async function processDiscoveredItem(params: {
       }
     }
 
-    // Entity extraction should not fail the entire ingestion run.
+    // Entity extraction — should not fail entire ingestion
     let entityExtractionStatus: 'success' | 'failed' | 'skipped' = 'skipped';
     let entityExtractionError: string | undefined;
     try {
@@ -665,7 +450,6 @@ export async function processDiscoveredItem(params: {
         nodeId: node.id,
         nodeType,
         title: node.title,
-        description,
         chunk: extracted.chunk,
         metadata: (node.metadata || {}) as Record<string, unknown>,
       });
@@ -674,6 +458,21 @@ export async function processDiscoveredItem(params: {
       entityExtractionStatus = 'failed';
       entityExtractionError = error instanceof Error ? error.message : 'Unknown entity extraction error';
       console.error('[ingestion] Entity extraction FAILED for node', node.id, ':', entityExtractionError, error);
+
+      // Write failed audit trail
+      try {
+        const sqlite = getSQLiteClient();
+        const meta = (node.metadata || {}) as Record<string, unknown>;
+        meta.entity_extraction = {
+          status: 'failed',
+          extracted_at: new Date().toISOString(),
+          error: entityExtractionError,
+        };
+        await sqlite.query(
+          'UPDATE nodes SET metadata = ?, updated_at = datetime() WHERE id = ?',
+          [JSON.stringify(meta), node.id]
+        );
+      } catch { /* non-fatal */ }
     }
 
     return {

@@ -199,37 +199,37 @@
     },
     "entity-extraction-audit": {
       "id": "entity-extraction-audit",
-      "notes": "Extraction logic duplicated in processing.ts and cron route. Race condition on dedup. No audit trail. Consolidate into shared entityExtractor.ts, fix dedup, validate AINews frontmatter, centralize explanation templates, extend blocklist.",
+      "notes": "Completed. Shared entityExtractor.ts module, gpt-4.1-mini, fuzzy dedup, orgs+research_fields only, LLM-generated descriptions for all nodes, metadata audit trail, fixed cron query. Dimensions audited — keeping.",
       "prd": "docs/development/prd-27-entity-extraction-audit.md",
       "priority": "medium",
-      "status": "prd",
+      "status": "review",
       "tasks": [
         {
-          "done": false,
-          "text": "Part 1: Create shared src/services/extraction/entityExtractor.ts"
+          "done": true,
+          "text": "Part 1: Create shared entityExtractor.ts, refactor both callers, switch to gpt-4.1-mini"
         },
         {
-          "done": false,
-          "text": "Part 2: Fix deduplication race condition (deduplicate before processing)"
+          "done": true,
+          "text": "Part 2: Fix entity dedup — fuzzy search before creating (levenshtein + LIKE)"
         },
         {
-          "done": false,
-          "text": "Part 3: Add AINews frontmatter validation"
+          "done": true,
+          "text": "Part 3: Tighten entity scope — organizations and research fields only, drop people/topics"
         },
         {
-          "done": false,
-          "text": "Part 4: Centralize explanation templates"
+          "done": true,
+          "text": "Part 4: Every node gets a proper description — entity nodes AND content nodes"
         },
         {
-          "done": false,
-          "text": "Part 5: Add extraction audit trail in node metadata"
+          "done": true,
+          "text": "Part 5: Fix catch-up cron query + add extraction audit trail to metadata"
         },
         {
-          "done": false,
-          "text": "Part 6: Extend blocklist and make configurable"
+          "done": true,
+          "text": "Part 6: Audit dimensions — decision: keep (deeply integrated, serves different purpose than node_type)"
         }
       ],
-      "title": "Entity extraction pipeline audit & cleanup — deduplicate code, fix race conditions, add audit trail",
+      "title": "Ingestion & entity extraction — proper descriptions, dedup, gpt-4.1-mini, scope tightening, cron fix",
       "type": "feature"
     },
     "evals-dashboard": {
