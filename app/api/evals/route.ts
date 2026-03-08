@@ -37,8 +37,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (search) {
-    conditions.push("(user_message LIKE ? OR assistant_message LIKE ?)");
-    queryParams.push(`%${search}%`, `%${search}%`);
+    conditions.push(
+      "(user_message LIKE ? OR assistant_message LIKE ? OR json_extract(metadata, '$.interaction_kind') LIKE ? OR json_extract(metadata, '$.slash_command') LIKE ?)"
+    );
+    queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
 
   const where = conditions.join(' AND ');

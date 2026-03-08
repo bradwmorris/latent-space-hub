@@ -13,10 +13,27 @@
 We have zero visibility into what Slop is doing in Discord. The existing `maybeLogChat` writes to columns that don't exist in the `chats` table — so logging is silently broken. We need to:
 
 1. Fix bot logging so every interaction is captured with full tool traces
-2. Build a dashboard to review those traces
-3. Create a golden eval dataset with automated scenario testing and scoring
+2. Build a dashboard to review those traces in plain language, with full drill-down
+3. Capture enough metadata to make interactions debuggable and cost-auditable in production
 
-This is table stakes for a production bot. Can't improve what you can't see — and can't prevent regressions without evals.
+This is table stakes for a production bot. Can't improve what you can't see.
+
+### Scope update (2026-03-08)
+
+Implement **live interaction tracing + dashboard UX first**.  
+Defer golden dataset + automated eval harness until after people are using the trace workflow.
+
+Active scope now:
+- Full per-interaction drill-down (user message, assistant message, system prompt, full LLM message payload)
+- Tool trace + skill-read visibility
+- Slash/kickoff context
+- Cost/usage visibility from OpenRouter where available
+- Clear interaction labeling in simple language (thread request, slash command, kickoff, scheduling flow, etc.)
+
+Deferred scope:
+- Scenario dataset
+- Automated eval runner
+- Eval pass/fail scoring views
 
 ---
 
@@ -50,6 +67,7 @@ The `chats` table already has the right shape. Map bot data to existing columns:
 
 ```json
 {
+  "interaction_kind": "Thread user request answered with agentic retrieval",
   "discord_user_id": "123456789",
   "discord_username": "swyx",
   "discord_channel_id": "987654321",
@@ -72,6 +90,15 @@ The `chats` table already has the right shape. Map bot data to existing columns:
   ],
   "member_id": 55,
   "model": "anthropic/claude-sonnet-4-6",
+  "system_message": "...",
+  "llm_messages": [{ "role": "system", "content": "..." }, { "role": "user", "content": "..." }],
+  "llm_request_payload": { "model": "...", "messages": [...] },
+  "openrouter_response_id": "gen_...",
+  "openrouter_provider": "anthropic",
+  "openrouter_usage": { "input_tokens": 1200, "output_tokens": 350, "total_cost": 0.0123 },
+  "estimated_cost_usd": 0.0123,
+  "tools_used": ["ls_search_content", "ls_get_nodes"],
+  "skills_used": ["event-ops"],
   "is_slash_command": false,
   "slash_command": null,
   "is_kickoff": false,
@@ -189,6 +216,10 @@ Simple paginated query. Filters:
 - `tools` — where metadata contains non-empty `tool_calls`
 - `search` — LIKE match on user_message or assistant_message
 
+Search should also include high-value metadata fields:
+- `interaction_kind`
+- `slash_command`
+
 ---
 
 ## Verification
@@ -203,7 +234,7 @@ Simple paginated query. Filters:
 
 ---
 
-### Part 4: Eval scenario schema & golden dataset
+### Part 4: Eval scenario schema & golden dataset (deferred)
 
 **New files:**
 - `tests/evals/types.ts` — Scenario type definition
@@ -255,7 +286,7 @@ type Scenario = {
 | Member awareness | Message from known member | Should reference member interests |
 | Source linking | Any knowledge question | Response includes source links |
 
-### Part 5: Eval runner & API endpoint
+### Part 5: Eval runner & API endpoint (deferred)
 
 **New files:**
 - `tests/evals/runner.ts` — CLI runner
@@ -278,9 +309,9 @@ type Scenario = {
 - Returns response + tool calls + timing
 - Tags with `scenario_id` and `trace_id`
 
-### Part 6: Extend dashboard with eval results + run script
+### Part 6: Extend dashboard with eval results + run script (deferred)
 
-**Modify:** `app/api/evals/route.ts` — add filtering by `scenario_id IS NOT NULL` (eval runs) vs `IS NULL` (live)
+**Modify:** `app/api/evals/route.ts` — add filtering by `json_extract(metadata, '$.scenario_id') IS NOT NULL` (eval runs) vs `IS NULL` (live)
 
 **Modify:** `app/evals/EvalsClient.tsx` — add:
 - Source filter: "All | Live | Eval Runs"
@@ -304,13 +335,13 @@ LS_EVALS_SUITE=search npm run evals  # Run search suite only
 ## Tasks
 
 - [ ] Part 1: Rewrite bot logging — align to chats schema, capture tool calls + timing
-- [ ] Part 2: Build /evals dashboard — list view + expanded trace view
-- [ ] Part 3: API route — paginated queries with filters
-- [ ] Part 4: Define eval types and scenario schema
-- [ ] Part 5: Create golden dataset — 10-15 scenarios
-- [ ] Part 6: Build eval runner + eval API endpoint
-- [ ] Part 7: Extend /evals dashboard — source filter, scenario results, aggregate metrics
-- [ ] Part 8: Add `npm run evals` script
+- [ ] Part 2: Build /evals dashboard — list view + expanded trace drill-down (messages, prompt, tools, skills, slash context, cost)
+- [ ] Part 3: API route — paginated queries with filters and metadata-aware search
+- [ ] Part 4 (deferred): Define eval types and scenario schema
+- [ ] Part 5 (deferred): Create golden dataset — 10-15 scenarios
+- [ ] Part 6 (deferred): Build eval runner + eval API endpoint
+- [ ] Part 7 (deferred): Extend /evals dashboard — source filter, scenario results, aggregate metrics
+- [ ] Part 8 (deferred): Add `npm run evals` script
 
 ---
 
@@ -329,3 +360,12 @@ LS_EVALS_SUITE=search npm run evals  # Run search suite only
 - Alerting on errors or anomalies
 - Log retention / cleanup policies
 - Export / download traces
+
+## Observability terminology (reference model)
+
+Use the following naming in code/docs/UI:
+- **Trace**: one end-to-end Discord interaction
+- **Span/Event**: sub-steps inside the trace (LLM call, MCP tool call, member graph update)
+- **Logs**: timestamped records attached to trace/span context
+
+This mirrors OpenTelemetry language and keeps this system compatible with standard observability tooling.
