@@ -66,11 +66,42 @@ Companion items skip the discussion kickoff to avoid duplicate threads.
 
 Three layers, all automatic:
 
-- **Full-text (FTS5)** — keyword search with BM25 ranking. Auto-synced via SQL triggers on chunk insert/update/delete.
-- **Vector embeddings** — semantic search by meaning. OpenAI `text-embedding-3-small`, stored as F32_BLOB(1536) on both nodes and chunks.
+- **Full-text (FTS5)** — keyword search with BM25 ranking. `chunks_fts` virtual table, auto-synced via SQL triggers on chunk insert/update/delete.
+- **Vector embeddings** — semantic search by meaning. OpenAI `text-embedding-3-small`, stored as F32_BLOB(1536) on both nodes and chunks. Queried via `vector_top_k()` with cosine similarity.
 - **B-tree indexes** — fast filtering by date, type, and connections.
 
-Default search mode is **hybrid** — vector + FTS in parallel, merged via Reciprocal Rank Fusion (RRF). Degrades gracefully if any layer fails.
+## Hybrid Search (Default)
+
+Vector + FTS results run in parallel, merged via **Reciprocal Rank Fusion (RRF)**:
+
+1. Run vector search + FTS5 in parallel (each returns `matchCount × 2` candidates)
+2. Score each result: `1 / (60 + rank)`
+3. Sum scores for chunks appearing in both lists
+4. Sort by combined score, normalize to 0–1, return top K
+
+Default: `matchCount = 5`, `similarityThreshold = 0.3`.
+
+## Fallback Chain
+
+If a search tier fails or returns empty, the system degrades gracefully:
+
+```
+hybrid (vector + FTS)  →  vector-only  →  FTS-only  →  LIKE (last resort)
+```
+
+## Chunking
+
+- **Size:** ~2,000 characters per chunk
+- **Overlap:** 400 characters
+- **Boundary detection:** paragraph break (`\n\n`) → sentence end (`. `) → hard cut (in priority order, only used after 50% of chunk size)
+
+# Extractors
+
+| Extractor | Technology | Notes |
+|-----------|-----------|-------|
+| YouTube | `youtube-transcript-plus` (innertube API) | Falls back to article scrape if transcript unavailable |
+| Website | Cheerio + readability heuristics | Strips nav/footer, extracts main content |
+| PDF | `pdf-parse` (local) / direct fetch (arXiv) | Handles multi-page documents |
 
 # Quick Add (Web UI)
 

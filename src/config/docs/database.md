@@ -83,6 +83,23 @@ Tags/categories. Many-to-many with nodes via `node_dimensions` join table.
 
 Discord bot interaction traces. Full MCP tool call logs, timing, Discord context.
 
+# Edge Context Model
+
+`edges.context` stores JSON with relationship semantics:
+
+```typescript
+interface EdgeContext {
+  type: EdgeContextType;       // Relationship type (see table below)
+  confidence: number;          // 0–1
+  explanation: string;         // Human-readable description
+  created_via: string;         // 'ui' | 'agent' | 'mcp' | 'workflow'
+  role?: string;               // e.g. host/guest for appeared_on
+  depth?: string;              // mention / discussion / deep-dive
+  valid_from?: string;         // Temporal bounds
+  valid_until?: string;
+}
+```
+
 # Edge Types
 
 14 relationship types stored in `edges.context`:
@@ -117,3 +134,65 @@ Discord bot interaction traces. Full MCP tool call logs, timing, Discord context
 ### Full-text
 
 `chunks_fts` virtual table on `chunks.text` — auto-synced via SQL triggers on insert/update/delete
+
+# Metadata by Category
+
+Stored in `nodes.metadata` as JSON. Each category has its own shape.
+
+**Podcast / Builders Club / Paper Club / Workshop:**
+```json
+{ "publish_date": "2025-01-15", "series": "latent-space-podcast", "duration": "1:23:45", "video_url": "https://..." }
+```
+
+**Guest:**
+```json
+{ "role": "ML Engineer", "affiliations": ["OpenAI"], "expertise": ["agents", "RAG"], "twitter": "@handle" }
+```
+
+**Entity:**
+```json
+{ "org_type": "startup", "website": "https://...", "founded": "2023", "hq": "San Francisco" }
+```
+
+**Article:**
+```json
+{ "source_type": "blog", "authors": ["swyx"], "publish_date": "2025-02-01" }
+```
+
+**AINews:**
+```json
+{ "source_type": "newsletter", "publish_date": "2025-02-01" }
+```
+
+**Member:**
+```json
+{ "discord_id": "123456", "discord_handle": "user", "avatar_url": "...", "joined_at": "2025-01-01T00:00:00Z", "last_active": "...", "interaction_count": 5, "interests": ["agents", "RAG"] }
+```
+
+# Example Queries
+
+```sql
+-- Count nodes by category
+SELECT node_type, COUNT(*) as count
+FROM nodes WHERE node_type IS NOT NULL
+GROUP BY node_type ORDER BY count DESC;
+
+-- Most connected guests
+SELECT n.id, n.title, COUNT(e.id) as edge_count
+FROM nodes n
+JOIN edges e ON e.from_node_id = n.id OR e.to_node_id = n.id
+WHERE n.node_type = 'guest'
+GROUP BY n.id ORDER BY edge_count DESC LIMIT 20;
+
+-- Recent podcast episodes
+SELECT id, title, event_date, description
+FROM nodes WHERE node_type = 'podcast'
+ORDER BY event_date DESC LIMIT 10;
+
+-- Edges for a specific node
+SELECT e.id, e.context, src.title as from_title, tgt.title as to_title
+FROM edges e
+JOIN nodes src ON src.id = e.from_node_id
+JOIN nodes tgt ON tgt.id = e.to_node_id
+WHERE e.from_node_id = 42 OR e.to_node_id = 42;
+```

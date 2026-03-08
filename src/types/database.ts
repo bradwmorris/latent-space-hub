@@ -154,7 +154,7 @@ export interface Edge {
   created_at: string;
 }
 
-export type EdgeSource = 'user' | 'ai_similarity' | 'helper_name';
+export type EdgeSource = 'user' | 'ai_similarity' | 'helper_name' | 'entity_extraction';
 
 export type EdgeContextType =
   | 'created_by'       // Content → Creator

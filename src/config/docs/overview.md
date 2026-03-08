@@ -30,6 +30,18 @@ LatentSpaceTV          →   Auto-edge creation       →   Announcements webhoo
 3. **Humans and agents explore it** — via the web UI, MCP tools, or Discord
 4. **The graph grows** — each new piece of content connects to existing knowledge
 
+## Indexing Pipeline
+
+For each new item discovered:
+
+1. **Extract** — YouTube transcript or article text
+2. **Create node** — title, link, event_date, node_type, dimensions, metadata, raw text as chunk
+3. **Embed** — node-level (title + description) and chunk-level (~2000 char chunks, 400 overlap) via OpenAI `text-embedding-3-small` (1536d)
+4. **FTS5 sync** — SQL triggers automatically mirror chunk text into full-text search index
+5. **Entity extraction** — Claude Haiku extracts people, organizations, and topics → matches or creates entity nodes → creates typed edges
+6. **Companion detection** — matches podcast ↔ article pairs by title word overlap → creates companion edges
+7. **Discord notification** — posts to #announcements and triggers Slop discussion thread
+
 # Architecture
 
 <iframe src="https://www.tldraw.com/p/IlWpHJhlb-BBzyjY0NTAo?d=v-1377.-777.2932.1546.page" width="100%" height="500" style="border: 1px solid #1e1e1e; border-radius: 10px;" allowfullscreen></iframe>

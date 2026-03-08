@@ -2,28 +2,28 @@
 
 A knowledge graph for the Latent Space universe — podcasts, articles, AI News, conference talks, paper clubs, and more. Searchable via hybrid vector + keyword search, connected in a graph, accessible via web UI, MCP tools, and Discord bot.
 
-## Core Documentation
+## Documentation
 
-Read in this order.
+The source of truth for all user-facing documentation lives in `src/config/docs/` and is rendered at `/docs` in the web app.
 
 | # | Doc | What it covers |
 |---|-----|---------------|
-| 1 | **[Overview](./overview.md)** | The system, how the two repos work together, indexing pipeline, tech stack |
-| 2 | **[Ingestion](./ingestion.md)** | Content sources, hourly cron, enrichment pipeline, entity extraction, Discord notifications |
-| 3 | **[Database](./database.md)** | Turso cloud SQLite, categories, full schema, edge context model, indexes, example queries |
-| 4 | **[Interfaces](./interfaces.md)** | Web app, MCP server (18 tools), Discord bot (agentic tool-calling), announcements webhook |
+| 1 | **Overview** | The system, how the two repos work together, indexing pipeline, tech stack |
+| 2 | **Ingestion** | Content sources, hourly cron, enrichment pipeline, entity extraction, search indexing |
+| 3 | **Database** | Turso cloud SQLite, categories, schema, edge types, metadata, example queries |
+| 4 | **Interfaces** | Web app, MCP server (18 tools), Discord bot, announcements webhook |
+| 5 | **Slop Bot** | Discord bot — how it works, slash commands, member system, skills, trace logging |
+| 6 | **Evals** | Discord trace logging, /evals dashboard, querying traces |
 
 ## Developer Documentation
 
 | Doc | What it covers |
 |-----|---------------|
-| [Architecture](./architecture.md) | Codebase structure, key directories, patterns |
-| [Slop Bot](./slop-bot.md) | Discord bot internals — system prompt, skills, member system, scheduling, trace logging |
 | [Contributing](./contributing.md) | Dev setup, git workflow, env vars |
-| [Deployment](./deployment.md) | Vercel, Railway, Turso, NPM, environments |
-| [Search](./search.md) | Vector search, FTS5, hybrid RRF, fallback chain |
-| [Evals](./evals.md) | Discord trace logging, /evals dashboard |
-| [Troubleshooting](./TROUBLESHOOTING.md) | Common issues and fixes |
+| [Deployment](./development/deployment.md) | Vercel, Railway, Turso, NPM, environments |
+| [Troubleshooting](./development/TROUBLESHOOTING.md) | Common issues and fixes |
+
+PRDs, backlog, and development process docs are in `docs/development/`.
 
 ## Quick Start
 
@@ -53,5 +53,3 @@ Connect any AI agent to the knowledge graph:
   }
 }
 ```
-
-See [Interfaces — MCP Server](./interfaces.md#2-mcp-server) for full tool reference.
