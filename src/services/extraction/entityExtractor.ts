@@ -7,14 +7,15 @@ import { NodeType } from '@/types/database';
 
 export interface EntityExtractionResult {
   organizations: string[];
-  research_fields: string[];
+  themes: string[];
 }
 
 interface ExtractionAuditTrail {
   status: 'success' | 'failed';
   extracted_at: string;
   method: 'gpt-4.1-mini' | 'frontmatter';
-  entities_found: { organizations: string[]; research_fields: string[] };
+  entities_found: { organizations: string[] };
+  themes_assigned: string[];
   edges_created: number;
 }
 
@@ -126,7 +127,7 @@ export async function extractEntities(
   chunk: string
 ): Promise<EntityExtractionResult> {
   if (!process.env.OPENAI_API_KEY) {
-    return { organizations: [], research_fields: [] };
+    return { organizations: [], themes: [] };
   }
 
   const openai = getOpenAIClient();
@@ -134,13 +135,13 @@ export async function extractEntities(
   const normalizedChunk = cleanEntity(chunk);
 
   const prompt = [
-    'Extract major entities from this content. Return strict JSON only.',
-    'Schema: {"organizations": string[], "research_fields": string[]}',
+    'Extract entities and themes from this content. Return strict JSON only.',
+    'Schema: {"organizations": string[], "themes": string[]}',
     'Rules:',
     '- organizations: Only major companies, labs, or institutions (e.g. "OpenAI", "DeepMind", "Stanford"). Not products, not projects.',
-    '- research_fields: Only established fields or subfields of research (e.g. "reinforcement learning", "mechanistic interpretability", "constitutional AI"). Not generic topics like "AI" or "scaling".',
-    '- Keep names in standard capitalization.',
-    '- Max 5 organizations, max 5 research fields.',
+    '- themes: Key research areas or topics discussed (e.g. "reinforcement learning", "mechanistic interpretability", "constitutional AI"). Not generic terms like "AI" or "scaling". Use lowercase.',
+    '- Keep organization names in standard capitalization.',
+    '- Max 5 organizations, max 5 themes.',
     '- If unsure, leave it out.',
     '',
     `Title: ${normalizedTitle}`,
@@ -169,7 +170,7 @@ export async function extractEntities(
 
   return {
     organizations: dedupe(parsed.organizations),
-    research_fields: dedupe(parsed.research_fields),
+    themes: dedupe(parsed.themes),
   };
 }
 
@@ -178,12 +179,11 @@ export async function extractEntities(
  */
 async function generateEntityDescription(
   entityName: string,
-  entityType: 'organization' | 'research_field',
   sourceContent: { title: string; chunk: string }
 ): Promise<{ description: string; notes: string }> {
   if (!process.env.OPENAI_API_KEY) {
     return {
-      description: `${entityType === 'organization' ? 'Organization' : 'Research field'}: ${entityName}`,
+      description: `Organization: ${entityName}`,
       notes: '',
     };
   }
@@ -198,27 +198,25 @@ async function generateEntityDescription(
       response_format: { type: 'json_object' },
       messages: [{
         role: 'user',
-        content: `Generate a description and notes for this entity based on the source content.
+        content: `Generate a description and notes for this organization based on the source content.
 
 Entity: "${entityName}"
-Type: ${entityType}
 Source: "${sourceContent.title}"
 Content: ${sourceContent.chunk.slice(0, 1500)}
 
 Return JSON:
 {
-  "description": "One sentence. What this entity IS. For an org: what they do and why they matter in AI/ML. For a research field: what it studies and why it matters. Be specific, not generic.",
+  "description": "One sentence. What this organization IS — what they do and why they matter in AI/ML. Be specific, not generic.",
   "notes": "2-3 sentences of additional context from the source content. What was said about this entity? Why is it relevant to the Latent Space community?"
 }
 
 Examples of GOOD descriptions:
 - "Anthropic is an AI safety company that builds Claude, focused on constitutional AI and interpretability research."
-- "Mechanistic interpretability is the study of reverse-engineering neural network internals to understand how models represent and process information."
+- "Nvidia is the dominant GPU manufacturer powering AI training and inference infrastructure worldwide."
 
 Examples of BAD descriptions:
 - "organization extracted from auto-ingestion"
-- "A company in the AI space"
-- "An important research area"`,
+- "A company in the AI space"`,
       }],
     });
   });
@@ -227,7 +225,7 @@ Examples of BAD descriptions:
   const parsed = JSON.parse(content) as { description?: string; notes?: string };
 
   return {
-    description: parsed.description || `${entityType === 'organization' ? 'Organization' : 'Research field'}: ${entityName}`,
+    description: parsed.description || `Organization: ${entityName}`,
     notes: parsed.notes || '',
   };
 }
@@ -283,7 +281,6 @@ Examples:
  */
 export async function findOrCreateEntity(
   name: string,
-  entityType: 'organization' | 'research_field',
   sourceContext: { contentTitle: string; chunk: string }
 ): Promise<number> {
   const normalized = cleanEntity(name);
@@ -321,7 +318,6 @@ export async function findOrCreateEntity(
   // Step 3: No match — create new entity with proper description
   const { description, notes } = await generateEntityDescription(
     normalized,
-    entityType,
     { title: sourceContext.contentTitle, chunk: sourceContext.chunk }
   );
 
@@ -333,7 +329,7 @@ export async function findOrCreateEntity(
     chunk: notes,
     dimensions: ['entity'],
     metadata: {
-      entity_type: entityType,
+      entity_type: 'organization',
       extraction_method: 'gpt-4.1-mini',
       first_seen_in: sourceContext.contentTitle,
     },
@@ -375,7 +371,7 @@ export async function extractEntitiesForNode(params: {
 }): Promise<void> {
   const { nodeId, nodeType, title, chunk, metadata } = params;
 
-  let entities: EntityExtractionResult = { organizations: [], research_fields: [] };
+  let entities: EntityExtractionResult = { organizations: [], themes: [] };
   let method: 'gpt-4.1-mini' | 'frontmatter' = 'gpt-4.1-mini';
 
   // AINews: try frontmatter entities first
@@ -388,7 +384,7 @@ export async function extractEntitiesForNode(params: {
     if (hasFrontmatter) {
       entities = {
         organizations: (frontmatter?.companies || []).map(cleanEntity),
-        research_fields: [], // frontmatter topics are too generic
+        themes: [], // frontmatter topics are too generic
       };
       method = 'frontmatter';
     } else {
@@ -399,30 +395,35 @@ export async function extractEntitiesForNode(params: {
   }
 
   const uniqueOrgs = [...new Set(entities.organizations)].filter(Boolean);
-  const uniqueFields = [...new Set(entities.research_fields)].filter(Boolean);
+  const uniqueThemes = [...new Set(entities.themes)].filter(Boolean);
 
   let edgesCreated = 0;
   const sourceContext = { contentTitle: title, chunk };
 
+  // Organizations → entity nodes + edges
   for (const org of uniqueOrgs) {
-    const orgId = await findOrCreateEntity(org, 'organization', sourceContext);
+    const orgId = await findOrCreateEntity(org, sourceContext);
     await ensureEdge(nodeId, orgId, `covers ${org}`);
     edgesCreated++;
   }
 
-  for (const field of uniqueFields) {
-    const fieldId = await findOrCreateEntity(field, 'research_field', sourceContext);
-    await ensureEdge(nodeId, fieldId, `covers ${field}`);
-    edgesCreated++;
+  // Themes → dimensions on the content node (not entity nodes)
+  const sqlite = getSQLiteClient();
+  for (const theme of uniqueThemes) {
+    const dimName = theme.toLowerCase().replace(/\s+/g, '-');
+    await sqlite.query(
+      'INSERT OR IGNORE INTO node_dimensions (node_id, dimension) VALUES (?, ?)',
+      [nodeId, dimName]
+    );
   }
 
   // Write extraction audit trail to node metadata
-  const sqlite = getSQLiteClient();
   const auditTrail: ExtractionAuditTrail = {
     status: 'success',
     extracted_at: new Date().toISOString(),
     method,
-    entities_found: { organizations: uniqueOrgs, research_fields: uniqueFields },
+    entities_found: { organizations: uniqueOrgs },
+    themes_assigned: uniqueThemes,
     edges_created: edgesCreated,
   };
 
