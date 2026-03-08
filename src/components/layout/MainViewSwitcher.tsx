@@ -112,46 +112,29 @@ export default function MainViewSwitcher({
         aria-label={themeLabel}
         title={`${themeLabel} (toggle light/dark)`}
         style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          border: '1px solid var(--border-default)',
-          borderRadius: '999px',
-          background: 'var(--bg-base)',
-          color: 'var(--text-secondary)',
-          padding: '4px 8px',
+          justifyContent: 'center',
+          width: '28px',
+          height: '28px',
+          border: 'none',
+          borderRadius: '8px',
+          background: 'transparent',
+          color: 'var(--text-muted)',
           cursor: 'pointer',
-          transition: 'all 0.1s',
+          transition: 'color 0.15s, background 0.15s',
           flexShrink: 0,
         }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--bg-hover)';
+          e.currentTarget.style.color = 'var(--text-primary)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--text-muted)';
+        }}
       >
-        <Moon size={12} style={{ color: !isLight ? 'var(--text-primary)' : 'var(--text-muted)' }} />
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'relative',
-            width: '32px',
-            height: '16px',
-            borderRadius: '999px',
-            background: isLight ? 'var(--accent-brand)' : 'var(--bg-elevated)',
-            border: `1px solid ${isLight ? 'var(--accent-brand-light)' : 'var(--border-default)'}`,
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <span
-            style={{
-              position: 'absolute',
-              top: '1px',
-              left: isLight ? '16px' : '1px',
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              background: 'var(--text-primary)',
-              transition: 'left 0.15s ease',
-            }}
-          />
-        </span>
-        <Sun size={12} style={{ color: isLight ? 'var(--text-primary)' : 'var(--text-muted)' }} />
+        {isLight ? <Moon size={15} /> : <Sun size={15} />}
       </button>
     </div>
   );
