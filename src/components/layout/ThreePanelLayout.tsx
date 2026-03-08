@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import SkillsPane from '../panes/SkillsPane';
+import EventsCalendarPane from '../panes/EventsCalendarPane';
 import EvalsClient from '@/app/evals/EvalsClient';
 import SearchModal from '../nodes/SearchModal';
 import { Node } from '@/types/database';
@@ -50,6 +51,7 @@ function TypeNodeList({
   const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(false);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [presenterAvatars, setPresenterAvatars] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!selectedType) {
@@ -66,6 +68,29 @@ function TypeNodeList({
       .finally(() => setLoading(false));
   }, [selectedType]);
 
+  // Fetch member avatars for presenter lookup (paper-club, builders-club, event types)
+  useEffect(() => {
+    const typesWithPresenters = new Set(['event', 'paper-club', 'builders-club']);
+    if (!selectedType || !typesWithPresenters.has(selectedType)) return;
+
+    fetch('/api/nodes?type=member&limit=200')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) return;
+        const avatarMap: Record<string, string> = {};
+        for (const member of data.data) {
+          const meta = member.metadata as any;
+          if (meta?.avatar_url) {
+            // Index by title (display name) and discord_handle
+            if (member.title) avatarMap[member.title.toLowerCase()] = meta.avatar_url;
+            if (meta.discord_handle) avatarMap[meta.discord_handle.toLowerCase()] = meta.avatar_url;
+          }
+        }
+        setPresenterAvatars(avatarMap);
+      })
+      .catch(() => {});
+  }, [selectedType]);
+
   if (!selectedType) {
     return (
       <div style={{
@@ -73,7 +98,7 @@ function TypeNodeList({
         color: 'var(--text-muted)', fontSize: '13px', flexDirection: 'column', gap: '6px',
       }}>
         <div style={{ color: 'var(--accent-dark)' }}>Select a type from the left panel</div>
-        <div style={{ fontSize: '12px', color: '#3a3a3a' }}>or switch to Feed or Map view</div>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>or switch to Feed or Map view</div>
       </div>
     );
   }
@@ -130,12 +155,21 @@ function TypeNodeList({
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      borderBottom: '1px solid var(--bg-elevated)',
+      borderBottom: '1px solid var(--border-subtle)',
     }}>
+      {label === 'Upcoming' && (
+        <span style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: 'var(--success)',
+          flexShrink: 0,
+        }} />
+      )}
       <span style={{
         fontSize: '11px',
         fontWeight: 600,
-        color: label === 'Upcoming' ? '#34d399' : 'var(--text-muted)',
+        color: label === 'Upcoming' ? 'var(--success)' : 'var(--text-muted)',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
       }}>
@@ -200,6 +234,9 @@ function TypeNodeList({
     const isEvent = node.node_type === 'event';
     const eventType = isEvent ? meta?.event_type : null; // 'paper-club' or 'builders-club'
     const presenterName = meta?.presenter_name || null;
+    const presenterAvatar = presenterName
+      ? presenterAvatars[presenterName.toLowerCase()] || null
+      : null;
 
     return (
       <button
@@ -212,10 +249,10 @@ function TypeNodeList({
           display: 'flex',
           gap: '12px',
           padding: '12px 24px',
-          background: isHovered ? 'var(--bg-hover)' : (isUpcoming ? 'rgba(52, 211, 153, 0.04)' : 'transparent'),
+          background: isHovered ? 'var(--bg-hover)' : (isUpcoming ? 'rgba(22, 163, 74, 0.06)' : 'transparent'),
           border: 'none',
           borderBottom: '1px solid var(--bg-hover)',
-          borderLeft: isUpcoming ? '2px solid #34d399' : '2px solid transparent',
+          borderLeft: isUpcoming ? '3px solid var(--success)' : '3px solid transparent',
           color: 'var(--text-primary)',
           cursor: 'pointer',
           textAlign: 'left',
@@ -223,6 +260,46 @@ function TypeNodeList({
           alignItems: isMember ? 'center' : 'flex-start',
         }}
       >
+        {/* Presenter avatar (paper-club, builders-club, events) */}
+        {presenterAvatar && !thumb && !isMember && (
+          <img
+            src={presenterAvatar}
+            alt={presenterName || ''}
+            loading="lazy"
+            style={{
+              width: '32px',
+              height: '32px',
+              objectFit: 'cover',
+              borderRadius: '999px',
+              flexShrink: 0,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
+              marginTop: '2px',
+            }}
+          />
+        )}
+
+        {/* Presenter initial fallback (when no avatar but has presenter) */}
+        {!presenterAvatar && presenterName && !thumb && !isMember && (
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '999px',
+            flexShrink: 0,
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-muted)',
+            fontSize: '13px',
+            fontWeight: 500,
+            marginTop: '2px',
+          }}>
+            {presenterName.charAt(0).toUpperCase()}
+          </div>
+        )}
+
         {/* Thumbnail (podcasts) */}
         {thumb && (
           <img
@@ -255,7 +332,7 @@ function TypeNodeList({
                 borderRadius: '999px',
                 flexShrink: 0,
                 background: 'var(--bg-elevated)',
-                border: '1px solid #2f2f2f',
+                border: '1px solid var(--border-default)',
               }}
             />
           ) : (
@@ -264,8 +341,8 @@ function TypeNodeList({
               height: '40px',
               borderRadius: '999px',
               flexShrink: 0,
-              background: '#181818',
-              border: '1px solid #2f2f2f',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -283,7 +360,7 @@ function TypeNodeList({
         <div style={{
           fontSize: '13px',
           fontWeight: 500,
-          color: isHovered ? 'var(--text-primary)' : '#e0e0e0',
+          color: isHovered ? 'var(--text-primary)' : 'var(--text-primary)',
           lineHeight: 1.4,
           transition: 'color 0.12s ease',
           display: 'flex',
@@ -307,14 +384,15 @@ function TypeNodeList({
           )}
           {isUpcoming && (
             <span style={{
-              fontSize: '9px',
-              fontWeight: 600,
-              color: '#34d399',
-              background: 'rgba(52, 211, 153, 0.12)',
-              border: '1px solid rgba(52, 211, 153, 0.25)',
-              padding: '1px 6px',
-              borderRadius: '3px',
+              fontSize: '10px',
+              fontWeight: 700,
+              color: 'var(--success)',
+              background: 'rgba(22, 163, 74, 0.1)',
+              border: '1px solid rgba(22, 163, 74, 0.3)',
+              padding: '2px 8px',
+              borderRadius: '4px',
               flexShrink: 0,
+              letterSpacing: '0.02em',
             }}>
               Upcoming
             </span>
@@ -323,7 +401,7 @@ function TypeNodeList({
 
         {/* Presenter */}
         {presenterName && (
-          <div style={{ fontSize: '12px', color: isUpcoming ? '#34d399' : 'var(--accent-dark)', lineHeight: 1.4 }}>
+          <div style={{ fontSize: '12px', color: isUpcoming ? 'var(--success)' : 'var(--text-secondary)', lineHeight: 1.4 }}>
             Hosted by {presenterName}
           </div>
         )}
@@ -351,9 +429,15 @@ function TypeNodeList({
           flexWrap: 'wrap',
           marginTop: '2px',
         }}>
-          {/* Date */}
+          {/* Date — prominent */}
           {formattedDate && (
-            <span style={{ fontSize: '11px', color: isUpcoming ? '#34d399' : 'var(--text-muted)' }}>
+            <span style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: isUpcoming ? 'var(--success)' : 'var(--text-secondary)',
+              fontVariantNumeric: 'tabular-nums',
+              fontFamily: 'var(--font-mono)',
+            }}>
               {formattedDate}
             </span>
           )}
@@ -660,6 +744,13 @@ export default function ThreePanelLayout() {
             isActive={true}
             onNodeClick={handleNodeSelect}
             activeTabId={activeTab}
+          />
+        );
+
+      case 'events':
+        return (
+          <EventsCalendarPane
+            onNodeClick={handleNodeSelect}
           />
         );
 

@@ -16,7 +16,7 @@ Cloud-hosted libSQL (SQLite fork) with native vector search. Single database sha
 
 # Categories
 
-10 node types stored as `node_type` on the `nodes` table.
+11 node types stored as `node_type` on the `nodes` table.
 
 | Category | `node_type` | Description | Sort |
 |----------|------------|-------------|------|
@@ -26,6 +26,7 @@ Cloud-hosted libSQL (SQLite fork) with native vector search. Single database sha
 | Builders Club | `builders-club` | Community meetup recordings | Recent |
 | Paper Club | `paper-club` | Deep-dive paper discussions | Recent |
 | Workshop | `workshop` | Conference talks, tutorials | Recent |
+| Event | `event` | Scheduled community events (paper club, builders club sessions) | Recent |
 | Guest | `guest` | People — guests, speakers, authors | Most connected |
 | Entity | `entity` | Organizations and technical topics | Most connected |
 | Hub | `hub` | Internal structural anchors (hidden) | — |

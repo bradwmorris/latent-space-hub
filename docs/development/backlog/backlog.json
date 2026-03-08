@@ -577,26 +577,46 @@
     },
     "ui-polish-and-docs": {
       "id": "ui-polish-and-docs",
-      "notes": "Design pass across the hub UI \u2014 cleaner layout, light mode as default, fix docs readability in light mode. Content pass on all 5 documentation pages to reflect current state (post PRD-29).",
+      "notes": "Complete. System theme default, Inter body font, light mode token fixes, docs readability overhaul, dashboard recently-added section, events calendar view, focus panel desc-first tabs, docs content updates.",
       "prd": "docs/development/prd-31-ui-polish-and-docs.md",
       "priority": "high",
-      "status": "prd",
+      "status": "completed",
       "tasks": [
         {
-          "done": false,
-          "text": "Step 1: Make light mode the default theme"
+          "done": true,
+          "text": "Step 1: Theme system overhaul — system preference default, light mode token fixes"
         },
         {
-          "done": false,
-          "text": "Step 2: Fix documentation page readability in light mode"
+          "done": true,
+          "text": "Step 2: Typography system — Inter body font, mono for chrome"
         },
         {
-          "done": false,
-          "text": "Step 3: UI design pass \u2014 dashboard, sidebar, focus panel, views, skills pane, map"
+          "done": true,
+          "text": "Step 3: Fix docs page readability — CSS variables, heading hierarchy, table borders"
         },
         {
-          "done": false,
-          "text": "Step 4: Documentation content pass \u2014 update all 5 doc pages for accuracy"
+          "done": true,
+          "text": "Step 4: Docs page structure — theme toggle, sidebar active states"
+        },
+        {
+          "done": true,
+          "text": "Step 5: UI design pass — dashboard, sidebar, top nav, list/grid views"
+        },
+        {
+          "done": true,
+          "text": "Step 6: Focus Panel — desc-first tabs, brand accent indicators"
+        },
+        {
+          "done": true,
+          "text": "Step 7: Map pane — light mode already handled in CSS"
+        },
+        {
+          "done": true,
+          "text": "Step 8: Events calendar — new EventsCalendarPane with month grid"
+        },
+        {
+          "done": true,
+          "text": "Step 9: Documentation content pass — updated stats, event type, removed HTTP transport"
         }
       ],
       "title": "UI polish & documentation refresh \u2014 cleaner design, light mode default, docs readability + content update",

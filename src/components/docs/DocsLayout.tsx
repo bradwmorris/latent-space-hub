@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Menu, X } from 'lucide-react';
+import { ArrowLeft, Menu, X, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/components/theme/ThemeProvider';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -43,6 +44,16 @@ export default function DocsLayout({ content, title, description, currentSlug, p
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const sections = extractSections(content);
+  const { theme, resolved, setTheme } = useTheme();
+  const isLight = resolved === 'light';
+
+  const toggleTheme = () => {
+    if (theme === 'system') {
+      setTheme(isLight ? 'dark' : 'light');
+      return;
+    }
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   // Override the global overflow: hidden on html/body so docs page can scroll
   useEffect(() => {
@@ -88,18 +99,18 @@ export default function DocsLayout({ content, title, description, currentSlug, p
       minHeight: '100vh',
       background: 'var(--bg-base)',
       color: 'var(--text-primary)',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamily: 'var(--font-body)',
     }}>
       {/* Top bar */}
       <header style={{
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: 'rgba(10, 10, 10, 0.85)',
+        background: 'var(--bg-base)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--bg-elevated)',
-        padding: '14px 24px',
+        borderBottom: '1px solid var(--border-default)',
+        padding: '12px 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -111,10 +122,10 @@ export default function DocsLayout({ content, title, description, currentSlug, p
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: 'var(--accent-primary)',
+              color: 'var(--text-secondary)',
               textDecoration: 'none',
-              fontSize: '14px',
-              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '13px',
+              fontFamily: 'var(--font-mono)',
             }}
           >
             <ArrowLeft size={14} />
@@ -122,32 +133,53 @@ export default function DocsLayout({ content, title, description, currentSlug, p
           </a>
           <span style={{ color: 'var(--border-default)' }}>/</span>
           <span style={{
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: 600,
-            color: '#ccc',
+            color: 'var(--text-primary)',
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: 'var(--font-mono)',
           }}>
             Docs
           </span>
         </div>
 
-        {/* Mobile nav toggle */}
-        <button
-          onClick={() => setMobileNavOpen(!mobileNavOpen)}
-          style={{
-            display: 'none',
-            background: 'none',
-            border: 'none',
-            color: 'var(--accent-primary)',
-            cursor: 'pointer',
-            padding: '4px',
-          }}
-          className="docs-mobile-toggle"
-        >
-          {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            title={`Theme: ${theme}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              border: '1px solid var(--border-default)',
+              borderRadius: '8px',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-secondary)',
+              padding: '4px 8px',
+              cursor: 'pointer',
+            }}
+          >
+            {isLight ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+
+          {/* Mobile nav toggle */}
+          <button
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            style={{
+              display: 'none',
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '4px',
+            }}
+            className="docs-mobile-toggle"
+          >
+            {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
       </header>
 
       {/* Main layout */}
@@ -166,8 +198,8 @@ export default function DocsLayout({ content, title, description, currentSlug, p
             width: '180px',
             flexShrink: 0,
             height: 'calc(100vh - 60px)',
-            paddingTop: '36px',
-            paddingRight: '32px',
+            paddingTop: '32px',
+            paddingRight: '24px',
             overflowY: 'auto',
           }}
         >
@@ -180,26 +212,25 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                     href={`/docs/${page.slug}`}
                     style={{
                       display: 'block',
-                      background: 'none',
-                      border: 'none',
-                      textAlign: 'left',
-                      padding: '7px 10px',
-                      borderRadius: '6px',
+                      padding: '6px 10px',
+                      borderRadius: '4px',
                       cursor: 'pointer',
-                      fontSize: '14px',
+                      fontSize: '13px',
                       lineHeight: 1.4,
                       textDecoration: 'none',
-                      color: isCurrent ? '#f0f0f0' : '#999',
+                      fontFamily: 'var(--font-mono)',
+                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-muted)',
                       fontWeight: isCurrent ? 600 : 400,
+                      background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                      borderLeft: isCurrent ? '2px solid var(--accent-brand)' : '2px solid transparent',
                       transition: 'all 0.15s',
-                      fontFamily: "'Inter', -apple-system, sans-serif",
                     }}
                   >
                     {page.title}
                   </a>
                   {/* Show within-page sections for the current page */}
                   {isCurrent && sections.length > 1 && (
-                    <div style={{ paddingLeft: '12px' }}>
+                    <div style={{ paddingLeft: '16px', marginTop: '4px' }}>
                       {sections.map((s) => (
                         <button
                           key={s.id}
@@ -209,16 +240,15 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                             background: 'none',
                             border: 'none',
                             textAlign: 'left',
-                            padding: '4px 10px',
+                            padding: '3px 8px',
                             borderRadius: '4px',
                             cursor: 'pointer',
-                            fontSize: '13px',
+                            fontSize: '12px',
                             lineHeight: 1.4,
-                            color: activeSection === s.id ? '#ccc' : '#777',
+                            fontFamily: 'var(--font-mono)',
+                            color: activeSection === s.id ? 'var(--text-primary)' : 'var(--text-muted)',
                             fontWeight: activeSection === s.id ? 500 : 400,
                             transition: 'all 0.15s',
-                            fontFamily: "'Inter', -apple-system, sans-serif",
-                            opacity: 0.8,
                           }}
                         >
                           {s.title}
@@ -242,7 +272,7 @@ export default function DocsLayout({ content, title, description, currentSlug, p
               left: 0,
               right: 0,
               background: 'var(--bg-surface)',
-              borderBottom: '1px solid var(--bg-elevated)',
+              borderBottom: '1px solid var(--border-default)',
               padding: '12px 24px',
               zIndex: 99,
               display: 'flex',
@@ -261,7 +291,7 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                   borderRadius: '4px',
                   fontSize: '14px',
                   textDecoration: 'none',
-                  color: page.slug === currentSlug ? 'var(--text-primary)' : 'var(--accent-primary)',
+                  color: page.slug === currentSlug ? 'var(--text-primary)' : 'var(--text-secondary)',
                   fontWeight: page.slug === currentSlug ? 500 : 400,
                 }}
               >
@@ -277,33 +307,35 @@ export default function DocsLayout({ content, title, description, currentSlug, p
           style={{
             flex: 1,
             minWidth: 0,
-            maxWidth: '740px',
-            padding: '36px 0 100px',
+            maxWidth: '720px',
+            padding: '32px 0 100px',
           }}
         >
           {/* Hero */}
-          <div style={{ marginBottom: '40px' }}>
+          <div style={{ marginBottom: '48px' }}>
             <h1 style={{
-              fontSize: '30px',
+              fontSize: '28px',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              margin: '0 0 14px 0',
+              margin: '0 0 12px 0',
               letterSpacing: '-0.02em',
+              fontFamily: 'var(--font-body)',
             }}>
               {title}
             </h1>
             <p style={{
-              fontSize: '17px',
-              color: '#ccc',
+              fontSize: '16px',
+              color: 'var(--text-secondary)',
               lineHeight: 1.6,
               margin: 0,
+              fontFamily: 'var(--font-body)',
             }}>
               {description}
             </p>
           </div>
 
           {/* Markdown content */}
-          <div className="docs-content" style={{ lineHeight: 1.8, fontSize: '16px' }}>
+          <div className="docs-content" style={{ lineHeight: 1.7, fontSize: '15px', fontFamily: 'var(--font-body)' }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
@@ -315,13 +347,14 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                     <h1
                       id={id}
                       style={{
-                        fontSize: '26px',
+                        fontSize: '24px',
                         fontWeight: 600,
-                        color: '#f0f0f0',
-                        margin: '56px 0 20px 0',
-                        paddingTop: '20px',
+                        color: 'var(--text-primary)',
+                        margin: '48px 0 16px 0',
+                        paddingTop: '16px',
                         scrollMarginTop: '80px',
                         letterSpacing: '-0.02em',
+                        fontFamily: 'var(--font-body)',
                       }}
                     >
                       {children}
@@ -332,8 +365,9 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                   <h2 style={{
                     fontSize: '20px',
                     fontWeight: 600,
-                    color: '#e8e8e8',
-                    margin: '36px 0 14px 0',
+                    color: 'var(--text-primary)',
+                    margin: '36px 0 12px 0',
+                    fontFamily: 'var(--font-body)',
                   }}>
                     {children}
                   </h2>
@@ -342,30 +376,40 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                   <h3 style={{
                     fontSize: '17px',
                     fontWeight: 600,
-                    color: '#e0e0e0',
-                    margin: '28px 0 12px 0',
+                    color: 'var(--text-primary)',
+                    margin: '24px 0 8px 0',
+                    fontFamily: 'var(--font-body)',
                   }}>
                     {children}
                   </h3>
                 ),
                 p: ({ children }) => (
-                  <p style={{ margin: '0 0 18px 0', color: '#d0d0d0' }}>{children}</p>
+                  <p style={{
+                    margin: '0 0 16px 0',
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.7,
+                    maxWidth: '680px',
+                  }}>{children}</p>
                 ),
                 ul: ({ children }) => (
-                  <ul style={{ margin: '0 0 18px 0', paddingLeft: '22px' }}>{children}</ul>
+                  <ul style={{ margin: '0 0 16px 0', paddingLeft: '22px', color: 'var(--text-primary)' }}>{children}</ul>
                 ),
                 ol: ({ children }) => (
-                  <ol style={{ margin: '0 0 18px 0', paddingLeft: '22px' }}>{children}</ol>
+                  <ol style={{ margin: '0 0 16px 0', paddingLeft: '22px', color: 'var(--text-primary)' }}>{children}</ol>
                 ),
                 li: ({ children }) => (
-                  <li style={{ margin: '0 0 10px 0', color: '#d0d0d0' }}>{children}</li>
+                  <li style={{ margin: '0 0 8px 0', color: 'var(--text-primary)', lineHeight: 1.6 }}>{children}</li>
                 ),
                 a: ({ href, children }) => (
                   <a
                     href={href}
                     target={href?.startsWith('http') ? '_blank' : undefined}
                     rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    style={{ color: '#a78bfa', textDecoration: 'none', borderBottom: '1px solid rgba(167, 139, 250, 0.3)' }}
+                    style={{
+                      color: 'var(--accent-brand)',
+                      textDecoration: 'none',
+                      borderBottom: '1px solid var(--accent-brand-muted)',
+                    }}
                   >
                     {children}
                   </a>
@@ -375,12 +419,13 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                   if (isInline) {
                     return (
                       <code style={{
-                        background: 'var(--bg-elevated)',
-                        padding: '2px 8px',
+                        background: 'var(--bg-surface)',
+                        padding: '2px 6px',
                         borderRadius: '4px',
-                        fontSize: '14px',
-                        color: '#a78bfa',
-                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: '13px',
+                        color: 'var(--accent-brand)',
+                        fontFamily: 'var(--font-mono)',
+                        border: '1px solid var(--border-subtle)',
                       }} {...props}>{children}</code>
                     );
                   }
@@ -388,41 +433,46 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                     <code style={{
                       display: 'block',
                       background: 'var(--bg-surface)',
-                      padding: '18px',
+                      padding: '16px',
                       borderRadius: '8px',
-                      fontSize: '14px',
+                      fontSize: '13px',
                       overflowX: 'auto',
-                      margin: '0 0 18px 0',
-                      color: '#c4b5fd',
+                      margin: '0 0 16px 0',
+                      color: 'var(--text-primary)',
                       whiteSpace: 'pre-wrap',
-                      border: '1px solid #1e1e1e',
-                      fontFamily: "'JetBrains Mono', monospace",
+                      border: '1px solid var(--border-default)',
+                      fontFamily: 'var(--font-mono)',
                       lineHeight: 1.6,
                     }} {...props}>{children}</code>
                   );
                 },
                 pre: ({ children }) => (
-                  <pre style={{ margin: '0 0 18px 0' }}>{children}</pre>
+                  <pre style={{ margin: '0 0 16px 0' }}>{children}</pre>
                 ),
                 strong: ({ children }) => (
-                  <strong style={{ color: '#f0f0f0', fontWeight: 600 }}>{children}</strong>
+                  <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>
                 ),
                 em: ({ children }) => (
-                  <em style={{ color: '#ccc', fontStyle: 'italic' }}>{children}</em>
+                  <em style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>{children}</em>
                 ),
                 hr: () => (
                   <hr style={{
                     border: 'none',
-                    borderTop: '1px solid #1e1e1e',
+                    borderTop: '1px solid var(--border-default)',
                     margin: '40px 0',
                   }} />
                 ),
                 blockquote: ({ children }) => (
                   <blockquote style={{
-                    borderLeft: '3px solid #a78bfa',
-                    paddingLeft: '18px',
-                    margin: '0 0 18px 0',
-                    color: '#ccc',
+                    borderLeft: '3px solid var(--border-default)',
+                    background: 'var(--bg-surface)',
+                    paddingLeft: '16px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    paddingRight: '16px',
+                    margin: '0 0 16px 0',
+                    color: 'var(--text-secondary)',
+                    borderRadius: '0 8px 8px 0',
                   }}>{children}</blockquote>
                 ),
                 img: ({ src, alt }) => {
@@ -433,8 +483,8 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                       alt={alt || ''}
                       style={{
                         maxWidth: isAvatar ? '100px' : '100%',
-                        borderRadius: isAvatar ? '50%' : '10px',
-                        border: isAvatar ? '2px solid var(--border-default)' : '1px solid #1e1e1e',
+                        borderRadius: isAvatar ? '50%' : '8px',
+                        border: `1px solid var(--border-default)`,
                         margin: isAvatar ? '0 0 12px 0' : '8px 0 20px 0',
                       }}
                     />
@@ -445,7 +495,8 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                     <table style={{
                       width: '100%',
                       borderCollapse: 'collapse',
-                      fontSize: '15px',
+                      fontSize: '14px',
+                      fontFamily: 'var(--font-body)',
                     }}>
                       {children}
                     </table>
@@ -454,22 +505,22 @@ export default function DocsLayout({ content, title, description, currentSlug, p
                 th: ({ children }) => (
                   <th style={{
                     textAlign: 'left',
-                    padding: '12px 16px',
+                    padding: '10px 16px',
                     borderBottom: '1px solid var(--border-default)',
-                    color: '#a78bfa',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
                     fontWeight: 600,
                     fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    fontFamily: 'var(--font-mono)',
                   }}>
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
                   <td style={{
-                    padding: '12px 16px',
-                    borderBottom: '1px solid var(--bg-hover)',
-                    color: '#d0d0d0',
+                    padding: '10px 16px',
+                    borderBottom: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
                     verticalAlign: 'top',
                   }}>
                     {children}

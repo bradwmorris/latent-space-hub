@@ -329,10 +329,11 @@ export default function KanbanView({
                   <GripVertical size={14} color="var(--text-muted)" />
                   <span style={{
                     fontSize: '12px',
-                    fontWeight: 600,
+                    fontWeight: 500,
                     color: 'var(--text-primary)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
+                    letterSpacing: '0.05em',
+                    fontFamily: 'var(--font-mono)'
                   }}>
                     {column.dimension}
                   </span>

@@ -32,7 +32,7 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        color: 'var(--accent-dark)',
+        color: 'var(--text-muted)',
         fontSize: '13px'
       }}>
         No nodes match the current filters
@@ -58,11 +58,12 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
               padding: '12px',
               marginBottom: '4px',
               background: 'var(--bg-base)',
-              border: '1px solid var(--bg-elevated)',
-              borderRadius: '6px',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '8px',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'all 0.2s'
+              transition: 'all 0.15s',
+              boxShadow: 'var(--card-shadow)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'var(--bg-surface)';
@@ -70,7 +71,7 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'var(--bg-base)';
-              e.currentTarget.style.borderColor = 'var(--bg-elevated)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
             }}
           >
             {/* Icon */}
@@ -81,10 +82,10 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
               alignItems: 'center',
               justifyContent: 'center',
               background: 'var(--bg-elevated)',
-              borderRadius: '6px',
+              borderRadius: '4px',
               flexShrink: 0
             }}>
-              <File size={16} color="var(--accent-dark)" />
+              <File size={16} color="var(--text-muted)" />
             </div>
 
             {/* Content */}
@@ -99,13 +100,12 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                 {node.node_type && (
                   <span style={{
                     padding: '1px 5px',
-                    background: '#1a1a2e',
-                    color: '#818cf8',
-                    borderRadius: '3px',
+                    background: 'var(--accent-brand-subtle)',
+                    color: 'var(--accent-brand)',
+                    borderRadius: '4px',
                     fontSize: '9px',
                     fontWeight: 500,
                     flexShrink: 0,
-                    border: '1px solid #2d2d5e'
                   }}>
                     {node.node_type}
                   </span>
@@ -115,11 +115,10 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                     padding: '1px 5px',
                     background: 'rgba(52, 211, 153, 0.12)',
                     color: '#34d399',
-                    borderRadius: '3px',
+                    borderRadius: '4px',
                     fontSize: '9px',
                     fontWeight: 600,
                     flexShrink: 0,
-                    border: '1px solid rgba(52, 211, 153, 0.25)'
                   }}>
                     Upcoming
                   </span>
@@ -130,7 +129,8 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                   color: 'var(--text-primary)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
+                  fontFamily: 'var(--font-mono)',
                 }}>
                   {node.title || 'Untitled'}
                 </div>
@@ -139,14 +139,15 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
               {/* Description or Notes Preview */}
               {(node.description || node.notes) && (
                 <div style={{
-                  fontSize: '12px',
-                  color: 'var(--accent-dark)',
+                  fontSize: '13px',
+                  color: 'var(--text-secondary)',
                   marginBottom: '8px',
-                  lineHeight: '1.4',
+                  lineHeight: 1.5,
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  fontFamily: 'var(--font-body)',
                 }}>
                   {node.description || truncateContent(node.notes)}
                 </div>
@@ -172,9 +173,9 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                         style={{
                           padding: '2px 6px',
                           background: 'var(--bg-elevated)',
-                          borderRadius: '3px',
+                          borderRadius: '4px',
                           fontSize: '10px',
-                          color: 'var(--accent-primary)'
+                          color: 'var(--text-muted)'
                         }}
                       >
                         {dim}
@@ -184,7 +185,7 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                       <span style={{
                         padding: '2px 6px',
                         fontSize: '10px',
-                        color: 'var(--accent-dark)'
+                        color: 'var(--text-muted)'
                       }}>
                         +{node.dimensions.length - 3}
                       </span>
@@ -194,8 +195,8 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
 
                 {/* Event date (if available) or Updated date */}
                 <span style={{
-                  fontSize: '10px',
-                  color: node.event_date ? '#6ee7b7' : 'var(--accent-dark)'
+                  fontSize: '12px',
+                  color: 'var(--text-muted)',
                 }}>
                   {node.event_date ? formatDate(node.event_date) : formatDate(node.updated_at || node.created_at)}
                 </span>
@@ -203,8 +204,8 @@ export default function ListView({ nodes, onNodeClick }: ListViewProps) {
                 {/* Edge count */}
                 {node.edge_count !== undefined && node.edge_count > 0 && (
                   <span style={{
-                    fontSize: '10px',
-                    color: 'var(--accent-dark)'
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
                   }}>
                     {node.edge_count} connections
                   </span>

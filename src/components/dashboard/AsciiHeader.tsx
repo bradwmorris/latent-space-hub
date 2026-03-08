@@ -50,13 +50,13 @@ export default function AsciiHeader({ totalNodes, totalEdges, totalChunks, total
       {/* System status line */}
       <div style={{
         fontSize: '11px',
-        color: 'var(--accent-dark)',
+        color: 'var(--text-secondary)',
         fontVariantNumeric: 'tabular-nums',
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
       }}>
-        <span style={{ color: 'var(--accent-brand)', opacity: 0.6, fontSize: '9px' }}>&#9679;</span>
+        <span style={{ color: 'var(--accent-brand)', fontSize: '9px' }}>&#9679;</span>
         <span>
           {totalNodes.toLocaleString()} nodes{' \u00b7 '}
           {totalEdges.toLocaleString()} edges{' \u00b7 '}

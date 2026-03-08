@@ -22,7 +22,7 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        color: 'var(--accent-dark)',
+        color: 'var(--text-muted)',
         fontSize: '13px'
       }}>
         No nodes match the current filters
@@ -50,22 +50,21 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                 flexDirection: 'column',
                 padding: '16px',
                 background: 'var(--bg-base)',
-                border: '1px solid var(--bg-elevated)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all 0.2s',
-                minHeight: '140px'
+                transition: 'all 0.15s',
+                minHeight: '140px',
+                boxShadow: 'var(--card-shadow)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'var(--bg-surface)';
                 e.currentTarget.style.borderColor = 'var(--border-default)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'var(--bg-base)';
-                e.currentTarget.style.borderColor = 'var(--bg-elevated)';
-                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
               }}
             >
               {/* Header with Icon */}
@@ -82,10 +81,10 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: 'var(--bg-elevated)',
-                  borderRadius: '6px',
+                  borderRadius: '4px',
                   flexShrink: 0
                 }}>
-                  <File size={14} color="var(--accent-dark)" />
+                  <File size={14} color="var(--text-muted)" />
                 </div>
                 <div style={{
                   fontSize: '13px',
@@ -95,7 +94,8 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                   overflow: 'hidden',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical'
+                  WebkitBoxOrient: 'vertical',
+                  fontFamily: 'var(--font-mono)',
                 }}>
                   {node.title || 'Untitled'}
                 </div>
@@ -105,14 +105,15 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
               {(node.description || node.notes) && (
                 <div style={{
                   flex: 1,
-                  fontSize: '11px',
-                  color: 'var(--accent-dark)',
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
                   lineHeight: '1.5',
                   overflow: 'hidden',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  marginBottom: '10px'
+                  marginBottom: '10px',
+                  fontFamily: 'var(--font-body)',
                 }}>
                   {node.description || truncateContent(node.notes)}
                 </div>
@@ -132,9 +133,9 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                       style={{
                         padding: '2px 6px',
                         background: 'var(--bg-elevated)',
-                        borderRadius: '3px',
+                        borderRadius: '4px',
                         fontSize: '10px',
-                        color: 'var(--accent-primary)'
+                        color: 'var(--text-muted)'
                       }}
                     >
                       {dim}
@@ -144,7 +145,7 @@ export default function GridView({ nodes, onNodeClick }: GridViewProps) {
                     <span style={{
                       padding: '2px 6px',
                       fontSize: '10px',
-                      color: 'var(--accent-dark)'
+                      color: 'var(--text-muted)'
                     }}>
                       +{node.dimensions.length - 3}
                     </span>
