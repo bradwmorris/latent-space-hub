@@ -86,12 +86,18 @@ function TypeNodeList({
     );
   }
 
-  // For event type, split into upcoming and past
-  const hasEventSections = selectedType === 'event';
+  // Split into upcoming and past for date-based types
+  const typesWithSections = new Set(['event', 'paper-club', 'builders-club', 'podcast']);
+  const hasEventSections = selectedType !== null && typesWithSections.has(selectedType);
+  const today = new Date().toISOString().slice(0, 10);
+
   const upcomingNodes = hasEventSections
     ? nodes.filter(n => {
-        const status = (n.metadata as any)?.event_status;
-        return status === 'scheduled';
+        if (selectedType === 'event') {
+          return (n.metadata as any)?.event_status === 'scheduled';
+        }
+        // For content types, compare event_date to today
+        return (n.event_date || '') >= today;
       }).sort((a, b) => {
         const dateA = a.event_date || '';
         const dateB = b.event_date || '';
@@ -100,8 +106,10 @@ function TypeNodeList({
     : [];
   const pastNodes = hasEventSections
     ? nodes.filter(n => {
-        const status = (n.metadata as any)?.event_status;
-        return status !== 'scheduled';
+        if (selectedType === 'event') {
+          return (n.metadata as any)?.event_status !== 'scheduled';
+        }
+        return (n.event_date || '') < today;
       })
     : nodes;
 
