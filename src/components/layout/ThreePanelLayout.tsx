@@ -51,6 +51,7 @@ function TypeNodeList({
   const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(false);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [presenterAvatars, setPresenterAvatars] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!selectedType) {
@@ -65,6 +66,29 @@ function TypeNodeList({
       })
       .catch(err => console.error('Failed to fetch type nodes:', err))
       .finally(() => setLoading(false));
+  }, [selectedType]);
+
+  // Fetch member avatars for presenter lookup (paper-club, builders-club, event types)
+  useEffect(() => {
+    const typesWithPresenters = new Set(['event', 'paper-club', 'builders-club']);
+    if (!selectedType || !typesWithPresenters.has(selectedType)) return;
+
+    fetch('/api/nodes?type=member&limit=200')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) return;
+        const avatarMap: Record<string, string> = {};
+        for (const member of data.data) {
+          const meta = member.metadata as any;
+          if (meta?.avatar_url) {
+            // Index by title (display name) and discord_handle
+            if (member.title) avatarMap[member.title.toLowerCase()] = meta.avatar_url;
+            if (meta.discord_handle) avatarMap[meta.discord_handle.toLowerCase()] = meta.avatar_url;
+          }
+        }
+        setPresenterAvatars(avatarMap);
+      })
+      .catch(() => {});
   }, [selectedType]);
 
   if (!selectedType) {
@@ -210,6 +234,9 @@ function TypeNodeList({
     const isEvent = node.node_type === 'event';
     const eventType = isEvent ? meta?.event_type : null; // 'paper-club' or 'builders-club'
     const presenterName = meta?.presenter_name || null;
+    const presenterAvatar = presenterName
+      ? presenterAvatars[presenterName.toLowerCase()] || null
+      : null;
 
     return (
       <button
@@ -233,6 +260,46 @@ function TypeNodeList({
           alignItems: isMember ? 'center' : 'flex-start',
         }}
       >
+        {/* Presenter avatar (paper-club, builders-club, events) */}
+        {presenterAvatar && !thumb && !isMember && (
+          <img
+            src={presenterAvatar}
+            alt={presenterName || ''}
+            loading="lazy"
+            style={{
+              width: '32px',
+              height: '32px',
+              objectFit: 'cover',
+              borderRadius: '999px',
+              flexShrink: 0,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
+              marginTop: '2px',
+            }}
+          />
+        )}
+
+        {/* Presenter initial fallback (when no avatar but has presenter) */}
+        {!presenterAvatar && presenterName && !thumb && !isMember && (
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '999px',
+            flexShrink: 0,
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-muted)',
+            fontSize: '13px',
+            fontWeight: 500,
+            marginTop: '2px',
+          }}>
+            {presenterName.charAt(0).toUpperCase()}
+          </div>
+        )}
+
         {/* Thumbnail (podcasts) */}
         {thumb && (
           <img
