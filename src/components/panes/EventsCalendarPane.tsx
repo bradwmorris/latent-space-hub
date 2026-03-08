@@ -85,11 +85,15 @@ export default function EventsCalendarPane({ onNodeClick }: EventsCalendarPanePr
 
   useEffect(() => {
     setLoading(true);
-    fetch('/api/nodes?type=event,paper-club,builders-club&limit=200&sortBy=event_date')
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) setEvents(res.data);
-      })
+    const types = ['event', 'paper-club', 'builders-club'];
+    Promise.all(
+      types.map(t =>
+        fetch(`/api/nodes?type=${t}&limit=200&sortBy=event_date`)
+          .then(res => res.json())
+          .then(res => (res.success ? res.data : []))
+      )
+    )
+      .then(results => setEvents(results.flat()))
       .catch(err => console.error('Failed to fetch events:', err))
       .finally(() => setLoading(false));
   }, []);
