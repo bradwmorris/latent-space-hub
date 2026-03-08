@@ -158,8 +158,6 @@ Slop is the community bot. Searches the knowledge graph, answers questions with 
 
 | Command | Description |
 |---------|-------------|
-| `/tldr <query>` | Search the graph and summarize any topic with source links |
-| `/wassup` | What's new in Latent Space — latest content roundup |
 | `/join` | Create your member profile so Slop remembers your interests |
 | `/paper-club` | Schedule a Paper Club session — pick a date and paper |
 | `/builders-club` | Schedule a Builders Club session — pick a date and topic |

@@ -31,7 +31,7 @@ Slop is Latent Space's Discord bot. It searches the knowledge graph, answers que
 ## The flow in detail
 
 ```
-User @mentions Slop or uses /tldr, /wassup
+User @mentions Slop in a channel
     |
     v
 Discord sends message to bot (via WebSocket gateway)
@@ -81,21 +81,7 @@ Bot updates member profile (non-blocking)
 
 # Slash Commands
 
-Five commands registered with Discord. These are typed directly in the message input.
-
-## /tldr
-
-**Usage:** `/tldr <query>`
-
-Searches the knowledge graph and gives a concise summary of any topic. Slop uses its full tool-calling loop to find relevant content and returns key points with source links.
-
-**Example:** `/tldr what did swyx say about agents`
-
-## /wassup
-
-**Usage:** `/wassup`
-
-Shows what's new in Latent Space. Fetches the 6 most recent content items (podcasts, articles, AI News) and summarizes what dropped and why it matters.
+Three commands registered with Discord. These are typed directly in the message input.
 
 ## /join
 

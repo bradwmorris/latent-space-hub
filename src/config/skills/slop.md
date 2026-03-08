@@ -24,8 +24,6 @@ Mention @Slop in any channel. A thread is created and Slop responds with graph-b
 
 | Command | What it does |
 |---------|-------------|
-| `/tldr <query>` | Get a concise TLDR on any topic from the knowledge graph |
-| `/wassup` | See what's new and interesting in Latent Space |
 | `/join` | Add yourself as a member node so Slop remembers your interests over time |
 | `/paper-club` | Schedule a Paper Club session (date, title, optional paper URL) |
 | `/builders-club` | Schedule a Builders Club session (date, topic) |

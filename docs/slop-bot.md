@@ -36,8 +36,8 @@ No external persona file. No hardcoded grounding/style lines. One function, one 
 
 | Path | Function | When | Tools? |
 |------|----------|------|--------|
-| Agentic | `generateAgenticResponse()` | Most interactions, `/tldr` | Yes — 9 read-only MCP tools, up to 5 rounds |
-| Non-agentic | `generateResponse()` | Greetings, `/wassup` | No — pre-fetched context passed in user message |
+| Agentic | `generateAgenticResponse()` | Most interactions | Yes — 9 read-only MCP tools, up to 5 rounds |
+| Non-agentic | `generateResponse()` | Greetings | No — pre-fetched context passed in user message |
 
 Both use the same system prompt from `buildSystemPrompt()`.
 
@@ -47,8 +47,6 @@ All defined and handled in `src/index.ts`.
 
 | Command | Handler | Write path |
 |---------|---------|-----------|
-| `/tldr <query>` | Agentic — LLM searches and summarizes | None (read-only) |
-| `/wassup` | Non-agentic — pre-fetches latest 6 content items | None (read-only) |
 | `/join` | `createMemberNodeFromUser()` | Creates member node via MCP |
 | `/paper-club` | `handleSchedulingReply()` → `createScheduledEvent()` | Creates event node + member edge via MCP |
 | `/builders-club` | Same as above | Same |

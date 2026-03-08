@@ -150,7 +150,7 @@ See **[Slop Bot documentation](./slop-bot.md)** for the full reference.
 ### Quick Summary
 
 - **9 read-only MCP tools** passed to the LLM via OpenRouter tool-calling. The LLM decides what to search (up to 5 rounds).
-- **5 slash commands:** `/tldr`, `/wassup`, `/join`, `/paper-club`, `/builders-club`
+- **3 slash commands:** `/join`, `/paper-club`, `/builders-club`
 - **@Slop mentions** create threads for conversation
 - **Member system** — `/join` creates a member node; Slop remembers interests, role, and interaction preferences across conversations
 - **Event scheduling** — `/paper-club` and `/builders-club` create event nodes with date picking and double-booking prevention

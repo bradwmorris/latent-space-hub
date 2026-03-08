@@ -1,9 +1,10 @@
-# PRD-21: Evals Dashboard — Log and review Slop's Discord interactions
+# PRD-21: Evals — Interaction logging, trace dashboard, golden dataset & automated testing
 
 **Status:** ready
 **Type:** feature
 **Priority:** high
 **Repo(s):** latent-space-hub, latent-space-bots
+**Absorbs:** PRD-26 (Eval Suite)
 
 ---
 
@@ -12,9 +13,10 @@
 We have zero visibility into what Slop is doing in Discord. The existing `maybeLogChat` writes to columns that don't exist in the `chats` table — so logging is silently broken. We need to:
 
 1. Fix bot logging so every interaction is captured with full tool traces
-2. Build a simple dashboard to review those traces
+2. Build a dashboard to review those traces
+3. Create a golden eval dataset with automated scenario testing and scoring
 
-This is table stakes for a production bot. Can't improve what you can't see.
+This is table stakes for a production bot. Can't improve what you can't see — and can't prevent regressions without evals.
 
 ---
 
@@ -201,18 +203,129 @@ Simple paginated query. Filters:
 
 ---
 
+### Part 4: Eval scenario schema & golden dataset
+
+**New files:**
+- `tests/evals/types.ts` — Scenario type definition
+- `tests/evals/dataset.json` — Dataset metadata
+- `tests/evals/scenarios/index.ts` — Scenario index
+- `tests/evals/scenarios/*.ts` — 10-15 individual scenarios
+
+```typescript
+type Scenario = {
+  id: string;
+  name: string;
+  description?: string;
+  input: {
+    message: string;               // What the user says to Slop
+    discord_username?: string;      // Simulate specific user
+    channel?: string;               // Simulate channel context
+    is_slash_command?: boolean;
+    slash_command?: string;
+  };
+  expect?: {
+    toolsCalled?: string[];         // Hard: must call these MCP tools
+    toolsCalledSoft?: string[];     // Soft: should call (warning if not)
+    toolsNotCalled?: string[];      // Must NOT call
+    responseContains?: string[];    // Hard: response must include
+    responseContainsSoft?: string[];
+    responseNotContains?: string[];
+    citesNodes?: boolean;           // Response should cite graph nodes
+    maxLatencyMs?: number;
+    maxTotalTokens?: number;
+  };
+  suites?: string[];                // e.g., ['search', 'creation', 'personality']
+  enabled?: boolean;
+  notes?: string;
+};
+```
+
+**Golden dataset categories (10-15 scenarios):**
+
+| Category | Example | Key Assertions |
+|----------|---------|----------------|
+| Search | "What has swyx said about agents?" | `toolsCalled: ['ls_search_content']`, `citesNodes: true` |
+| Search | "Latest AI news from this week" | `toolsCalled: ['ls_search_nodes']`, `responseContains: ['ainews']` |
+| Entity lookup | "Tell me about Anthropic" | Should find entity node, cite it |
+| Podcast | "Summarize the latest podcast episode" | Should search by type, cite source |
+| Slash /tldr | "/tldr transformer architecture" | Tool usage, concise response |
+| Slash /wassup | "/wassup" | Should surface recent content |
+| Personality | "What do you think about RAG?" | Opinionated (Slop persona), not generic |
+| No hallucination | "What did Elon Musk say on the podcast?" | Should say "not found" — not hallucinate |
+| Member awareness | Message from known member | Should reference member interests |
+| Source linking | Any knowledge question | Response includes source links |
+
+### Part 5: Eval runner & API endpoint
+
+**New files:**
+- `tests/evals/runner.ts` — CLI runner
+- `app/api/eval/run/route.ts` — Server-side eval endpoint
+
+**Execution flow:**
+1. Load scenarios from `scenarios/index.ts`
+2. Filter by suite if `LS_EVALS_SUITE` env var set
+3. For each scenario:
+   - Generate `traceId`: `eval_[timestamp]_[uuid]`
+   - Call `/api/eval/run` (uses same MCP tools + system prompt as Slop, runs server-side)
+   - Check expectations (tools called, response content, latency)
+   - Record pass/fail/warning
+4. Print summary
+
+**Eval endpoint (`/api/eval/run`):**
+- Accepts scenario input
+- Loads Slop's system prompt (copy maintained in this repo)
+- Runs Claude with MCP tools (same as bot)
+- Returns response + tool calls + timing
+- Tags with `scenario_id` and `trace_id`
+
+### Part 6: Extend dashboard with eval results + run script
+
+**Modify:** `app/api/evals/route.ts` — add filtering by `scenario_id IS NOT NULL` (eval runs) vs `IS NULL` (live)
+
+**Modify:** `app/evals/EvalsClient.tsx` — add:
+- Source filter: "All | Live | Eval Runs"
+- Scenario results table: name, pass/fail, latency, tool calls, last run
+- Aggregate metrics: pass rate, average latency, tool call accuracy
+
+**Add to `package.json`:**
+```json
+"scripts": {
+  "evals": "tsx tests/evals/runner.ts"
+}
+```
+
+```bash
+npm run evals                        # Run all
+LS_EVALS_SUITE=search npm run evals  # Run search suite only
+```
+
+---
+
 ## Tasks
 
 - [ ] Part 1: Rewrite bot logging — align to chats schema, capture tool calls + timing
 - [ ] Part 2: Build /evals dashboard — list view + expanded trace view
 - [ ] Part 3: API route — paginated queries with filters
+- [ ] Part 4: Define eval types and scenario schema
+- [ ] Part 5: Create golden dataset — 10-15 scenarios
+- [ ] Part 6: Build eval runner + eval API endpoint
+- [ ] Part 7: Extend /evals dashboard — source filter, scenario results, aggregate metrics
+- [ ] Part 8: Add `npm run evals` script
+
+---
+
+## Flags
+
+- **Cross-repo:** Bot logging changes (Part 1) are in `latent-space-bots`. Eval runner (Part 5) needs Slop's system prompt — copy and maintain in this repo.
+- **Database:** Eval traces go into same `chats` table with `scenario_id` in metadata. No new tables.
+- **Cost:** Each eval run calls Claude. 15 scenarios × ~$0.01 = ~$0.15 per full run.
+- **CI integration:** Future — run evals on PR merge. Not in scope for v1.
 
 ---
 
 ## Out of scope (future)
 
 - Token/cost tracking (OpenRouter may not return usage data reliably)
-- Automated quality scoring or LLM-as-judge evals
 - Alerting on errors or anomalies
 - Log retention / cleanup policies
 - Export / download traces
