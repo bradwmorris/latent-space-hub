@@ -74,7 +74,7 @@ function TypeNodeList({
         color: 'var(--text-muted)', fontSize: '13px', flexDirection: 'column', gap: '6px',
       }}>
         <div style={{ color: 'var(--accent-dark)' }}>Select a type from the left panel</div>
-        <div style={{ fontSize: '12px', color: '#3a3a3a' }}>or switch to Feed or Map view</div>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>or switch to Feed or Map view</div>
       </div>
     );
   }
@@ -256,7 +256,7 @@ function TypeNodeList({
                 borderRadius: '999px',
                 flexShrink: 0,
                 background: 'var(--bg-elevated)',
-                border: '1px solid #2f2f2f',
+                border: '1px solid var(--border-default)',
               }}
             />
           ) : (
@@ -265,8 +265,8 @@ function TypeNodeList({
               height: '40px',
               borderRadius: '999px',
               flexShrink: 0,
-              background: '#181818',
-              border: '1px solid #2f2f2f',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -284,7 +284,7 @@ function TypeNodeList({
         <div style={{
           fontSize: '13px',
           fontWeight: 500,
-          color: isHovered ? 'var(--text-primary)' : '#e0e0e0',
+          color: isHovered ? 'var(--text-primary)' : 'var(--text-primary)',
           lineHeight: 1.4,
           transition: 'color 0.12s ease',
           display: 'flex',
