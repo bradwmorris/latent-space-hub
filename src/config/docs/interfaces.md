@@ -131,6 +131,7 @@ Turso cloud SQLite
 |--------|--------|-------|
 | NPX (standalone) | `"command": "npx", "args": ["-y", "latent-space-hub-mcp"]` | No local repo needed. Connects directly to Turso. |
 | Local stdio | `"command": "node", "args": ["path/to/apps/mcp-server/stdio-server.js"]` | Requires hub running (`npm run dev`). Proxies to Next.js API. |
+| HTTP transport | `"url": "http://127.0.0.1:44145/mcp"` | For agents supporting HTTP MCP transport. |
 
 ## Security (Public Deployment)
 

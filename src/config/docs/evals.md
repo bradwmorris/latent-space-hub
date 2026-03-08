@@ -55,3 +55,64 @@ The `/evals` page on the web app provides a visual interface for reviewing bot i
 ## Access
 
 Navigate to `/evals` on the web app. Requires the app to be running (not available in readonly mode).
+
+---
+
+# Trace Metadata
+
+The full `metadata` JSON stored per interaction:
+
+```json
+{
+  "discord_user_id": "123456789",
+  "discord_username": "swyx",
+  "discord_channel_id": "987654321",
+  "discord_message_id": "111222333",
+  "retrieval_method": "mcp:search_content",
+  "context_node_ids": [42, 87, 153],
+  "tool_calls": [
+    {
+      "tool": "ls_search_content",
+      "args": { "query": "transformer architecture", "limit": 6 },
+      "result": { "results_count": 5 },
+      "duration_ms": 230
+    }
+  ],
+  "member_id": 55,
+  "model": "anthropic/claude-sonnet-4-6",
+  "is_slash_command": false,
+  "is_kickoff": false,
+  "response_length": 1847,
+  "latency_ms": 2300
+}
+```
+
+Tool call results are summarized to keep row sizes reasonable — large results are reduced to counts like `{ "results_count": 5 }`.
+
+# Querying Traces via SQL
+
+```sql
+-- Recent Discord traces
+SELECT id, user_message, created_at,
+       json_extract(metadata, '$.discord_username') as username,
+       json_extract(metadata, '$.latency_ms') as latency,
+       json_extract(metadata, '$.retrieval_method') as method
+FROM chats
+WHERE chat_type = 'discord'
+ORDER BY created_at DESC
+LIMIT 20;
+
+-- Traces with tool errors
+SELECT id, user_message, json_extract(metadata, '$.tool_calls') as tools
+FROM chats
+WHERE chat_type = 'discord'
+  AND json_extract(metadata, '$.tool_calls') LIKE '%"error"%';
+
+-- Average latency by retrieval method
+SELECT json_extract(metadata, '$.retrieval_method') as method,
+       COUNT(*) as count,
+       AVG(json_extract(metadata, '$.latency_ms')) as avg_latency_ms
+FROM chats
+WHERE chat_type = 'discord'
+GROUP BY method;
+```

@@ -31,35 +31,87 @@ Knowledge base for the Latent Space community. Built on the RA-H foundation, dep
 - `npm rebuild better-sqlite3` (not used here)
 - `SQLITE_VEC_EXTENSION_PATH` (not needed for Turso)
 
-## Key Directories
+## Project Structure
 
 ```
-app/                    — Next.js App Router (pages + API routes)
-src/
-  components/           — React UI components
-    layout/             — ThreePanelLayout, LeftTypePanel, MainViewSwitcher
-    dashboard/          — Dashboard with stats + category cards
-    panes/              — MapPane, NodePane, SkillsPane, DimensionsPane
-    focus/              — FocusPanel (tabbed node editor), SourceReader
-  services/
-    database/           — Turso client, node/edge/chunk services
-    agents/             — QuickAdd orchestrator, autoEdge, transcript summarizer
-    embedding/          — Chunking + embedding pipeline
-    typescript/extractors/ — YouTube, website, PDF extractors
-  tools/                — MCP tools + database CRUD tools
-  config/
-    categories.ts       — 8-category taxonomy config
-    prompts/            — Agent system prompts
-    skills/             — Skills — agent & user-facing
-  types/
-    database.ts         — Core TypeScript definitions
-apps/
-  mcp-server/           — In-app MCP server (HTTP + stdio)
-  mcp-server-standalone/ — NPX-installable MCP server (npm package)
-scripts/                — Ingestion + data refinement scripts
-docs/                   — System documentation (see docs/README.md)
-docs/development/       — Dev workflow, backlog, PRDs
+latent-space-hub/
+├── app/                           Next.js App Router
+│   ├── api/                       30+ API routes
+│   │   ├── nodes/                 Node CRUD + search
+│   │   ├── edges/                 Edge CRUD
+│   │   ├── dimensions/            Dimension CRUD + search
+│   │   ├── dashboard/             Stats + category previews
+│   │   ├── skills/                Skill CRUD
+│   │   ├── quick-add/             Multi-format ingestion
+│   │   ├── ingestion/             Embedding pipeline
+│   │   ├── cron/
+│   │   │   ├── ingest/            Hourly auto-ingestion cron
+│   │   │   └── extract-entities/  Entity extraction cron
+│   │   ├── extract/               PDF upload
+│   │   ├── health/                Ping, DB, vectors
+│   │   ├── system/                MCP status, auto-context
+│   │   ├── tools/                 Tool listing
+│   │   ├── types/                 Node type schemas
+│   │   ├── logs/                  System logs
+│   │   └── events/                SSE stream
+│   ├── docs/                      User-facing documentation pages
+│   ├── evals/                     Eval dashboard
+│   └── layout.tsx                 Root layout
+│
+├── src/
+│   ├── components/                React UI (~70 files)
+│   │   ├── layout/                Core layout
+│   │   ├── dashboard/             Dashboard with stats + category cards
+│   │   ├── panes/                 MapPane, NodePane, SkillsPane, DimensionsPane
+│   │   ├── focus/                 FocusPanel (tabbed node editor), SourceReader
+│   │   ├── views/                 ListView, GridView, KanbanView
+│   │   ├── agents/                QuickAdd input UI
+│   │   ├── nodes/                 Search modal
+│   │   ├── common/                Shared components (chips, dialogs)
+│   │   └── helpers/               Markdown renderer, node tokens
+│   │
+│   ├── services/
+│   │   ├── database/              All DB access (Turso client, nodes, edges, chunks, dimensions)
+│   │   ├── agents/                QuickAdd orchestrator, autoEdge, transcript summarizer
+│   │   ├── embedding/             Chunking + embedding pipeline
+│   │   ├── typescript/extractors/ YouTube, website, PDF extractors
+│   │   ├── ingestion/             Auto-ingestion pipeline (sources, processing, notify)
+│   │   ├── skills/                Skill service (bundled + user)
+│   │   ├── docs/                  User-facing docs service (reads from src/config/docs/)
+│   │   └── events.ts              SSE real-time broadcasting
+│   │
+│   ├── tools/                     MCP tool definitions
+│   │   ├── database/              Node/edge/dimension CRUD tools
+│   │   ├── other/                 Extraction, search, web, SQL tools
+│   │   └── infrastructure/        Registry, groups, formatters
+│   │
+│   ├── config/
+│   │   ├── categories.ts          8-category taxonomy config
+│   │   ├── prompts/               Agent system prompts
+│   │   ├── skills/                Skills — agent & user-facing (9 files)
+│   │   └── docs/                  User-facing documentation content (6 files, source of truth)
+│   │
+│   └── types/
+│       └── database.ts            Core TypeScript definitions
+│
+├── apps/
+│   ├── mcp-server/                In-app MCP server (HTTP + stdio)
+│   └── mcp-server-standalone/     NPX-installable MCP server
+│
+├── scripts/                       Ingestion, data refinement, companion backfill
+├── docs/
+│   ├── README.md                  Documentation index
+│   ├── contributing.md            Contribution guidelines
+│   └── development/               PRDs, backlog, process
 ```
+
+### Key Patterns
+
+- **Database access:** All DB operations go through `src/services/database/`. Components and API routes never run SQL directly.
+- **MCP tools:** Tools in `src/tools/` wrap the same database services used by the web app.
+- **Real-time updates:** Changes broadcast via SSE from `src/services/events.ts`. Events: `NODE_CREATED`, `NODE_UPDATED`, `NODE_DELETED`, `EDGE_CREATED`, `EDGE_DELETED`, `DIMENSION_UPDATED`.
+- **Auto-embedding:** When a node is created with content, it's queued for background chunking + embedding.
+- **Documentation:** Source of truth is `src/config/docs/` (rendered at `/docs` in the web app). `docs/development/` holds PRDs and backlog.
 
 ## Development
 

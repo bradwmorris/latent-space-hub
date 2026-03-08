@@ -164,7 +164,7 @@
     }
   ],
   "lastUpdated": "2026-03-08",
-  "nextPrdNumber": 36,
+  "nextPrdNumber": 37,
   "projects": {
     "builders-club-prep": {
       "id": "builders-club-prep",
@@ -307,6 +307,30 @@
       "title": "Inbox — conversation-style view of all bot interactions (Discord now, email later)",
       "type": "feature"
     },
+    "ui-ux-cleanup": {
+      "id": "ui-ux-cleanup",
+      "notes": "Three issues: (1) ThreePanelLayout is a misnomer — only 2 panels, SplitHandle is dead code. Rename to AppLayout. (2) Focus/tab state from old multi-pane design lingers — audit, add back button, confirm cleanup on view switch. (3) Paper Club category doesn't show upcoming events because event_date DESC + limit=100 excludes future dates. Fix sort order to show upcoming first.",
+      "owner": "brad",
+      "prd": "docs/development/prd-36-ui-ux-cleanup.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Rename ThreePanelLayout to AppLayout, delete unused SplitHandle.tsx, update all imports"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Audit focus/tab state — add back button when node focused, verify cleanup on view switches"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Fix Paper Club upcoming events — change event_date sort to show upcoming first, verify client-side split"
+        }
+      ],
+      "title": "Final UI/UX cleanup — layout naming, focus state audit, Paper Club upcoming events fix",
+      "type": "fix"
+    },
     "wiki-base-rebrand": {
       "id": "wiki-base-rebrand",
       "notes": "Rebrand from knowledge graph to LS Wiki-Base. Terminology sweep, documentation unification and overhaul, code↔docs integration, database↔docs integration, living docs system, legibility pass. No schema migrations or UI changes — pure terminology + documentation.",
@@ -396,6 +420,7 @@
     }
   },
   "queue": [
+    "ui-ux-cleanup",
     "wiki-base-rebrand",
     "evals-dashboard",
     "inbox",
