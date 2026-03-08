@@ -11,7 +11,8 @@ The hub UI needs a design pass — cleaner layout, light mode as the default, an
 1. Make light mode the default theme
 2. Fix docs page readability in light mode
 3. Design pass across core UI surfaces — cleaner, tighter, less visual noise
-4. Content pass on all 5 documentation pages — update for current state
+4. Events UI overhaul — top bar tab + calendar view
+5. Content pass on all 5 documentation pages — update for current state
 
 ## 3. Implementation Details
 
@@ -76,7 +77,92 @@ General principles: reduce visual noise, tighter spacing, cleaner borders, more 
 **Map pane**
 - Node and edge colors in light mode — ensure sufficient contrast
 
-### Step 4: Documentation content pass
+### Step 4: Events UI overhaul — top bar tab + calendar view
+
+Events currently display as a plain list when selected from the sidebar. We want a dedicated Events experience with a calendar view.
+
+#### 4a. Add Events tab to top bar
+
+**File:** `src/components/layout/MainViewSwitcher.tsx`
+
+- Add a new `'events'` option to the `MainView` type (currently: `'dashboard' | 'type' | 'feed' | 'map' | 'skills' | 'evals'`)
+- Add an Events button to the top bar using the `CalendarDays` icon (from lucide-react, already used in sidebar)
+- Position it after Map in the tab order: Dashboard | Type | Feed | Map | **Events**
+- Clicking it sets `activeView` to `'events'`
+
+**File:** `src/components/layout/ThreePanelLayout.tsx`
+
+- Handle `activeView === 'events'` — render the new `EventsCalendarPane` in the main content area
+- When Events view is active, the left sidebar can remain visible (for quick navigation) but the main area shows the calendar
+
+#### 4b. Install a calendar library
+
+**No calendar library exists in the project.** Evaluate and pick one:
+
+| Library | Pros | Cons |
+|---------|------|------|
+| `react-big-calendar` | Full-featured (month/week/day), widely used, supports event rendering customization | Heavier, needs moment/date-fns adapter |
+| `@schedule-x/react` | Modern, lightweight, good styling out of the box, month/week/day views | Newer, smaller community |
+| `react-day-picker` | Very lightweight, great for simple month grids | No built-in event rendering — would need custom overlay |
+
+**Recommendation:** `react-big-calendar` with `date-fns` as the localizer — it's the most mature option for displaying events on a calendar grid with custom event rendering. Alternatively, `@schedule-x/react` if we want something more modern and lighter.
+
+Install:
+```bash
+npm install react-big-calendar date-fns
+npm install -D @types/react-big-calendar
+```
+
+#### 4c. Build EventsCalendarPane
+
+**New file:** `src/components/panes/EventsCalendarPane.tsx`
+
+This is the main calendar view component:
+
+- **Data source:** Fetch all event-type nodes via `/api/nodes?type=event&limit=200` (same query the sidebar uses)
+- **Also include:** `paper-club` and `builders-club` node types (they have `event_date` and `event_status`)
+- **Calendar mapping:** Map each event node to a calendar event object:
+  ```typescript
+  {
+    id: node.id,
+    title: node.title,
+    start: new Date(node.event_date),
+    end: new Date(node.event_date),  // events are single-slot; add 1hr default duration
+    resource: {
+      node_type: node.node_type,
+      event_status: node.metadata?.event_status,
+      event_type: node.metadata?.event_type,
+      presenter_name: node.metadata?.presenter_name
+    }
+  }
+  ```
+- **Views:** Month view (default), with week view as secondary option
+- **Event styling:**
+  - Scheduled/upcoming events: green accent (matches existing green border treatment)
+  - Completed events: muted/default color
+  - Paper Club: purple accent badge
+  - Builders Club: amber accent badge
+  - Cancelled: strikethrough or grey
+- **Click behavior:** Clicking a calendar event opens it in the FocusPanel (same as clicking from sidebar list)
+- **Light/dark mode:** Must respect theme variables — calendar backgrounds, text, borders all use CSS vars
+- **Today indicator:** Highlight today's date
+- **Empty states:** Months with no events should still look clean
+
+#### 4d. Calendar navigation & header
+
+- Month/year navigation arrows (prev/next)
+- "Today" button to jump back to current month
+- Optional: toggle between Month and Week views
+- Display count of upcoming events in header (e.g., "Events — 3 upcoming")
+
+#### 4e. Coordinate with sidebar
+
+When the Events top bar tab is active:
+- The sidebar Events category should appear selected/highlighted for visual consistency
+- Clicking an event in the sidebar list while in calendar view should scroll/navigate the calendar to that event's month
+- The sidebar still works independently — selecting Events from sidebar when in Type view keeps existing list behavior
+
+### Step 5: Documentation content pass
 
 Review and update all 5 doc pages in `src/config/docs/`:
 
@@ -107,7 +193,9 @@ Review and update all 5 doc pages in `src/config/docs/`:
 
 | File | Action |
 |------|--------|
-| `src/components/layout/ThreePanelLayout.tsx` | Modify — default theme to light |
+| `src/components/layout/ThreePanelLayout.tsx` | Modify — default theme to light, handle events view |
+| `src/components/layout/MainViewSwitcher.tsx` | Modify — add Events tab with CalendarDays icon |
+| `src/components/panes/EventsCalendarPane.tsx` | **New** — calendar view component |
 | `app/layout.tsx` | Modify — initial theme attribute |
 | `app/docs/[slug]/page.tsx` | Modify — fix light mode rendering |
 | `src/config/docs/overview.md` | Review + update content |
@@ -116,17 +204,21 @@ Review and update all 5 doc pages in `src/config/docs/`:
 | `src/config/docs/database.md` | Review + update content |
 | `src/config/docs/evals.md` | Review + update content |
 | `src/components/dashboard/*` | Modify — design pass |
-| `src/components/layout/LeftTypePanel.tsx` | Modify — design pass |
+| `src/components/layout/LeftTypePanel.tsx` | Modify — design pass, coordinate with events view |
 | `src/components/focus/FocusPanel.tsx` | Modify — design pass |
 | `src/components/views/*` | Modify — design pass |
 | `src/components/panes/SkillsPane.tsx` | Modify — design pass |
 | `src/components/panes/map/*` | Modify — light mode contrast |
+| `package.json` | Modify — add calendar library dependency |
 
 ## 5. Open Questions
 
 - Are there specific UI reference sites or design styles to aim for?
 - Should the docs pages support a table of contents / sidebar navigation?
 - Any specific pages or views that feel particularly broken right now?
+- Calendar library choice: `react-big-calendar` (mature, full-featured) vs `@schedule-x/react` (modern, lighter)? Leaning toward react-big-calendar.
+- Should the calendar show week/day views or just month?
+- Should clicking an empty date slot in the calendar trigger event creation (future feature)?
 
 ---
 
