@@ -230,15 +230,31 @@ Review and update all 5 doc pages in `src/config/docs/`:
 **Date:** 2026-03-08
 **What was delivered:**
 
+### Theme & Typography
 1. **Theme system overhaul** — System preference is now the default. `prefers-color-scheme` media query auto-detects. Flash-of-wrong-theme prevented by inline script in `<head>`.
 2. **Typography system** — Added Inter as proportional body font (`--font-body`). Mono remains for UI chrome (`--font-mono`). Body text in descriptions, notes, docs, list/grid views uses Inter at 14-15px with 1.6 line-height.
-3. **Light mode fixes** — Improved all light mode CSS tokens: `--text-primary` darkened to `#111`, `--bg-surface` increased contrast to `#f0f0f0`, borders strengthened, added `--card-shadow` for card definition.
-4. **Docs page overhaul** — Full readability fix: all text uses CSS variables (no hardcoded colors), proper heading hierarchy, visible table borders, styled code blocks with borders, theme toggle added to docs header, sidebar active state with brand accent.
-5. **Dashboard** — Added "Recently Added" section showing 6 latest content nodes. Stat pills and category cards now have visible borders and box-shadow in light mode. Stats line under ASCII header uses `--text-secondary` for better contrast.
-6. **MainViewSwitcher** — Added Events tab with CalendarDays icon. Active tab now shows brand accent bottom border. Tab/breadcrumb hierarchy improved.
-7. **ListView & GridView** — Descriptions use body font. Consistent border-radius (4px/8px). Type badges use brand accent colors. Cards have subtle shadows in light mode.
-8. **Focus Panel** — Default tab changed from Notes → Description. Tab order: Description | Notes | Source. Tab active indicator uses `--accent-brand`. Tab labels use `--text-muted` for inactive.
-9. **Events Calendar** — New `EventsCalendarPane` component with month grid, color-coded events (green=upcoming, purple=paper-club, amber=builders-club, grey=completed/cancelled), today indicator, prev/next/today navigation. No external dependency — pure React.
-10. **Map pane** — Already had light mode styles in `map-styles.css` (background `#f8f8f8`, expanded node styling). CSS variables ensure proper contrast in both modes.
-11. **KanbanView** — Column headers updated to `font-family: var(--font-mono)`.
-12. **Docs content** — Updated overview stats, added Event node type to database docs, removed HTTP transport option from interfaces docs.
+3. **Light mode token fixes** — `--text-primary` darkened to `#111`, `--bg-surface` increased contrast to `#f0f0f0`, borders strengthened to `#d0d0d0`, added `--card-shadow` for card definition. All hardcoded dark-mode colors (`#e0e0e0`, `#181818`, `#2f2f2f`, `#3a3a3a`) replaced with CSS variables.
+4. **Theme toggle** — Replaced bulky moon-pill-sun switch with a single clean icon button (28px, no border, subtle hover). Shows moon in light mode, sun in dark.
+
+### Documentation
+5. **Docs page readability** — Full overhaul: all text uses CSS variables (no hardcoded colors), proper heading hierarchy (h1: 24px, h2: 20px, h3: 17px), visible table borders with header backgrounds, styled code blocks with borders, blockquotes with background. Theme toggle added to docs header.
+6. **Docs sidebar** — Active state with `var(--accent-brand)` left border and surface background. Section links use mono font.
+7. **Docs content pass** — Updated overview stats (~4,100+ nodes, ~8,100 edges), added Event node type to database docs, removed HTTP transport option from interfaces docs.
+
+### Dashboard
+8. **Recently Added section** — Shows 6 latest content nodes with type badge, title, and date above the category grid.
+9. **Stat pills & category cards** — Visible borders (`--border-subtle`) and `box-shadow` in light mode. Category cards show border on hover.
+10. **ASCII header stats line** — Uses `--text-secondary` for better contrast in both modes.
+
+### Core UI Surfaces
+11. **MainViewSwitcher** — Added Events tab with CalendarDays icon. Active tab shows `var(--accent-brand)` bottom border. Breadcrumb lighter weight.
+12. **ListView & GridView** — Descriptions use body font. Consistent border-radius (4px/8px). Type badges use brand accent. Cards have subtle shadows in light mode.
+13. **KanbanView** — Column headers use `var(--font-mono)` with weight 500.
+14. **Focus Panel** — Default tab changed from Notes → Description. Tab order: Description | Notes | Source. Active indicator uses `var(--accent-brand)`. Inactive tabs use `var(--text-muted)`.
+15. **Map pane** — Light mode already handled in `map-styles.css` (background `#f8f8f8`, expanded node styling). CSS variables ensure proper contrast.
+
+### Events
+16. **Events Calendar** — New `EventsCalendarPane` with month grid view. Color-coded events (green=upcoming, purple=paper-club, amber=builders-club, grey=completed/cancelled). Today indicator, prev/next/today nav. No external dependency — pure React. Fetches event, paper-club, builders-club types in parallel.
+17. **Upcoming styling** — Bolder badge (10px, weight 700), thicker 3px green left border, green dot in section header. All greens use `var(--success)` for light mode compatibility.
+18. **Dates** — Bumped to 13px, font-weight 600, mono font, `var(--text-secondary)` — clearly visible in both modes.
+19. **Presenter avatars** — Paper Club and Builders Club lists show presenter's Discord avatar (32px circle) next to each title. Fetches member nodes to build name→avatar map. Falls back to initial letter circle.
