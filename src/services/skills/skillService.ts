@@ -6,7 +6,7 @@ import matter from 'gray-matter';
 export interface SkillMeta {
   name: string;
   description: string;
-  skillGroup: 'agent';
+  skillGroup: 'agent' | 'slop';
   fileName: string;
 }
 
@@ -17,6 +17,7 @@ export interface Skill extends SkillMeta {
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 
 const BUNDLED_AGENT_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/agents');
+const BUNDLED_SLOP_SKILLS_DIR = path.resolve(process.cwd(), '../latent-space-bots/skills');
 const USER_SKILLS_DIR = path.join(os.homedir(), '.latent-space-hub/skills');
 
 const MAX_USER_SKILLS = 10;
@@ -24,23 +25,23 @@ const AGENT_SKILL_ORDER = [
   'agent.md',
   'mcp-quickstart.md',
 ];
+const SLOP_SKILL_ORDER = [
+  'start-here.md',
+  'db-operations.md',
+  'member-profiles.md',
+  'event-scheduling.md',
+];
 
 const LEGACY_REDIRECTS: Record<string, string> = {
   'agent-engineering': 'agent',
   'context-engineering': 'agent',
-  'start-here': 'agent',
   'schema': 'agent',
   'search': 'agent',
   'content-types': 'agent',
   'bots': 'agent',
-  'slop': 'agent',
-  'slop-agent': 'agent',
+  'slop': 'start-here',
+  'slop-agent': 'start-here',
   'categories': 'agent',
-  'db-operations': 'agent',
-  'graph-search': 'agent',
-  'member-profiles': 'agent',
-  'curation': 'agent',
-  'event-scheduling': 'agent',
 };
 
 function ensureUserDir(): void {
@@ -50,24 +51,29 @@ function ensureUserDir(): void {
   }
 }
 
-function readSkillsFromDir(dir: string): Skill[] {
+function readSkillsFromDir(dir: string, defaultGroup: 'agent' | 'slop' = 'agent'): Skill[] {
   if (!fs.existsSync(dir)) return [];
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
   return files.map(file => {
     const raw = fs.readFileSync(path.join(dir, file), 'utf-8');
     const { data, content } = matter(raw);
+    const group = data.skill_group === 'slop' ? 'slop' as const : defaultGroup;
     return {
       name: data.name || file.replace('.md', ''),
       description: data.description || '',
-      skillGroup: 'agent' as const,
+      skillGroup: group,
       fileName: file,
       content: content.trim(),
     };
   });
 }
 
-function readBundledSkills(): Skill[] {
-  return readSkillsFromDir(BUNDLED_AGENT_SKILLS_DIR);
+function readBundledAgentSkills(): Skill[] {
+  return readSkillsFromDir(BUNDLED_AGENT_SKILLS_DIR, 'agent');
+}
+
+function readBundledSlopSkills(): Skill[] {
+  return readSkillsFromDir(BUNDLED_SLOP_SKILLS_DIR, 'slop');
 }
 
 function resolveSkillName(name: string): string {
@@ -75,22 +81,25 @@ function resolveSkillName(name: string): string {
   return LEGACY_REDIRECTS[lower] || lower;
 }
 
-function skillOrderIndex(fileName: string): number {
-  const idx = AGENT_SKILL_ORDER.indexOf(fileName);
+function skillOrderIndex(fileName: string, group: 'agent' | 'slop'): number {
+  const order = group === 'slop' ? SLOP_SKILL_ORDER : AGENT_SKILL_ORDER;
+  const idx = order.indexOf(fileName);
   return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
 }
 
 function sortSkills(skills: Skill[]): Skill[] {
   return skills.slice().sort((a, b) => {
-    const ai = skillOrderIndex(a.fileName);
-    const bi = skillOrderIndex(b.fileName);
+    const ai = skillOrderIndex(a.fileName, a.skillGroup);
+    const bi = skillOrderIndex(b.fileName, b.skillGroup);
     if (ai !== bi) return ai - bi;
     return a.fileName.localeCompare(b.fileName);
   });
 }
 
 export function listSkills(): SkillMeta[] {
-  const bundled = sortSkills(readBundledSkills());
+  const agentSkills = sortSkills(readBundledAgentSkills());
+  const slopSkills = sortSkills(readBundledSlopSkills());
+  const bundled = [...agentSkills, ...slopSkills];
 
   const skills: SkillMeta[] = bundled.map(s => ({
     name: s.name,
@@ -116,10 +125,15 @@ export function listSkills(): SkillMeta[] {
 export function readSkill(name: string): Skill | null {
   const resolved = resolveSkillName(name);
 
-  // Search bundled skills
-  const bundled = sortSkills(readBundledSkills());
-  const bundledMatch = bundled.find(s => s.name.toLowerCase() === resolved || s.fileName.toLowerCase() === `${resolved}.md`);
-  if (bundledMatch) return bundledMatch;
+  // Search bundled agent skills
+  const agentSkills = sortSkills(readBundledAgentSkills());
+  const agentMatch = agentSkills.find(s => s.name.toLowerCase() === resolved || s.fileName.toLowerCase() === `${resolved}.md`);
+  if (agentMatch) return agentMatch;
+
+  // Search bundled slop skills
+  const slopSkills = sortSkills(readBundledSlopSkills());
+  const slopMatch = slopSkills.find(s => s.name.toLowerCase() === resolved || s.fileName.toLowerCase() === `${resolved}.md`);
+  if (slopMatch) return slopMatch;
 
   // Then user skills
   if (!isReadOnly) {
