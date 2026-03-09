@@ -129,7 +129,7 @@ src/config/docs/         ← SOURCE OF TRUTH (6 files, rendered at /docs in web 
 **Goal:** Every doc is accurate, complete, and legible.
 
 **Per-document audit checklist:**
-- [ ] Content matches current codebase (no stale references)
+- [x] Content matches current codebase (no stale references) for core docs and skill paths touched in this PRD
 - [ ] Consistent formatting (headers, code blocks, tables)
 - [x] Has a clear one-line description at the top (all 6 config docs have frontmatter with title + description)
 - [ ] Has "Related docs" links at the bottom
@@ -138,13 +138,10 @@ src/config/docs/         ← SOURCE OF TRUTH (6 files, rendered at /docs in web 
 - [ ] Doc length stays under ~500 lines and each section stays concise
 
 **Remaining rewrites needed:**
-- All 6 docs in `src/config/docs/` — Update "knowledge graph" terminology to "wiki-base"
-- `src/config/docs/overview.md` — Refresh graph counts, update to wiki-base framing
-- `src/config/docs/ingestion.md` — Update entity extraction details (now gpt-4.1-mini, orgs+research_fields only per PRD-27)
-- `docs/contributing.md` — Add "how docs work" section explaining `src/config/docs/` as source of truth
-- `CLAUDE.md` — Update "knowledge graph" references to wiki-base
-- Root `AGENTS.md` — Keep as the stable start-here map for agents (progressive disclosure + links to task-specific skills)
-- Skill trigger tightening — Refine `description`/`when_to_use` in `start-here` and `slop` to reduce undertriggering/overtriggering
+- `src/config/docs/overview.md` — refresh graph counts over time
+- `src/config/docs/ingestion.md` — keep extraction details synced with latest pipeline
+- `docs/contributing.md` — add explicit "how docs work" section for `src/config/docs/`
+- skill metadata tuning (`description` / `when_to_use`) as usage patterns evolve
 
 ### Step 4: Code → Docs Integration
 
@@ -190,6 +187,111 @@ src/config/docs/         ← SOURCE OF TRUTH (6 files, rendered at /docs in web 
 - **Completed PRDs:** Keep unchanged as historical records (out of scope for this PRD).
 - **Bot prompts:** Slop's system prompt in `latent-space-bots` repo also references "knowledge graph." That's a separate repo — note it here, fix it separately.
 - **Scope guard:** This PRD is terminology + documentation only. No schema migrations, no new scripts/hooks/CI jobs, and no feature work.
+
+---
+
+## 5. Implemented In This Workstream (2026-03-09)
+
+This section captures the concrete implementation completed while executing PRD-35 plus tightly-coupled skills/docs cleanup required to make the wiki-base docs accurate.
+
+### 5.1 Skills Architecture and Hierarchy
+
+**Decision implemented:**
+- Split Hub bundled skills into two explicit folders:
+  - `src/config/skills/slop/`
+  - `src/config/skills/agents/`
+
+**What changed:**
+- Moved/created skills so the read hierarchy is explicit and ordered.
+- Updated `src/services/skills/skillService.ts` to load from both directories, preserve ordering, and keep legacy slug redirects.
+- Updated docs navigation grouping to keep `Slop Skills` and `Agent Skills` sections.
+
+**Result:**
+- Skills are now structurally separated by audience (Slop vs general agents), with deterministic ordering in UI/docs and MCP skill listing.
+
+### 5.2 Slop Canonical Skill Set (Locked)
+
+Locked Slop skill set and ordering:
+1. Start Here
+2. Graph Search
+3. Member Profiles
+4. DB Operations
+5. Curation
+6. Event Scheduling
+
+Implemented as concrete files in:
+- `latent-space-bots/skills/`
+- mirrored docs copy in `latent-space-hub/src/config/skills/slop/`
+
+### 5.3 Canonical Runtime Source for Slop Skills
+
+**Final runtime model implemented (after iteration):**
+- Slop runtime reads skills from its own repo only:
+  - `latent-space-bots/skills/*.md`
+- No runtime fallback to Hub for skills.
+- Bot startup validates exact required 6-skill set; missing/extra fails fast.
+
+**Code path:**
+- `latent-space-bots/src/index.ts`
+
+### 5.4 Hub as Documentation Mirror for Slop Skills
+
+**Implemented:**
+- Hub `slop/` skill docs are mirrored from `latent-space-bots/skills`.
+- Verified file parity for all 6 Slop skills during implementation.
+
+**Intent:**
+- Bot runtime source stays local to bots repo.
+- Hub displays/documentation stays consistent with bot skills.
+
+### 5.5 Slop Bot Documentation Accuracy Updates
+
+Updated `src/config/docs/slop-bot.md` to reflect the current architecture:
+- Expanded skill table to all 6 Slop skills.
+- Corrected `ls_read_skill` behavior to local bot files only.
+- Removed stale wording implying local+MCP fallback for skill bodies.
+
+### 5.6 Live System Message Section in Docs
+
+Implemented dynamic system message section injection for `/docs/slop-bot` in:
+- `src/services/docs/docsService.ts`
+
+Behavior:
+1. Prefer live extraction from sibling repo:
+   - `../latent-space-bots/src/index.ts`
+   - `../latent-space-bots/skills/*.md`
+2. If sibling bots repo is not mounted, gracefully fall back to Hub mirrored Slop skill docs (`src/config/skills/slop/*.md`) and default identity/rules template.
+
+This prevents docs breakage across environments while keeping local-dev docs aligned to bot source when available.
+
+### 5.7 Legacy/Path Cleanup
+
+Updated stale skill-path references to the new split layout in:
+- `AGENTS.md`
+- `docs/README.md`
+- `docs/development/process/agents.md`
+- `docs/development/prd-32-paper-club-scheduling.md`
+
+### 5.8 Related Reliability Fixes Completed During This Workstream
+
+While validating Slop behavior, the following bot correctness fixes were implemented and retained:
+- `/join` concurrency hardening (join in-flight guard + race-safe behavior).
+- member uniqueness/index handling improvements.
+- event scheduling guardrails clarified and synchronized to skill docs.
+
+### 5.9 Verification Performed
+
+- `latent-space-bots`: `npm run build` passed after runtime skill-source refactor.
+- `latent-space-hub`: `npm run type-check` and `npm run build` passed after docs/services changes.
+- Skills/doc navigation paths for `/docs/skills/[slug]` validated with generated static routes.
+
+### 5.10 Git / Remote State
+
+Changes were committed and pushed to `main` in both repos:
+- `latent-space-bots`: commit `575e11b`
+- `latent-space-hub`: commit `535d7ee`
+
+Both repos were verified synchronized with `origin/main` after push.
 
 ---
 

@@ -9,8 +9,8 @@ Residual layout abstractions from the old RA-H open-source repo are causing nami
 ## 2. Plan
 
 1. Audit and rename ThreePanelLayout — confirm no third panel renders, rename to reflect reality, clean up dead code (SplitHandle)
-2. Audit focus/tab state — confirm it clears properly, doesn't cause stale state, decide if multi-tab support should stay or be simplified
-3. Fix Paper Club not showing upcoming events — the sort+limit combination excludes future-dated nodes
+2. Audit focus/tab state — confirm it clears properly, doesn't cause stale state, keep multi-tab support, and add a clear close/back affordance
+3. Fix Paper Club not showing upcoming events — resolve sort+limit exclusion, improve upcoming-events UI clarity, and ensure actual upcoming events are manually updated/added for review
 
 ## 3. Implementation Details
 
@@ -44,27 +44,17 @@ Residual layout abstractions from the old RA-H open-source repo are causing nami
 - They survive navigation within the same context (e.g., browsing within Feed view)
 - Multiple tabs can be open — the NodePane header shows draggable tabs with close buttons
 
-**Decision needed:** The multi-tab system works and isn't broken. Two options:
+**Decision:** Keep the multi-tab system and add a clearer close/back affordance.
 
-**Option A — Keep tabs, add clear affordance (recommended):**
-- Add a visible "Close all tabs" or "Back to list" button when NodePane is showing
-- Ensure clicking the same category type in the sidebar clears focus (currently it does)
-- No structural changes
-
-**Option B — Simplify to single-node focus:**
-- Remove `openTabs` array, keep only `activeTab`
-- Remove tab bar from NodePane
-- Clicking a new node replaces the current one
-- Simpler but loses the ability to compare nodes
-
-**Implementation (Option A):**
+**Implementation (chosen):**
 - `src/components/layout/ThreePanelLayout.tsx` (or `AppLayout.tsx` after rename):
-  - Verify all view-switch paths clear `activeTab` and `openTabs`
-  - Add a "← Back" button visible when `showingFocusedNode` is true
+  - Verify all view-switch paths clear `activeTab` and `openTabs` so focus state does not go stale
+  - Add a visible "Close" affordance when `showingFocusedNode` is true (`Close all` and/or `← Back to list`)
 - `src/components/panes/NodePane.tsx`:
   - Keep tab system as-is
   - Ensure tab close button works reliably
   - When last tab is closed, return to previous view
+  - Keep keyboard/mouse behavior simple and predictable (no hidden focus persistence)
 
 ### Step 3: Fix Paper Club Upcoming Events
 
@@ -95,13 +85,24 @@ Meanwhile, `EventsCalendarPane` fetches with `limit=200` and does its own client
    - This should work correctly once the API returns upcoming events in the result set
    - Confirm `hasEventSections` is true for `paper-club` type (it should be — line 110 checks `['event', 'paper-club', 'builders-club']`)
 
+3. **UI-level (cleaner upcoming view):**
+   - Improve visual separation and readability of Upcoming vs Past sections in Paper Club
+   - Ensure Upcoming is the primary section at top, with clear header/copy and empty-state text if no future events exist
+   - Keep styling/layout consistent with the rest of the app (no major redesign, just clarity polish)
+
+4. **Data-level (actual upcoming events):**
+   - Manually review Paper Club event nodes and correct inaccurate/missing future `event_date`, title, and URL metadata
+   - Manually add any known upcoming Paper Club events that are missing so the list is immediately useful
+   - Verify the upcoming section reflects real scheduled events and is ready for review/use
+
 **Files:**
 - `src/services/database/nodes.ts` — Fix `event_date` sort order
 - `src/components/layout/ThreePanelLayout.tsx` — Verify client-side upcoming/past split includes `paper-club`
+- Database content via tools/admin workflow — update/add real upcoming Paper Club event nodes
 
 ## 4. Open Questions / Notes
 
-- **Tab system:** Leaning toward Option A (keep tabs, add back button). The tab system isn't broken and could be useful. But if it causes confusion, Option B is a clean simplification. Decide during implementation.
+- **Tab system:** Locked decision is to keep multi-tab support and add explicit close/back affordances.
 - **SplitHandle:** Confirm zero imports before deleting. If it's imported in a type file but never used at runtime, still delete.
 - **Events sort change:** The new sort order affects ALL types that use `sortBy=event_date`, not just paper-club. Verify this doesn't break anything for other event-like types (builders-club, event). It shouldn't — showing upcoming first is the right default for all event types.
 - **Limit:** Consider bumping the TypeNodeList fetch limit from 100 to 200 for event-like types as a safety net.
