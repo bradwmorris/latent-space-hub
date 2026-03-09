@@ -1,6 +1,12 @@
 {
   "completed": [
     {
+      "completed_date": "2026-03-09",
+      "id": "entity-extraction-audit",
+      "prd": "docs/development/prd-27-entity-extraction-audit.md",
+      "title": "Ingestion & entity extraction \u2014 proper descriptions, dedup, gpt-4.1-mini, scope tightening, cron fix"
+    },
+    {
       "branch": "",
       "completed_date": "2026-03-08",
       "id": "graph-bot-polish",
@@ -163,8 +169,8 @@
       "title": "Data refinement & hygiene \u2014 type migration, descriptions/notes, dates, edge cleanup"
     }
   ],
-  "lastUpdated": "2026-03-08",
-  "nextPrdNumber": 37,
+  "lastUpdated": "2026-03-09",
+  "nextPrdNumber": 38,
   "projects": {
     "builders-club-prep": {
       "id": "builders-club-prep",
@@ -197,41 +203,6 @@
       ],
       "title": "Builders Club presentation prep \u2014 talking points, demo flow, checklist, fallback assets",
       "type": "ops"
-    },
-    "entity-extraction-audit": {
-      "id": "entity-extraction-audit",
-      "notes": "Completed. Shared entityExtractor.ts module, gpt-4.1-mini, fuzzy dedup, orgs+research_fields only, LLM-generated descriptions for all nodes, metadata audit trail, fixed cron query. Dimensions audited \u2014 keeping.",
-      "prd": "docs/development/prd-27-entity-extraction-audit.md",
-      "priority": "medium",
-      "status": "review",
-      "tasks": [
-        {
-          "done": true,
-          "text": "Part 1: Create shared entityExtractor.ts, refactor both callers, switch to gpt-4.1-mini"
-        },
-        {
-          "done": true,
-          "text": "Part 2: Fix entity dedup \u2014 fuzzy search before creating (levenshtein + LIKE)"
-        },
-        {
-          "done": true,
-          "text": "Part 3: Tighten entity scope \u2014 organizations and research fields only, drop people/topics"
-        },
-        {
-          "done": true,
-          "text": "Part 4: Every node gets a proper description \u2014 entity nodes AND content nodes"
-        },
-        {
-          "done": true,
-          "text": "Part 5: Fix catch-up cron query + add extraction audit trail to metadata"
-        },
-        {
-          "done": true,
-          "text": "Part 6: Audit dimensions \u2014 decision: keep (deeply integrated, serves different purpose than node_type)"
-        }
-      ],
-      "title": "Ingestion & entity extraction \u2014 proper descriptions, dedup, gpt-4.1-mini, scope tightening, cron fix",
-      "type": "feature"
     },
     "evals-dashboard": {
       "id": "evals-dashboard",
@@ -378,6 +349,34 @@
       "title": "Final UI/UX cleanup \u2014 layout naming, focus state audit, Paper Club upcoming events fix",
       "type": "fix"
     },
+    "skills-tools-audit": {
+      "id": "skills-tools-audit",
+      "notes": "Decoupled Slop from MCP. Direct Turso + local tools. Skills audited (6\u21924). Hub slop skills deleted. MCP is external-agents-only.",
+      "owner": "brad",
+      "prd": "docs/development/prd-37-skills-tools-audit.md",
+      "priority": "high",
+      "status": "review",
+      "tasks": [
+        {
+          "done": true,
+          "text": "Phase 1: Replace McpGraphClient with direct Turso queries (src/db.ts + src/tools.ts)"
+        },
+        {
+          "done": true,
+          "text": "Phase 2: Audit and refine skills (6\u21924)"
+        },
+        {
+          "done": true,
+          "text": "Phase 3: Delete hub slop skills, update skillService/UI/docs"
+        },
+        {
+          "done": false,
+          "text": "Cleanup: delete mcpGraphClient.ts, npm install in bots repo"
+        }
+      ],
+      "title": "Decouple Slop from MCP + skills/tools audit",
+      "type": "refactor"
+    },
     "wiki-base-rebrand": {
       "id": "wiki-base-rebrand",
       "notes": "Rebrand to LS Wiki-Base. Terminology sweep, documentation unification and overhaul, code\u2194docs integration, database\u2194docs integration, living docs system, legibility pass. No schema migrations or UI changes \u2014 pure terminology + documentation.",
@@ -420,12 +419,12 @@
     }
   },
   "queue": [
+    "skills-tools-audit",
+    "builders-club-prep",
     "evals-dashboard",
     "ui-ux-cleanup",
     "wiki-base-rebrand",
-    "builders-club-prep",
     "inbox",
-    "entity-extraction-audit",
     "setup-handover"
   ]
 }

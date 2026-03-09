@@ -18,14 +18,14 @@ export interface DocNavLink {
   title: string;
   description: string;
   href: string;
-  section: 'Docs' | 'Getting Started (Human)' | 'Slop Skills' | 'Agent Skills';
+  section: 'Docs' | 'Getting Started (Human)' | 'Agent Skills';
 }
 
 const DOCS_DIR = path.join(process.cwd(), 'src/config/docs');
 const BOTS_REPO_DIR = path.resolve(process.cwd(), '../latent-space-bots');
 const BOTS_INDEX_PATH = path.join(BOTS_REPO_DIR, 'src/index.ts');
 const BOTS_SKILLS_DIR = path.join(BOTS_REPO_DIR, 'skills');
-const HUB_SLOP_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/slop');
+const HUB_SLOP_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/agents');
 const AUTO_SYSTEM_START = '<!-- AUTO:SLOP_SYSTEM_PROMPT_START -->';
 const AUTO_SYSTEM_END = '<!-- AUTO:SLOP_SYSTEM_PROMPT_END -->';
 const LEGACY_SKILL_SLUG_REDIRECTS: Record<string, string> = {
@@ -180,7 +180,7 @@ const DOC_ORDER = [
   'overview',
   'ingestion',
   'database',
-  'interfaces',
+  'mcp-server',
   'slop-bot',
   'evals',
 ];
@@ -249,27 +249,16 @@ export function listDocsNavigation(): DocNavLink[] {
   });
 
   const allSkills = listSkills();
-  const slopSkills: DocNavLink[] = allSkills
-    .filter((s) => s.skillGroup === 'slop')
-    .map((s) => ({
-      slug: `skills/${toSkillSlug(s.name)}`,
-      title: s.fileName,
-      description: s.description || '',
-      href: `/docs/skills/${toSkillSlug(s.name)}`,
-      section: 'Slop Skills',
-    }));
-
   const agentSkills: DocNavLink[] = allSkills
-    .filter((s) => s.skillGroup === 'agent')
     .map((s) => ({
       slug: `skills/${toSkillSlug(s.name)}`,
       title: s.fileName,
       description: s.description || '',
       href: `/docs/skills/${toSkillSlug(s.name)}`,
-      section: 'Agent Skills',
+      section: 'Agent Skills' as const,
     }));
 
-  return [...docs, ...slopSkills, ...agentSkills];
+  return [...docs, ...agentSkills];
 }
 
 export function listSkillDocSlugs(): string[] {

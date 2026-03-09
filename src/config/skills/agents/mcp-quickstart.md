@@ -3,8 +3,8 @@ name: MCP Quickstart
 skill_group: agent
 description: Quick setup guide for connecting an AI agent to the Latent Space wiki-base via MCP. Use when users ask for MCP installation, config, or first tool usage.
 when_to_use: User asks how to connect Claude Code, Cursor, or another MCP client to Latent Space Hub.
-when_not_to_use: Deep graph curation policy, Slop behavior policy, or content learning-path requests.
-success_criteria: User can connect successfully and run first `ls_*` queries.
+when_not_to_use: Discord bot behavior, Slop-specific workflows, or internal hub development.
+success_criteria: User can connect successfully and run first queries.
 ---
 
 # MCP Quickstart
@@ -55,16 +55,16 @@ Ask your agent:
 
 ## Available Tools
 
-**Search:** `ls_search_nodes`, `ls_search_content`
+**Search:** `ls_search_nodes`, `ls_search_embeddings`
 **Read:** `ls_get_nodes`, `ls_get_context`, `ls_query_edges`
-**Write:** `ls_add_node`, `ls_update_node`, `ls_create_edge`
-**Explore:** `ls_list_dimensions`, `ls_sqlite_query`
-**Skills:** `ls_list_skills`, `ls_read_skill`
+**Write:** `ls_add_node`, `ls_update_node`, `ls_create_edge`, `ls_update_edge`
+**Explore:** `ls_list_dimensions`, `ls_create_dimension`, `ls_update_dimension`, `ls_delete_dimension`, `ls_sqlite_query`
+**Skills:** `ls_list_skills`, `ls_read_skill`, `ls_write_skill`, `ls_delete_skill`
 
 ## Tips
 
-- Start with `ls_read_skill("start-here")` to understand the graph
+- Start with `ls_read_skill("agent")` to understand the operating policy
 - Use `ls_get_context` to get live stats and top nodes
-- Use `ls_search_content` for deep searches through transcripts and articles
+- Use `ls_search_embeddings` for deep searches through transcripts and articles
 - Use `ls_sqlite_query` for advanced filtering and aggregation
-- Read `ls_read_skill("db-operations")` for detailed graph operation policy
+- Always search before creating nodes to avoid duplicates

@@ -10,7 +10,7 @@ import type { BasePaneProps } from './types';
 interface SkillMeta {
   name: string;
   description: string;
-  skillGroup: 'slop' | 'agent';
+  skillGroup: 'agent';
   fileName: string;
 }
 
@@ -29,8 +29,6 @@ export default function SkillsPane({
   const [skills, setSkills] = useState<SkillMeta[]>([]);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [loading, setLoading] = useState(true);
-  const slopSkills = skills.filter((skill) => skill.skillGroup === 'slop');
-  const agentSkills = skills.filter((skill) => skill.skillGroup === 'agent');
 
   useEffect(() => {
     fetchSkills();
@@ -187,17 +185,10 @@ export default function SkillsPane({
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {slopSkills.length > 0 && (
-              <SectionLabel label="Slop Skills" />
-            )}
-            {slopSkills.map(skill => (
-              <SkillButton key={skill.fileName} skill={skill} onClick={() => handleSelectSkill(skill.fileName)} />
-            ))}
-
-            {agentSkills.length > 0 && (
+            {skills.length > 0 && (
               <SectionLabel label="Agent Skills" />
             )}
-            {agentSkills.map(skill => (
+            {skills.map(skill => (
               <SkillButton key={skill.fileName} skill={skill} onClick={() => handleSelectSkill(skill.fileName)} />
             ))}
 

@@ -61,7 +61,8 @@ After creating the member node, create edges to topics they care about using `ls
 
 ## Go deeper
 
-Read these skills for specific operational guidance:
+Read these skills for specific guidance:
 
 - `db-operations` — graph read/write rules, schema, search patterns, citation format
 - `curation` — quality standards, dedup policy, metadata expectations
+- `event-scheduling` — Paper Club and Builders Club event scheduling via Discord
