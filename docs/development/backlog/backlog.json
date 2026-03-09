@@ -1,187 +1,227 @@
 {
   "completed": [
     {
-      "id": "bot-modular-architecture",
-      "title": "Bot modular architecture — refactor monolithic index.ts into discord.js-standard module structure",
-      "prd": "docs/development/completed-prds/prd-38-bot-modular-architecture.md",
+      "branch": "main + latent-space-bots/main",
       "completed_date": "2026-03-09",
-      "branch": "main + latent-space-bots/main"
+      "id": "bot-modular-architecture",
+      "prd": "docs/development/completed-prds/prd-38-bot-modular-architecture.md",
+      "title": "Bot modular architecture \u2014 refactor monolithic index.ts into discord.js-standard module structure"
     },
     {
       "completed_date": "2026-03-09",
       "id": "entity-extraction-audit",
       "prd": "docs/development/prd-27-entity-extraction-audit.md",
-      "title": "Ingestion & entity extraction — proper descriptions, dedup, gpt-4.1-mini, scope tightening, cron fix"
+      "title": "Ingestion & entity extraction \u2014 proper descriptions, dedup, gpt-4.1-mini, scope tightening, cron fix"
     },
     {
       "branch": "",
       "completed_date": "2026-03-08",
       "id": "graph-bot-polish",
       "prd": "docs/development/completed-prds/prd-16-graph-bot-polish.md",
-      "title": "Graph & bot final polish — companion linking, entity extraction fix, Slop-first bot strategy, dashboard type breakdown"
+      "title": "Graph & bot final polish \u2014 companion linking, entity extraction fix, Slop-first bot strategy, dashboard type breakdown"
     },
     {
       "branch": "",
       "completed_date": "2026-03-08",
       "id": "user-persona-system",
       "prd": "docs/development/completed-prds/prd-30-user-persona-system.md",
-      "title": "User persona system — bot learns per-user interaction style (tone, verbosity, format)"
+      "title": "User persona system \u2014 bot learns per-user interaction style (tone, verbosity, format)"
     },
     {
       "branch": "",
       "completed_date": "2026-03-08",
       "id": "member-profiles",
       "prd": "docs/development/completed-prds/prd-23-member-profiles.md",
-      "title": "Member profiles — Discord avatars + profile card display in hub"
+      "title": "Member profiles \u2014 Discord avatars + profile card display in hub"
     },
     {
       "completed_date": "2026-03-08",
       "id": "slop-system-message-overhaul",
       "prd": "docs/development/prd-33-slop-system-message-overhaul.md",
-      "title": "Slop system message overhaul — kill soul file, per-member interaction preferences, 75% size reduction"
+      "title": "Slop system message overhaul \u2014 kill soul file, per-member interaction preferences, 75% size reduction"
     },
     {
       "completed_date": "2026-03-08",
       "id": "ui-polish-and-docs",
       "prd": "docs/development/prd-31-ui-polish-and-docs.md",
-      "title": "UI polish & documentation refresh — cleaner design, light mode default, docs readability + content update"
+      "title": "UI polish & documentation refresh \u2014 cleaner design, light mode default, docs readability + content update"
     },
     {
       "completed_date": "2026-03-07",
       "id": "paper-club-scheduling",
       "prd": "docs/development/prd-32-paper-club-scheduling.md",
-      "title": "Event nodes — first-class events in sidebar, linked to recordings, Discord scheduling with double-booking prevention"
+      "title": "Event nodes \u2014 first-class events in sidebar, linked to recordings, Discord scheduling with double-booking prevention"
     },
     {
       "completed_date": "2026-03-07",
       "id": "guides-to-skills",
       "prd": "docs/development/prd-29-guides-to-skills.md",
-      "title": "Guides to skills migration — rename guides to skills, consolidate MCP guides, add read-only UI"
+      "title": "Guides to skills migration \u2014 rename guides to skills, consolidate MCP guides, add read-only UI"
     },
     {
       "completed_date": "2026-03-06",
       "id": "bot-polish-v2",
       "prd": "docs/development/prd-18-bot-polish-v2.md",
-      "title": "Bot polish v2 — Slop-only, model upgrade to Sonnet 4.6, source linking"
+      "title": "Bot polish v2 \u2014 Slop-only, model upgrade to Sonnet 4.6, source linking"
     },
     {
       "completed_date": "2026-03-06",
       "id": "visual-pizazz",
       "prd": "docs/development/prd-20-visual-pizazz.md",
-      "title": "Visual pizazz — ASCII art header, Latent Space purple accent, terminal flair"
+      "title": "Visual pizazz \u2014 ASCII art header, Latent Space purple accent, terminal flair"
     },
     {
       "branch": "feature/dev-setup-cleanup",
       "completed_date": "2026-02-19",
       "id": "dev-setup-cleanup",
       "prd": "docs/development/completed-prds/prd-01-dev-setup-cleanup.md",
-      "title": "Identity, dev process & repo cleanup — establish LSH as the product, set up workflow, fix stale code"
+      "title": "Identity, dev process & repo cleanup \u2014 establish LSH as the product, set up workflow, fix stale code"
     },
     {
       "branch": "feature/schema-and-port",
       "completed_date": "2026-02-19",
       "id": "schema-and-port",
       "prd": "docs/development/completed-prds/prd-02-schema-and-port.md",
-      "title": "Schema cleanup + typed entity model — finalize DB structure with node_type, port RA-H UX"
+      "title": "Schema cleanup + typed entity model \u2014 finalize DB structure with node_type, port RA-H UX"
     },
     {
       "branch": "codex/prd-03-naming-audit",
       "completed_date": "2026-02-19",
       "id": "naming-audit",
       "prd": "docs/development/completed-prds/prd-03-naming-audit.md",
-      "title": "Naming audit — align branding and naming to Latent Space Hub"
+      "title": "Naming audit \u2014 align branding and naming to Latent Space Hub"
     },
     {
       "branch": "feature/enable-vector-search",
       "completed_date": "2026-02-20",
       "id": "enable-vector-search",
       "prd": "docs/development/completed-prds/prd-04-vector-search.md",
-      "title": "Enable vector search — wire up Turso native vector_top_k, add FTS5, hybrid search"
+      "title": "Enable vector search \u2014 wire up Turso native vector_top_k, add FTS5, hybrid search"
     },
     {
       "branch": "feature/content-ingestion",
       "completed_date": "2026-02-20",
       "id": "content-ingestion",
       "prd": "docs/development/completed-prds/prd-05-content-ingestion.md",
-      "title": "Content ingestion — backfill podcasts, articles, ainews, LatentSpaceTV (Jan 2025 → today)"
+      "title": "Content ingestion \u2014 backfill podcasts, articles, ainews, LatentSpaceTV (Jan 2025 \u2192 today)"
     },
     {
       "branch": "latent-space-bots repo",
       "completed_date": "2026-02-20",
       "id": "discord-bot",
       "prd": "docs/development/completed-prds/prd-06-discord-bot.md",
-      "title": "Discord bots v1 — Sig & Slop, dual-personality bots backed by LS Wiki-Base"
+      "title": "Discord bots v1 \u2014 Sig & Slop, dual-personality bots backed by LS Wiki-Base"
     },
     {
       "branch": "feature/mcp-server-standalone",
       "completed_date": "2026-02-20",
       "id": "mcp-server-and-skills",
       "prd": "docs/development/completed-prds/prd-07-mcp-server-and-skills.md",
-      "title": "MCP server (NPX) + skills/guides — publishable package, shared interface for humans and bots"
+      "title": "MCP server (NPX) + skills/guides \u2014 publishable package, shared interface for humans and bots"
     },
     {
       "branch": "feature/prd-09-ux-overhaul",
       "completed_date": "2026-02-20",
       "id": "ux-overhaul",
       "prd": "docs/development/completed-prds/prd-09-ux-overhaul-type-navigation.md",
-      "title": "UX Overhaul — collapsible type navigation + simplified main workspace"
+      "title": "UX Overhaul \u2014 collapsible type navigation + simplified main workspace"
     },
     {
       "branch": "feature/dashboard-and-categories",
       "completed_date": "2026-02-22",
       "id": "dashboard-and-categories",
       "prd": "docs/development/completed-prds/prd-12-dashboard-and-categories.md",
-      "title": "Dashboard + Category Taxonomy — 8 canonical categories, dashboard overview, sidebar overhaul"
+      "title": "Dashboard + Category Taxonomy \u2014 8 canonical categories, dashboard overview, sidebar overhaul"
     },
     {
       "branch": "feature/documentation-overhaul",
       "completed_date": "2026-02-22",
       "id": "documentation-overhaul-v1",
       "prd": "docs/development/completed-prds/prd-14-documentation-overhaul-v1.md",
-      "title": "Documentation overhaul v1 — initial full replacement of inherited RA-H docs"
+      "title": "Documentation overhaul v1 \u2014 initial full replacement of inherited RA-H docs"
     },
     {
       "branch": "codex/prd-13-auto-ingestion",
       "completed_date": "2026-02-22",
       "id": "auto-ingestion",
       "prd": "docs/development/completed-prds/prd-13-auto-ingestion.md",
-      "title": "Auto-ingestion pipeline — hourly discovery, ingestion runs, and Discord fanout notifications"
+      "title": "Auto-ingestion pipeline \u2014 hourly discovery, ingestion runs, and Discord fanout notifications"
     },
     {
       "branch": "feature/data-refinement",
       "completed_date": "2026-02-22",
       "id": "hub-nodes",
       "prd": "docs/development/completed-prds/prd-15-hub-nodes.md",
-      "title": "Hub node architecture — anchor LS properties and absorb storyline-ready narrative links"
+      "title": "Hub node architecture \u2014 anchor LS properties and absorb storyline-ready narrative links"
     },
     {
       "branch": "main + latent-space-bots/main",
       "completed_date": "2026-02-22",
       "id": "discord-bot-v2",
       "prd": "docs/development/completed-prds/prd-11-discord-bot-v2.md",
-      "title": "Discord bot v2 — grounded guides, temporal context, and deterministic channel triggers"
+      "title": "Discord bot v2 \u2014 grounded guides, temporal context, and deterministic channel triggers"
     },
     {
       "branch": "feature/documentation-overhaul-v2",
       "completed_date": "2026-02-23",
       "id": "documentation-overhaul-v2",
       "prd": "docs/development/prd-14-documentation-overhaul-v2.md",
-      "title": "Documentation overhaul v2 — user-facing /docs page, developer docs drift fixes, agent guides verification"
+      "title": "Documentation overhaul v2 \u2014 user-facing /docs page, developer docs drift fixes, agent guides verification"
     },
     {
       "branch": "feature/data-refinement",
       "completed_date": "2026-02-22",
       "id": "data-refinement",
       "prd": "docs/development/prd-10-data-refinement.md",
-      "title": "Data refinement & hygiene — type migration, descriptions/notes, dates, edge cleanup"
+      "title": "Data refinement & hygiene \u2014 type migration, descriptions/notes, dates, edge cleanup"
     }
   ],
   "lastUpdated": "2026-03-09",
   "nextPrdNumber": 41,
   "projects": {
+    "bot-write-guardrails": {
+      "id": "bot-write-guardrails",
+      "notes": "Tighten DB write safety in latent-space-bots. Add a centralized write gate, explicit action policy checks, idempotency protections, and write audit logging so writes are intentional, explainable, and reviewable.",
+      "owner": "brad",
+      "prd": "docs/development/prd-40-bot-write-guardrails.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Add write action/context types and action allowlist"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Implement writes/policy.ts with allow/block decisions and reasons"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Implement writes/guardrails.ts as single executeWrite wrapper"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Route mutating paths through guardrails (join, schedule, member updates, edge creation)"
+        },
+        {
+          "done": false,
+          "text": "Step 5: Add idempotency and duplicate protections for join + event scheduling + edge creation"
+        },
+        {
+          "done": false,
+          "text": "Step 6: Add write audit log sink (allowed/blocked/succeeded/failed)"
+        },
+        {
+          "done": false,
+          "text": "Step 7: Add tests for policy decisions and idempotency; run build + manual Discord validation"
+        }
+      ],
+      "title": "Bot write guardrails \u2014 centralized policy, execution gate, idempotency, and audit logging",
+      "type": "security"
+    },
     "builders-club-prep": {
       "id": "builders-club-prep",
-      "notes": "Brad presenting LS Hub + Slop at Builders Club. Create presentation brief, demo flow script, pre-demo checklist, fallback screenshots. No code — documentation and preparation.",
+      "notes": "Brad presenting LS Hub + Slop at Builders Club. Create presentation brief, demo flow script, pre-demo checklist, fallback screenshots. No code \u2014 documentation and preparation.",
       "owner": "brad",
       "prd": "docs/development/prd-28-builders-club-prep.md",
       "priority": "high",
@@ -197,7 +237,7 @@
         },
         {
           "done": false,
-          "text": "Part 3: Pre-demo checklist — verify all surfaces working"
+          "text": "Part 3: Pre-demo checklist \u2014 verify all surfaces working"
         },
         {
           "done": false,
@@ -208,27 +248,27 @@
           "text": "Part 5: Quick polish pass on demo-visible surfaces"
         }
       ],
-      "title": "Builders Club presentation prep — talking points, demo flow, checklist, fallback assets",
+      "title": "Builders Club presentation prep \u2014 talking points, demo flow, checklist, fallback assets",
       "type": "ops"
     },
     "evals-dashboard": {
       "id": "evals-dashboard",
-      "notes": "Fix broken bot logging (column mismatch), capture tool calls + MCP operations + timing, build /evals dashboard to review traces, then extend with golden dataset (10-15 scenarios), automated runner, and scoring. Absorbed PRD-26 (eval suite). Uses existing chats table — no migration needed.",
+      "notes": "Fix broken bot logging (column mismatch), capture tool calls + MCP operations + timing, build /evals dashboard to review traces, then extend with golden dataset (10-15 scenarios), automated runner, and scoring. Absorbed PRD-26 (eval suite). Uses existing chats table \u2014 no migration needed.",
       "prd": "docs/development/prd-21-evals-dashboard.md",
       "priority": "high",
       "status": "prd",
       "tasks": [
         {
           "done": false,
-          "text": "Part 1: Rewrite bot logging — align to chats schema, capture tool calls + timing"
+          "text": "Part 1: Rewrite bot logging \u2014 align to chats schema, capture tool calls + timing"
         },
         {
           "done": false,
-          "text": "Part 2: Build /evals dashboard — list view + expanded trace view"
+          "text": "Part 2: Build /evals dashboard \u2014 list view + expanded trace view"
         },
         {
           "done": false,
-          "text": "Part 3: API route — paginated queries with filters"
+          "text": "Part 3: API route \u2014 paginated queries with filters"
         },
         {
           "done": false,
@@ -236,7 +276,7 @@
         },
         {
           "done": false,
-          "text": "Part 5: Create golden dataset — 10-15 scenarios"
+          "text": "Part 5: Create golden dataset \u2014 10-15 scenarios"
         },
         {
           "done": false,
@@ -244,14 +284,14 @@
         },
         {
           "done": false,
-          "text": "Part 7: Extend /evals dashboard — source filter, scenario results, aggregate metrics"
+          "text": "Part 7: Extend /evals dashboard \u2014 source filter, scenario results, aggregate metrics"
         },
         {
           "done": false,
           "text": "Part 8: Add npm run evals script"
         }
       ],
-      "title": "Evals — interaction logging, trace dashboard, golden dataset & automated testing",
+      "title": "Evals \u2014 interaction logging, trace dashboard, golden dataset & automated testing",
       "type": "feature"
     },
     "inbox": {
@@ -263,15 +303,15 @@
       "tasks": [
         {
           "done": false,
-          "text": "Part 1: API routes — /api/inbox (list conversations) + /api/inbox/[userId] (conversation detail)"
+          "text": "Part 1: API routes \u2014 /api/inbox (list conversations) + /api/inbox/[userId] (conversation detail)"
         },
         {
           "done": false,
-          "text": "Part 2: Build /inbox page — conversation list with user avatars, last message preview, unread count"
+          "text": "Part 2: Build /inbox page \u2014 conversation list with user avatars, last message preview, unread count"
         },
         {
           "done": false,
-          "text": "Part 3: Conversation detail view — threaded message display with tool call traces"
+          "text": "Part 3: Conversation detail view \u2014 threaded message display with tool call traces"
         },
         {
           "done": false,
@@ -282,7 +322,43 @@
           "text": "Part 5: Add inbox to sidebar navigation"
         }
       ],
-      "title": "Inbox — conversation-style view of all bot interactions (Discord now, email later)",
+      "title": "Inbox \u2014 conversation-style view of all bot interactions (Discord now, email later)",
+      "type": "feature"
+    },
+    "public-roadmap-contributing": {
+      "id": "public-roadmap-contributing",
+      "notes": "Expose the development process to non-technical community members. Public /docs/roadmap page (live from backlog.json) and /docs/contributing page (non-technical ways to help). No editing \u2014 read-only display surface.",
+      "owner": "brad",
+      "prd": "docs/development/prd-39-public-roadmap-and-contributing.md",
+      "priority": "medium",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Roadmap API route \u2014 read backlog.json, return sanitized public summary"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Roadmap doc content \u2014 src/config/docs/roadmap.md with static framing"
+        },
+        {
+          "done": false,
+          "text": "Step 3: RoadmapView component \u2014 cards for queue + list for recently shipped"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Contributing doc content \u2014 non-technical guide (suggest content, report issues, propose features, present at events)"
+        },
+        {
+          "done": false,
+          "text": "Step 5: Add roadmap + contributing to docs navigation in docsService.ts"
+        },
+        {
+          "done": false,
+          "text": "Step 6: Wire RoadmapView component into /docs/roadmap page"
+        }
+      ],
+      "title": "Public roadmap & contributing guide \u2014 expose dev process for non-technical contributors",
       "type": "feature"
     },
     "setup-handover": {
@@ -329,36 +405,12 @@
           "text": "Brad: Delete test channel, confirm first real ingestion"
         }
       ],
-      "title": "Setup & handover — get bot and webhooks live in the LS Discord server",
+      "title": "Setup & handover \u2014 get bot and webhooks live in the LS Discord server",
       "type": "ops"
-    },
-    "ui-ux-cleanup": {
-      "id": "ui-ux-cleanup",
-      "notes": "Three issues: (1) ThreePanelLayout is a misnomer — only 2 panels, SplitHandle is dead code. Rename to AppLayout. (2) Focus/tab state from old multi-pane design lingers — audit, add back button, confirm cleanup on view switch. (3) Paper Club category doesn't show upcoming events because event_date DESC + limit=100 excludes future dates. Fix sort order to show upcoming first.",
-      "owner": "brad",
-      "prd": "docs/development/prd-36-ui-ux-cleanup.md",
-      "priority": "high",
-      "status": "prd",
-      "tasks": [
-        {
-          "done": false,
-          "text": "Step 1: Rename ThreePanelLayout to AppLayout, delete unused SplitHandle.tsx, update all imports"
-        },
-        {
-          "done": false,
-          "text": "Step 2: Audit focus/tab state — add back button when node focused, verify cleanup on view switches"
-        },
-        {
-          "done": false,
-          "text": "Step 3: Fix Paper Club upcoming events — change event_date sort to show upcoming first, verify client-side split"
-        }
-      ],
-      "title": "Final UI/UX cleanup — layout naming, focus state audit, Paper Club upcoming events fix",
-      "type": "fix"
     },
     "skills-tools-audit": {
       "id": "skills-tools-audit",
-      "notes": "Decoupled Slop from MCP. Direct Turso + local tools. Skills audited (6→4). Hub slop skills deleted. MCP is external-agents-only.",
+      "notes": "Decoupled Slop from MCP. Direct Turso + local tools. Skills audited (6\u21924). Hub slop skills deleted. MCP is external-agents-only.",
       "owner": "brad",
       "prd": "docs/development/prd-37-skills-tools-audit.md",
       "priority": "high",
@@ -370,7 +422,7 @@
         },
         {
           "done": true,
-          "text": "Phase 2: Audit and refine skills (6→4)"
+          "text": "Phase 2: Audit and refine skills (6\u21924)"
         },
         {
           "done": true,
@@ -384,132 +436,80 @@
       "title": "Decouple Slop from MCP + skills/tools audit",
       "type": "refactor"
     },
-    "public-roadmap-contributing": {
-      "id": "public-roadmap-contributing",
-      "notes": "Expose the development process to non-technical community members. Public /docs/roadmap page (live from backlog.json) and /docs/contributing page (non-technical ways to help). No editing — read-only display surface.",
+    "ui-ux-cleanup": {
+      "id": "ui-ux-cleanup",
+      "notes": "Three issues: (1) ThreePanelLayout is a misnomer \u2014 only 2 panels, SplitHandle is dead code. Rename to AppLayout. (2) Focus/tab state from old multi-pane design lingers \u2014 audit, add back button, confirm cleanup on view switch. (3) Paper Club category doesn't show upcoming events because event_date DESC + limit=100 excludes future dates. Fix sort order to show upcoming first.",
       "owner": "brad",
-      "prd": "docs/development/prd-39-public-roadmap-and-contributing.md",
-      "priority": "medium",
+      "prd": "docs/development/prd-36-ui-ux-cleanup.md",
+      "priority": "high",
       "status": "ready",
       "tasks": [
         {
           "done": false,
-          "text": "Step 1: Roadmap API route — read backlog.json, return sanitized public summary"
+          "text": "Step 1: Rename ThreePanelLayout to AppLayout, delete unused SplitHandle.tsx, update all imports"
         },
         {
           "done": false,
-          "text": "Step 2: Roadmap doc content — src/config/docs/roadmap.md with static framing"
+          "text": "Step 2: Audit focus/tab state \u2014 add back button when node focused, verify cleanup on view switches"
         },
         {
           "done": false,
-          "text": "Step 3: RoadmapView component — cards for queue + list for recently shipped"
-        },
-        {
-          "done": false,
-          "text": "Step 4: Contributing doc content — non-technical guide (suggest content, report issues, propose features, present at events)"
-        },
-        {
-          "done": false,
-          "text": "Step 5: Add roadmap + contributing to docs navigation in docsService.ts"
-        },
-        {
-          "done": false,
-          "text": "Step 6: Wire RoadmapView component into /docs/roadmap page"
+          "text": "Step 3: Fix Paper Club upcoming events \u2014 change event_date sort to show upcoming first, verify client-side split"
         }
       ],
-      "title": "Public roadmap & contributing guide — expose dev process for non-technical contributors",
-      "type": "feature"
+      "title": "Final UI/UX cleanup \u2014 layout naming, focus state audit, Paper Club upcoming events fix",
+      "type": "fix"
     },
     "wiki-base-rebrand": {
       "id": "wiki-base-rebrand",
-      "notes": "Rebrand to LS Wiki-Base. Terminology sweep, documentation unification and overhaul, code↔docs integration, database↔docs integration, living docs system, legibility pass. No schema migrations or UI changes — pure terminology + documentation.",
+      "notes": "Rebrand to LS Wiki-Base. Terminology sweep, documentation unification and overhaul, code\u2194docs integration, database\u2194docs integration, living docs system, legibility pass. No schema migrations or UI changes \u2014 pure terminology + documentation.",
       "owner": "brad",
       "prd": "docs/development/prd-35-wiki-base-rebrand.md",
       "priority": "high",
-      "status": "ready",
+      "status": "review",
       "tasks": [
         {
           "done": false,
-          "text": "Step 1: Terminology sweep — replace legacy terminology references with wiki-base"
+          "text": "Step 1: Terminology sweep \u2014 replace legacy terminology references with wiki-base"
         },
         {
           "done": false,
-          "text": "Step 2: Documentation unification — merge dev docs and user docs into one coherent tree"
+          "text": "Step 2: Documentation unification \u2014 merge dev docs and user docs into one coherent tree"
         },
         {
           "done": false,
-          "text": "Step 3: Documentation overhaul — rewrite all docs for accuracy, completeness, legibility"
+          "text": "Step 3: Documentation overhaul \u2014 rewrite all docs for accuracy, completeness, legibility"
         },
         {
           "done": false,
-          "text": "Step 4: Code → docs integration — @docs JSDoc tags, source file references in docs"
+          "text": "Step 4: Code \u2192 docs integration \u2014 @docs JSDoc tags, source file references in docs"
         },
         {
           "done": false,
-          "text": "Step 5: Database → docs integration — auto-generate schema docs, drift detection"
+          "text": "Step 5: Database \u2192 docs integration \u2014 auto-generate schema docs, drift detection"
         },
         {
           "done": false,
-          "text": "Step 6: Living docs system — pre-commit reminders, docs:check script, CLAUDE.md rules"
+          "text": "Step 6: Living docs system \u2014 pre-commit reminders, docs:check script, CLAUDE.md rules"
         },
         {
           "done": false,
-          "text": "Step 7: Legibility pass — consistent formatting, headers, updated dates, reading order"
+          "text": "Step 7: Legibility pass \u2014 consistent formatting, headers, updated dates, reading order"
         }
       ],
-      "title": "LS Wiki-Base rebrand — terminology, documentation overhaul, code↔docs↔database integration",
+      "title": "LS Wiki-Base rebrand \u2014 terminology, documentation overhaul, code\u2194docs\u2194database integration",
       "type": "refactor"
-    },
-    "bot-write-guardrails": {
-      "id": "bot-write-guardrails",
-      "notes": "Tighten DB write safety in latent-space-bots. Add a centralized write gate, explicit action policy checks, idempotency protections, and write audit logging so writes are intentional, explainable, and reviewable.",
-      "owner": "brad",
-      "prd": "docs/development/prd-40-bot-write-guardrails.md",
-      "priority": "high",
-      "status": "ready",
-      "tasks": [
-        {
-          "done": false,
-          "text": "Step 1: Add write action/context types and action allowlist"
-        },
-        {
-          "done": false,
-          "text": "Step 2: Implement writes/policy.ts with allow/block decisions and reasons"
-        },
-        {
-          "done": false,
-          "text": "Step 3: Implement writes/guardrails.ts as single executeWrite wrapper"
-        },
-        {
-          "done": false,
-          "text": "Step 4: Route mutating paths through guardrails (join, schedule, member updates, edge creation)"
-        },
-        {
-          "done": false,
-          "text": "Step 5: Add idempotency and duplicate protections for join + event scheduling + edge creation"
-        },
-        {
-          "done": false,
-          "text": "Step 6: Add write audit log sink (allowed/blocked/succeeded/failed)"
-        },
-        {
-          "done": false,
-          "text": "Step 7: Add tests for policy decisions and idempotency; run build + manual Discord validation"
-        }
-      ],
-      "title": "Bot write guardrails — centralized policy, execution gate, idempotency, and audit logging",
-      "type": "security"
     }
   },
   "queue": [
     "skills-tools-audit",
-    "builders-club-prep",
-    "evals-dashboard",
-    "ui-ux-cleanup",
     "wiki-base-rebrand",
-    "inbox",
-    "setup-handover",
+    "ui-ux-cleanup",
+    "builders-club-prep",
+    "bot-write-guardrails",
+    "evals-dashboard",
     "public-roadmap-contributing",
-    "bot-write-guardrails"
+    "inbox",
+    "setup-handover"
   ]
 }

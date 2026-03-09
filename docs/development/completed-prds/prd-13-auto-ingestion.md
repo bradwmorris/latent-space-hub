@@ -296,6 +296,22 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
 
 Every cron run creates a row. This powers both the Discord notification and the in-app log.
 
+### Extraction Failure Cooldown Table
+
+```sql
+CREATE TABLE IF NOT EXISTS ingestion_failures (
+  url TEXT PRIMARY KEY,
+  source TEXT NOT NULL,
+  title TEXT,
+  failure_count INTEGER NOT NULL DEFAULT 1,
+  last_error TEXT,
+  first_failed_at TEXT NOT NULL DEFAULT (datetime('now')),
+  last_failed_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+Prevents the cron from retrying the same broken URL every hour (e.g. a YouTube video with no captions yet). Cooldown escalates: 6h after 1 failure, 24h after 2, 72h after 3+. Cleared automatically when the URL is eventually ingested successfully.
+
 ### In-App Dashboard
 
 Add an "Ingestion" section to the dashboard (or a dedicated `/admin/ingestion` page):
@@ -443,14 +459,15 @@ The CLI script (`scripts/ingest.ts`) can optionally be updated to import from th
 | Scenario | Handling |
 |----------|----------|
 | RSS feed is down | Log warning, skip source, try again next hour |
-| YouTube transcript unavailable | Create node without chunk, set `chunk_status = 'failed'`, retry next run |
+| YouTube transcript unavailable | Try 4 fallbacks (youtube-transcript-plus → npm → innertube → timedtext), then Substack article fallback. If all fail, record in `ingestion_failures` with exponential cooldown (6h → 24h → 72h) |
 | Substack article is paywalled | Check extracted content length, skip if < 100 chars, log as skipped |
 | OpenAI rate limit | Retry with exponential backoff (1s, 2s, 4s), fail after 3 attempts |
 | Claude rate limit (entity extraction) | Queue for next run, node is still usable without entities |
 | Duplicate detected | Skip silently (idempotent) |
-| Cron runs overlap | Check `ingestion_runs` for `status = 'running'`, skip if another run is active |
+| Cron runs overlap | Check `ingestion_runs` for `status = 'running'`, skip if another run is active. Stuck runs older than 30 minutes are auto-cleared as failed |
 | GitHub API rate limit (AINews) | Use unauthenticated limit (60/hr), fall back to commits feed |
 | Total runtime approaching 55s | Stop processing, log partial results, pick up remaining next hour |
+| Repeated extraction failure | `ingestion_failures` table tracks per-URL failures with escalating cooldowns: 1st fail = 6h, 2nd = 24h, 3+ = 72h. Cleared on successful ingestion |
 
 ---
 
