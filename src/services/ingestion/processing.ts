@@ -12,6 +12,7 @@ import { extractWebsite } from '@/services/typescript/extractors/website';
 import { extractYouTube } from '@/services/typescript/extractors/youtube';
 import { NodeType } from '@/types/database';
 import { discoverSource } from './discovery';
+import { clearFailure, hasRecentFailure, recordFailure } from './log';
 import { DiscoveredItem, IngestionSourceKey, SOURCES, classifyLatentSpaceTV } from './sources';
 
 interface ExtractedContent {
@@ -370,6 +371,20 @@ export async function processDiscoveredItem(params: {
     }
   }
 
+  // Skip URLs that recently failed extraction (exponential cooldown)
+  const failure = await hasRecentFailure(item.url);
+  if (failure.coolingDown) {
+    return {
+      source,
+      itemId: item.id,
+      title: item.title,
+      status: 'skipped',
+      message: `Cooling down after ${failure.failureCount} failure(s): ${failure.lastError || 'unknown error'}`,
+      url: item.url,
+      publishedAt: item.publishedAt,
+    };
+  }
+
   if (dryRun) {
     return {
       source,
@@ -409,6 +424,9 @@ export async function processDiscoveredItem(params: {
         ...eventStatusExtra,
       },
     });
+
+    // Clear any previous failure record — extraction succeeded
+    await clearFailure(item.url);
 
     const embeddingResult = await embedNodeContent(node.id);
     const chunksCreated = embeddingResult.chunk_embeddings.chunks_created || 0;
@@ -490,12 +508,17 @@ export async function processDiscoveredItem(params: {
       entityExtractionError,
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown ingestion failure';
+
+    // Record failure so this URL is skipped on the next few cron runs
+    await recordFailure(item.url, source, item.title, errorMessage);
+
     return {
       source,
       itemId: item.id,
       title: item.title,
       status: 'failed',
-      message: error instanceof Error ? error.message : 'Unknown ingestion failure',
+      message: errorMessage,
       url: item.url,
       publishedAt: item.publishedAt,
     };

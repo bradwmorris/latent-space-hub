@@ -60,6 +60,17 @@ export async function ensureIngestionRunsTable(): Promise<void> {
 export async function hasActiveRun(windowMinutes = 30): Promise<boolean> {
   await ensureIngestionRunsTable();
   const sqlite = getSQLiteClient();
+
+  // Auto-clear stuck runs older than the window — they crashed without completing
+  await sqlite.query(
+    `UPDATE ingestion_runs
+     SET status = 'failed', completed_at = datetime('now'),
+         error = 'Auto-cleared: exceeded maximum run duration'
+     WHERE status = 'running'
+       AND datetime(started_at) <= datetime('now', ?)`,
+    [`-${windowMinutes} minutes`]
+  );
+
   const result = await sqlite.query<{ c: number }>(
     `SELECT COUNT(*) as c
      FROM ingestion_runs
@@ -133,4 +144,89 @@ export async function getRecentIngestionRuns(limit = 20): Promise<IngestionRunRo
     [limit]
   );
   return result.rows;
+}
+
+// ---------------------------------------------------------------------------
+// Extraction failure cooldown — prevents retrying the same broken URL every hour
+// ---------------------------------------------------------------------------
+
+async function ensureIngestionFailuresTable(): Promise<void> {
+  const sqlite = getSQLiteClient();
+  await sqlite.query(`
+    CREATE TABLE IF NOT EXISTS ingestion_failures (
+      url TEXT PRIMARY KEY,
+      source TEXT NOT NULL,
+      title TEXT,
+      failure_count INTEGER NOT NULL DEFAULT 1,
+      last_error TEXT,
+      first_failed_at TEXT NOT NULL DEFAULT (datetime('now')),
+      last_failed_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+}
+
+/**
+ * Cooldown hours based on failure count:
+ *  1 failure  →  6 hours
+ *  2 failures → 24 hours
+ *  3+ failures → 72 hours
+ */
+function cooldownHours(failureCount: number): number {
+  if (failureCount <= 1) return 6;
+  if (failureCount <= 2) return 24;
+  return 72;
+}
+
+export async function hasRecentFailure(url: string): Promise<{ coolingDown: boolean; failureCount: number; lastError?: string }> {
+  await ensureIngestionFailuresTable();
+  const sqlite = getSQLiteClient();
+  const result = await sqlite.query<{
+    failure_count: number;
+    last_failed_at: string;
+    last_error: string | null;
+  }>(
+    'SELECT failure_count, last_failed_at, last_error FROM ingestion_failures WHERE url = ?',
+    [url]
+  );
+
+  if (result.rows.length === 0) {
+    return { coolingDown: false, failureCount: 0 };
+  }
+
+  const row = result.rows[0];
+  const count = Number(row.failure_count);
+  const hours = cooldownHours(count);
+
+  const coolingDown = await sqlite.query<{ c: number }>(
+    `SELECT COUNT(*) as c FROM ingestion_failures
+     WHERE url = ? AND datetime(last_failed_at) > datetime('now', ?)`,
+    [url, `-${hours} hours`]
+  );
+
+  return {
+    coolingDown: Number(coolingDown.rows[0]?.c || 0) > 0,
+    failureCount: count,
+    lastError: row.last_error || undefined,
+  };
+}
+
+export async function recordFailure(url: string, source: string, title: string, error: string): Promise<void> {
+  await ensureIngestionFailuresTable();
+  const sqlite = getSQLiteClient();
+  await sqlite.query(
+    `INSERT INTO ingestion_failures (url, source, title, failure_count, last_error, first_failed_at, last_failed_at)
+     VALUES (?, ?, ?, 1, ?, datetime('now'), datetime('now'))
+     ON CONFLICT(url) DO UPDATE SET
+       failure_count = failure_count + 1,
+       last_error = excluded.last_error,
+       last_failed_at = datetime('now'),
+       title = excluded.title`,
+    [url, source, title, error]
+  );
+}
+
+export async function clearFailure(url: string): Promise<void> {
+  await ensureIngestionFailuresTable();
+  const sqlite = getSQLiteClient();
+  await sqlite.query('DELETE FROM ingestion_failures WHERE url = ?', [url]);
 }
