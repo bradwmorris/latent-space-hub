@@ -11,7 +11,7 @@ interface PageLink {
   slug: string;
   title: string;
   href?: string;
-  section?: 'Docs' | 'Getting Started (Human)' | 'Agent Skills';
+  section?: 'Docs' | 'Getting Started (Human)' | 'Slop Skills' | 'Agent Skills';
 }
 
 interface Section {
@@ -55,6 +55,7 @@ export default function DocsLayout({ content, title, description, currentSlug, p
   const sections = extractSections(content);
   const docsPages = pages.filter((p) => (p.section || 'Docs') === 'Docs');
   const gettingStartedPages = pages.filter((p) => p.section === 'Getting Started (Human)');
+  const slopSkillPages = pages.filter((p) => p.section === 'Slop Skills');
   const agentSkillPages = pages.filter((p) => p.section === 'Agent Skills');
   const { theme, resolved, setTheme } = useTheme();
   const isLight = resolved === 'light';
@@ -278,6 +279,53 @@ export default function DocsLayout({ content, title, description, currentSlug, p
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {gettingStartedPages.map((page) => {
+                  const isCurrent = page.slug === currentSlug;
+                  return (
+                    <a
+                      key={page.slug}
+                      href={page.href || `/docs/${page.slug}`}
+                      style={{
+                        display: 'block',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        lineHeight: 1.4,
+                        textDecoration: 'none',
+                        fontFamily: 'var(--font-body)',
+                        color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontWeight: isCurrent ? 600 : 400,
+                        background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                        border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {page.title}
+                    </a>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {slopSkillPages.length > 0 && (
+            <>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                letterSpacing: '0.04em',
+                color: 'var(--text-muted)',
+                marginTop: '20px',
+                marginBottom: '10px',
+                fontFamily: 'var(--font-mono)',
+              }}>
+                <Bot size={12} />
+                SLOP SKILLS
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {slopSkillPages.map((page) => {
                   const isCurrent = page.slug === currentSlug;
                   return (
                     <a

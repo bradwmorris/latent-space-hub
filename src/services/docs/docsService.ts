@@ -18,7 +18,7 @@ export interface DocNavLink {
   title: string;
   description: string;
   href: string;
-  section: 'Docs' | 'Getting Started (Human)' | 'Agent Skills';
+  section: 'Docs' | 'Getting Started (Human)' | 'Slop Skills' | 'Agent Skills';
 }
 
 const DOCS_DIR = path.join(process.cwd(), 'src/config/docs');
@@ -250,7 +250,17 @@ export function listDocsNavigation(): DocNavLink[] {
   });
 
   const allSkills = listSkills();
+  const slopSkills: DocNavLink[] = allSkills
+    .filter((s) => s.skillGroup === 'slop')
+    .map((s) => ({
+      slug: `skills/${toSkillSlug(s.name)}`,
+      title: s.fileName,
+      description: s.description || '',
+      href: `/docs/skills/${toSkillSlug(s.name)}`,
+      section: 'Slop Skills' as const,
+    }));
   const agentSkills: DocNavLink[] = allSkills
+    .filter((s) => s.skillGroup === 'agent')
     .map((s) => ({
       slug: `skills/${toSkillSlug(s.name)}`,
       title: s.fileName,
@@ -259,7 +269,7 @@ export function listDocsNavigation(): DocNavLink[] {
       section: 'Agent Skills' as const,
     }));
 
-  return [...docs, ...agentSkills];
+  return [...docs, ...slopSkills, ...agentSkills];
 }
 
 export function listSkillDocSlugs(): string[] {
