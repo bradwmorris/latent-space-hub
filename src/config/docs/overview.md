@@ -1,18 +1,15 @@
 ---
 title: Overview
-description: The wiki-base for the Latent Space community — two repos, one database, four surfaces.
+description: The wiki-base for the Latent Space community — externalised context that humans and agents read and write together.
 ---
 
-# The System
+# What Is This?
 
-Two repos, one wiki-base.
+Latent Space Wiki-Base is a shared knowledge system for the [Latent Space](https://www.latent.space/) community. It's a hybrid between a wiki and a database — structured content stored in SQLite, enriched by AI, and accessible to both humans and agents.
 
-| Repo | What it is | Deployed on |
-|------|-----------|-------------|
-| **[latent-space-hub](https://github.com/bradwmorris/latent-space-hub)** | Knowledge graph — Next.js web app, ingestion pipeline, MCP server, evals | Vercel |
-| **[latent-space-bots](https://github.com/bradwmorris/latent-space-bots)** | Discord bot (Slop) — agentic MCP tool-calling, member memory | Railway |
+The core idea is **externalised context**. Instead of knowledge living in people's heads, chat logs, or scattered docs, it lives in one graph that everyone — community members, contributors, and AI agents — continuously reads from and writes to.
 
-They share one Turso database. The hub writes to it (ingestion, web UI, API). The bot reads from it (MCP tool calls) and writes member data back.
+You're not just building documentation. You're building a system where the documentation, the database, and the AI agent layer are the same thing.
 
 # How It Works
 
@@ -25,22 +22,21 @@ AINews (smol.ai)       →   Entity extraction        →   Discord Bot (Slop)
 LatentSpaceTV          →   Auto-edge creation       →   Announcements webhook
 ```
 
-1. **Content goes in** — auto-ingestion pipeline polls RSS feeds hourly, extracts from YouTube and Substack
-2. **AI enriches it** — chunks are embedded, entities extracted, edges created automatically
-3. **Humans and agents explore it** — via the web UI, MCP tools, or Discord
+1. **Content goes in** — an auto-ingestion pipeline polls RSS feeds hourly, extracts transcripts and articles
+2. **AI enriches it** — text is chunked, embedded, and indexed. Entities are extracted. Edges are created automatically
+3. **Humans and agents explore it** — via the web app, MCP tools, or Discord
 4. **The graph grows** — each new piece of content connects to existing knowledge
 
-## Indexing Pipeline
+New content is automatically chunked, embedded, and indexed for search. See [Indexing & Search](/docs/index-search) for how the pipeline works.
 
-For each new item discovered:
+# Two Repos, One Database
 
-1. **Extract** — YouTube transcript or article text
-2. **Create node** — title, link, event_date, node_type, dimensions, metadata, raw text as chunk
-3. **Embed** — node-level (title + description) and chunk-level (~2000 char chunks, 400 overlap) via OpenAI `text-embedding-3-small` (1536d)
-4. **FTS5 sync** — SQL triggers automatically mirror chunk text into full-text search index
-5. **Entity extraction** — Claude Haiku extracts people, organizations, and topics → matches or creates entity nodes → creates typed edges
-6. **Companion detection** — matches podcast ↔ article pairs by title word overlap → creates companion edges
-7. **Discord notification** — posts to #announcements and triggers Slop discussion thread
+| Repo | What it is | Deployed on |
+|------|-----------|-------------|
+| **[latent-space-hub](https://github.com/bradwmorris/latent-space-hub)** | Knowledge graph — Next.js web app, ingestion pipeline, MCP server, evals | Vercel |
+| **[latent-space-bots](https://github.com/bradwmorris/latent-space-bots)** | Discord bot (Slop) — agentic tool-calling, member memory | Railway |
+
+They share one Turso database. The hub writes to it (ingestion, web UI, API). The bot reads from it (direct Turso queries) and writes member data back.
 
 # Architecture
 
@@ -52,7 +48,7 @@ Four cloud services, no self-hosted infrastructure.
 |---------|------|
 | **Vercel** | Web app (read-only) + hourly ingestion cron + Discord announcements |
 | **Turso** | Cloud SQLite — single shared database for web app, bot, and MCP |
-| **Railway** | Slop bot — always-on Discord gateway with agentic MCP tool-calling |
+| **Railway** | Slop bot — always-on Discord gateway with agentic tool-calling |
 | **OpenRouter** | LLM routing for Slop (currently Claude Sonnet 4.6, swappable) |
 
 # The Graph
@@ -67,6 +63,51 @@ Four cloud services, no self-hosted infrastructure.
 | Chunks with embeddings | ~36,000 |
 | Coverage | June 2023 → present, continuously updated |
 
+# Web App
+
+Next.js 15 app deployed on Vercel. The primary interface for browsing and managing the graph.
+
+## Dashboard
+
+![Dashboard](/images/docs/dashboard.png)
+
+Landing page with stats and 8 category cards. Each card shows node count and 3 preview items — content sorted by most recent, entities by most connected.
+
+## Categories
+
+![Categories](/images/docs/category-list.png)
+
+Click any category to see a filtered list. Supports list, grid, and kanban layouts.
+
+## Search
+
+![Search](/images/docs/search.png)
+
+`Cmd+K` global search across titles, descriptions, and content. Hybrid search: FTS5 + vector + Reciprocal Rank Fusion.
+
+## Graph Map
+
+![Graph Map](/images/docs/map-view.png)
+
+Interactive ReactFlow visualization of node connections.
+
+## Feed View
+
+![Feed View](/images/docs/feed-view.png)
+
+Chronological content feed with source text reader and format-aware rendering (transcript, markdown, raw).
+
+## Sidebar
+
+Fixed left panel with all 8 categories (icon + count badge), Quick Add input at top for pasting any URL or text to ingest, plus search, skills, evals, and docs access.
+
+## Key Features
+
+- Light/dark mode
+- Real-time updates via SSE (node/edge/dimension changes broadcast instantly)
+- Source reader with format-aware rendering
+- Readonly mode for public deployments (`NEXT_PUBLIC_READONLY_MODE=true`)
+
 # Tech Stack
 
 | Layer | Technology |
@@ -75,7 +116,7 @@ Four cloud services, no self-hosted infrastructure.
 | Database | Turso (cloud SQLite via `@libsql/client`) |
 | Search | Turso native vector search (F32_BLOB + `vector_top_k`) + FTS5 + hybrid RRF |
 | Embeddings | OpenAI `text-embedding-3-small` (1536d) |
-| AI | Anthropic Claude (entity extraction) + OpenAI (embeddings) |
+| AI | OpenAI GPT-4.1-mini (entity extraction, descriptions) |
 | MCP | Model Context Protocol server — `npx latent-space-hub-mcp` |
 | Bot | Discord.js + OpenRouter → Claude Sonnet 4.6 |
 

@@ -22,13 +22,15 @@ Slop is Latent Space's Discord bot. It searches the wiki-base, answers questions
 
 1. You send a message mentioning @Slop (or use a slash command)
 2. Slop builds a system prompt with its personality, your member profile, and a list of skills
-3. The LLM gets 9 read-only tools it can call to search the wiki-base
+3. The LLM gets 8 internal tools it can call to search the wiki-base
 4. The LLM decides what to search, calls tools, reads results, and may search again (up to 5 rounds)
 5. The LLM generates a response with source links
 6. Slop posts the response in a Discord thread
 7. Behind the scenes, the code updates your member profile and logs the interaction
 
-## The flow in detail
+## Architecture
+
+Slop connects **directly to Turso** — it does not use the MCP server. All tools and skills are internal to the `latent-space-bots` repo.
 
 ```
 User @mentions Slop in a channel
@@ -53,17 +55,17 @@ Bot builds system prompt:
 Bot sends to OpenRouter (Claude Sonnet 4.6) with:
   - System prompt
   - User message
-  - 9 read-only tool definitions
+  - 8 internal tool definitions
     |
     v
 LLM decides what to do:
-  - Call ls_search_nodes to find content?
-  - Call ls_sqlite_query for structured data?
-  - Call ls_read_skill for detailed instructions?
+  - Call slop_search_nodes to find content?
+  - Call slop_sqlite_query for structured data?
+  - Call slop_read_skill for detailed instructions?
   - Or just respond directly (for greetings)?
     |
     v
-Bot executes tool calls via MCP subprocess -> Turso
+Bot executes tool calls directly against Turso
 Tool results fed back to LLM
 (repeats up to 5 rounds)
     |
@@ -104,23 +106,6 @@ Schedule a Paper Club session (every Wednesday, 12-1pm PT).
 2. You reply with a number and your paper title (optionally with a URL)
 3. Slop creates an event node in the wiki-base and confirms
 
-**Example flow:**
-```
-You:  /paper-club
-Slop: Available dates:
-      1. Wed Mar 12
-      2. Wed Mar 19
-      3. Wed Mar 26
-      4. Wed Apr 2
-      Reply with the number and paper title.
-
-You:  2 Attention Is All You Need https://arxiv.org/abs/1706.03762
-Slop: Paper Club scheduled!
-      Wed Mar 19
-      Attention Is All You Need
-      Hosted by: you
-```
-
 ## /builders-club
 
 **Usage:** `/builders-club`
@@ -139,22 +124,40 @@ Mention @Slop in any allowed channel to start a conversation. Slop creates a thr
 
 ---
 
+# Tools
+
+Slop has 8 internal tools that query Turso directly. These are defined in the `latent-space-bots` repo, not via MCP.
+
+| Tool | Purpose |
+|------|---------|
+| `slop_search_nodes` | Find nodes by title/description (podcasts, articles, guests, entities) |
+| `slop_search_content` | Vector + keyword search through transcript and article text |
+| `slop_get_nodes` | Load full node records by ID |
+| `slop_sqlite_query` | Read-only SQL for structured queries (latest content, counts, date ranges) |
+| `slop_query_edges` | Find connections from a node |
+| `slop_list_dimensions` | List all categories/tags with counts |
+| `slop_read_skill` | Read full skill instructions (from local bot files) |
+
+The LLM decides which tools to call based on the question. It can call multiple tools across up to 5 rounds before generating its response.
+
+**These tools are read-only.** The LLM cannot write to the database. All writes (member updates, event creation, edge creation) happen in the bot's own code, outside the LLM loop.
+
+---
+
 # Skills
 
-Skills are instruction sets that Slop loads on demand. The system prompt always includes a brief index of available skills. When the LLM needs detailed instructions (e.g. how to query events), it calls `ls_read_skill` to load the full skill body.
+Skills are instruction sets that Slop loads on demand. The system prompt includes a brief index of available skills. When the LLM needs detailed instructions (e.g. how to query events), it calls `slop_read_skill` to load the full skill body.
 
 ## Available Skills
 
 | Skill | What it covers | When Slop reads it |
 |-------|---------------|-------------------|
 | **Start Here** | Slop runtime orientation and routing to specialist skills | First reference for most Slop interactions |
-| **Graph Search** | Content types in the graph, search strategy (which tool for what), citation format | Any factual question about Latent Space content |
+| **DB Operations** | Schema, search patterns, citation format | When Slop needs operational DB guardrails |
 | **Member Profiles** | How to build profiles over time, the `<profile>` block format, interaction preferences | When users share personal info or ask about their profile |
-| **DB Operations** | Graph read/write policy, schema assumptions, citation rules | When Slop needs operational DB guardrails |
-| **Curation** | Deduplication and quality standards for graph updates | When Slop writes or refines graph data |
 | **Event Scheduling** | How events work, SQL queries for upcoming/past events, directing users to slash commands | Questions about Paper Club or Builders Club |
 
-Skills live in the `skills/` directory of the bots repo as markdown files with YAML frontmatter. The frontmatter (name, description, when to use) appears in the system prompt. The body is fetched on demand from local bot files — this keeps the system prompt small.
+Skills live in the `skills/` directory of the bots repo as markdown files with YAML frontmatter. The frontmatter (name, description, when to use) appears in the system prompt. The body is fetched on demand from local files — this keeps the system prompt small.
 
 ---
 
@@ -191,28 +194,6 @@ After each interaction, Slop creates edges linking your member node to any conte
 
 ---
 
-# Tools
-
-Slop's LLM has access to 9 read-only tools via the MCP protocol. The bot spawns the `latent-space-hub-mcp` server as a subprocess, which connects directly to Turso.
-
-| Tool | Purpose |
-|------|---------|
-| `ls_search_nodes` | Find nodes by title/description (podcasts, articles, guests, entities) |
-| `ls_search_content` | Vector + keyword search through transcript and article text |
-| `ls_get_nodes` | Load full node records by ID |
-| `ls_sqlite_query` | Read-only SQL for structured queries (latest content, counts, date ranges) |
-| `ls_get_context` | Overview of the wiki-base (stats, top nodes) |
-| `ls_query_edges` | Find connections from a node |
-| `ls_list_dimensions` | List all categories/tags with counts |
-| `ls_list_skills` | List available skills |
-| `ls_read_skill` | Read full skill instructions (served from local bot files) |
-
-The LLM decides which tools to call based on the question. It can call multiple tools across up to 5 rounds before generating its response.
-
-**Important:** These tools are read-only. The LLM cannot write to the database. All writes (member updates, event creation, edge creation) happen in the bot's own code, outside the LLM loop.
-
----
-
 # Automated Kickoffs
 
 When the hub ingests new content (via hourly cron), it can trigger Slop to discuss it automatically.
@@ -237,7 +218,7 @@ Every Slop response includes:
 
 - **Model badge** — Shows which model generated the response (e.g. `claude-sonnet-4-6`)
 - **Response body** — The actual response, split into chunks if over 1800 chars (Discord's limit)
-- **Tools footer** — Shows which MCP tools were called (e.g. `search_nodes(x2) | get_nodes`)
+- **Tools footer** — Shows which tools were called (e.g. `search_nodes(x2) | get_nodes`)
 
 ---
 
@@ -253,3 +234,6 @@ Every interaction is logged to the `chats` table in Turso:
 | Metadata | Discord user ID, channel, model, latency, retrieval method, member ID |
 
 View traces at `/evals` on the web app.
+
+<!-- AUTO:SLOP_SYSTEM_PROMPT_START -->
+<!-- AUTO:SLOP_SYSTEM_PROMPT_END -->

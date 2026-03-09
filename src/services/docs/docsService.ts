@@ -178,8 +178,9 @@ function injectSlopSystemPromptSection(content: string): string {
 /** Ordered list of core doc pages. Slug must match filename (without .md) and route. */
 const DOC_ORDER = [
   'overview',
-  'ingestion',
   'database',
+  'ingestion',
+  'index-search',
   'mcp-server',
   'slop-bot',
   'evals',

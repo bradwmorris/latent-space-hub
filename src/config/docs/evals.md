@@ -3,6 +3,8 @@ title: Evals
 description: Trace logging and the /evals dashboard for monitoring Discord bot interactions.
 ---
 
+**Note:** The evals system is built and ready. We need community members actively interacting with Slop and the wiki-base before we'll have meaningful data to evaluate. Once we have real usage, this becomes the primary feedback loop for improving bot quality.
+
 # Trace Logging
 
 Every Discord bot interaction logs a full trace to the `chats` table in Turso.
@@ -14,7 +16,7 @@ Every Discord bot interaction logs a full trace to the `chats` table in Turso.
 | Thread ID | Discord thread where the interaction happened |
 | User message | The original user prompt |
 | Bot response | Full text of Slop's reply |
-| MCP tool calls | Each tool call: name, arguments, result summary, duration (ms) |
+| Tool calls | Each tool call: name, arguments, result summary, duration (ms) |
 | Retrieval method | `agentic`, `smalltalk`, or `latest_node_lookup` |
 | Model | LLM model used (e.g. `claude-sonnet-4-6`) |
 | Latency | Total request time in milliseconds |
@@ -27,7 +29,7 @@ Each tool call in the agentic loop is captured individually:
 
 ```json
 {
-  "tool": "ls_search_nodes",
+  "tool": "slop_search_nodes",
   "args": { "query": "Terminal-Bench", "limit": 5 },
   "result_preview": "Found 3 nodes...",
   "duration_ms": 142
@@ -48,7 +50,7 @@ The `/evals` page on the web app provides a visual interface for reviewing bot i
 
 - **Chronological feed** of all bot interactions
 - **Expandable traces** showing the full tool-calling chain for each interaction
-- **Tool call details** — arguments, results, timing for each MCP tool call
+- **Tool call details** — arguments, results, timing for each tool call
 - **Filter by retrieval method** — see only agentic, smalltalk, or kickoff interactions
 - **Response quality review** — compare what the bot said against what was in the wiki-base
 
@@ -72,7 +74,7 @@ The full `metadata` JSON stored per interaction:
   "context_node_ids": [42, 87, 153],
   "tool_calls": [
     {
-      "tool": "ls_search_content",
+      "tool": "slop_search_content",
       "args": { "query": "transformer architecture", "limit": 6 },
       "result": { "results_count": 5 },
       "duration_ms": 230

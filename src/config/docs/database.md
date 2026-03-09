@@ -1,44 +1,30 @@
 ---
 title: Database
-description: Turso cloud SQLite — schema, categories, edge types, and search indexes.
+description: Turso cloud SQLite — schema, categories, edge types, and the relational model.
 ---
-
-# Turso
-
-Cloud-hosted libSQL (SQLite fork) with native vector search. Single database shared by the web app, bot, and MCP server.
-
-| Detail | Value |
-|--------|-------|
-| Provider | Turso |
-| Client | `@libsql/client` |
-| Vector | Native F32_BLOB columns + `vector_top_k()` |
-| Full-text | FTS5 virtual tables with auto-sync triggers |
-
-# Categories
-
-11 node types stored as `node_type` on the `nodes` table.
-
-| Category | `node_type` | Description | Sort |
-|----------|------------|-------------|------|
-| Podcast | `podcast` | Latent Space episodes with full transcripts | Recent |
-| Article | `article` | latent.space Substack posts | Recent |
-| AI News | `ainews` | Daily AINews digests from smol.ai | Recent |
-| Builders Club | `builders-club` | Community meetup recordings | Recent |
-| Paper Club | `paper-club` | Deep-dive paper discussions | Recent |
-| Workshop | `workshop` | Conference talks, tutorials | Recent |
-| Event | `event` | Scheduled community events (paper club, builders club sessions) | Recent |
-| Guest | `guest` | People — guests, speakers, authors | Most connected |
-| Entity | `entity` | Organizations and technical topics | Most connected |
-| Hub | `hub` | Internal structural anchors (hidden) | — |
-| Member | `member` | Discord community member profiles | — |
 
 # Schema
 
 ![Schema Diagram](/images/docs/schema-diagram.svg)
 
+# SQLite and the Relational Model
+
+The wiki-base is a relational database. That means everything is stored in tables with rows and columns, and tables are connected to each other through foreign keys. If you know spreadsheets, think of each table as a sheet — but sheets can reference rows in other sheets.
+
+We use **SQLite** — the most widely deployed database in the world. It's a single-file database engine, no separate server process. Turso hosts it in the cloud so the web app, bot, and MCP server all share one instance.
+
+| Detail | Value |
+|--------|-------|
+| Provider | Turso (cloud-hosted libSQL, a SQLite fork) |
+| Client | `@libsql/client` |
+| Vector | Native F32_BLOB columns + `vector_top_k()` |
+| Full-text | FTS5 virtual tables with auto-sync triggers |
+
+# Tables
+
 ### nodes
 
-The central table. Every piece of content, person, organization, and topic.
+The central table. Every piece of content, person, organization, and topic is a node.
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -46,7 +32,7 @@ The central table. Every piece of content, person, organization, and topic.
 | `title` | TEXT NOT NULL | Node title |
 | `description` | TEXT | One-sentence summary |
 | `link` | TEXT | Source URL |
-| `node_type` | TEXT | Category |
+| `node_type` | TEXT | Category (see below) |
 | `event_date` | TEXT | ISO 8601 date |
 | `chunk` | TEXT | Raw source text |
 | `embedding` | F32_BLOB(1536) | Node-level vector |
@@ -55,7 +41,7 @@ The central table. Every piece of content, person, organization, and topic.
 
 ### chunks
 
-Chunked text for semantic search.
+Source text split into smaller pieces for search. See [Indexing & Search](/docs/index-search) for how chunking works.
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -82,6 +68,24 @@ Tags/categories. Many-to-many with nodes via `node_dimensions` join table.
 ### chats
 
 Discord bot interaction traces. Full MCP tool call logs, timing, Discord context.
+
+# Categories
+
+11 node types stored as `node_type` on the `nodes` table.
+
+| Category | `node_type` | Description | Sort |
+|----------|------------|-------------|------|
+| Podcast | `podcast` | Latent Space episodes with full transcripts | Recent |
+| Article | `article` | latent.space Substack posts | Recent |
+| AI News | `ainews` | Daily AINews digests from smol.ai | Recent |
+| Builders Club | `builders-club` | Community meetup recordings | Recent |
+| Paper Club | `paper-club` | Deep-dive paper discussions | Recent |
+| Workshop | `workshop` | Conference talks, tutorials | Recent |
+| Event | `event` | Scheduled community events (paper club, builders club sessions) | Recent |
+| Guest | `guest` | People — guests, speakers, authors | Most connected |
+| Entity | `entity` | Organizations and technical topics | Most connected |
+| Hub | `hub` | Internal structural anchors (hidden) | — |
+| Member | `member` | Discord community member profiles | — |
 
 # Edge Context Model
 
@@ -120,20 +124,6 @@ interface EdgeContext {
 | `supports` | Evidence → Claim | Study → Hypothesis |
 | `contradicts` | Counter → Claim | Finding → Earlier claim |
 | `source_of` | Derivative → Source | Summary → Original |
-
-# Indexes
-
-### B-tree
-
-`node_type`, `event_date`, `updated_at`, `from_node_id`, `to_node_id`, `node_id` (chunks), `thread_id` (chats)
-
-### Vector
-
-`libsql_vector_idx` on `chunks.embedding` — 1536d, cosine metric, compressed neighbors (float8), max 20 neighbors
-
-### Full-text
-
-`chunks_fts` virtual table on `chunks.text` — auto-synced via SQL triggers on insert/update/delete
 
 # Metadata by Category
 

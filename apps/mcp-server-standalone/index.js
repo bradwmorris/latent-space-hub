@@ -39,7 +39,8 @@ function loadConfig() {
   const tursoToken = process.env.TURSO_AUTH_TOKEN || fileConfig.tursoToken || fileConfig.turso_token;
   const skillsDir = process.env.LSH_SKILLS_DIR || fileConfig.skillsDir || DEFAULT_SKILLS_DIR;
   const openAiApiKey = process.env.OPENAI_API_KEY || fileConfig.openAiApiKey || fileConfig.openai_api_key || null;
-  return { tursoUrl, tursoToken, skillsDir, openAiApiKey };
+  const allowWrites = (process.env.MCP_ALLOW_WRITES || fileConfig.allowWrites || 'false').toString().toLowerCase() === 'true';
+  return { tursoUrl, tursoToken, skillsDir, openAiApiKey, allowWrites };
 }
 
 function failConfig(message) {
@@ -218,7 +219,7 @@ const updateNodeInputSchema = {
 };
 
 async function main() {
-  const { tursoUrl, tursoToken, skillsDir, openAiApiKey } = loadConfig();
+  const { tursoUrl, tursoToken, skillsDir, openAiApiKey, allowWrites } = loadConfig();
   if (!tursoUrl) {
     failConfig('Missing Turso URL.');
   }
@@ -448,6 +449,58 @@ async function main() {
   );
 
   server.registerTool(
+    'ls_query_edges',
+    {
+      title: 'Query edges',
+      description: 'Find connections between nodes.',
+      inputSchema: {
+        nodeId: z.number().int().positive().optional(),
+        limit: z.number().min(1).max(50).optional()
+      }
+    },
+    async ({ nodeId, limit = 25 }) => {
+      const safeLimit = Math.min(Math.max(limit, 1), 50);
+      const args = [];
+      let where = '';
+      if (nodeId) {
+        where = 'WHERE from_node_id = ? OR to_node_id = ?';
+        args.push(nodeId, nodeId);
+      }
+      args.push(safeLimit);
+
+      const res = await runQuery(
+        db,
+        `SELECT id, from_node_id, to_node_id, context, source, created_at, updated_at
+           FROM edges
+           ${where}
+          ORDER BY updated_at DESC
+          LIMIT ?`,
+        args
+      );
+
+      const edges = (res.rows || []).map((row) => {
+        const context = jsonFromContext(row.context);
+        return {
+          id: Number(row.id),
+          from_node_id: Number(row.from_node_id),
+          to_node_id: Number(row.to_node_id),
+          explanation: context.explanation || '',
+          type: context.type || null,
+          source: row.source == null ? null : String(row.source)
+        };
+      });
+
+      return {
+        content: [{ type: 'text', text: `Found ${edges.length} edge(s).` }],
+        structuredContent: { count: edges.length, edges }
+      };
+    }
+  );
+
+  // ── Write tools — only registered when MCP_ALLOW_WRITES=true ──
+  if (allowWrites) {
+
+  server.registerTool(
     'ls_add_node',
     {
       title: 'Add node',
@@ -557,55 +610,6 @@ async function main() {
       return {
         content: [{ type: 'text', text: `Updated node #${id}.` }],
         structuredContent: { success: true, nodeId: id }
-      };
-    }
-  );
-
-  server.registerTool(
-    'ls_query_edges',
-    {
-      title: 'Query edges',
-      description: 'Find connections between nodes.',
-      inputSchema: {
-        nodeId: z.number().int().positive().optional(),
-        limit: z.number().min(1).max(50).optional()
-      }
-    },
-    async ({ nodeId, limit = 25 }) => {
-      const safeLimit = Math.min(Math.max(limit, 1), 50);
-      const args = [];
-      let where = '';
-      if (nodeId) {
-        where = 'WHERE from_node_id = ? OR to_node_id = ?';
-        args.push(nodeId, nodeId);
-      }
-      args.push(safeLimit);
-
-      const res = await runQuery(
-        db,
-        `SELECT id, from_node_id, to_node_id, context, source, created_at, updated_at
-           FROM edges
-           ${where}
-          ORDER BY updated_at DESC
-          LIMIT ?`,
-        args
-      );
-
-      const edges = (res.rows || []).map((row) => {
-        const context = jsonFromContext(row.context);
-        return {
-          id: Number(row.id),
-          from_node_id: Number(row.from_node_id),
-          to_node_id: Number(row.to_node_id),
-          explanation: context.explanation || '',
-          type: context.type || null,
-          source: row.source == null ? null : String(row.source)
-        };
-      });
-
-      return {
-        content: [{ type: 'text', text: `Found ${edges.length} edge(s).` }],
-        structuredContent: { count: edges.length, edges }
       };
     }
   );
@@ -791,6 +795,8 @@ async function main() {
     }
   );
 
+  } // end if (allowWrites)
+
   server.registerTool(
     'ls_search_content',
     {
@@ -924,17 +930,25 @@ async function main() {
     readSkillHandler
   );
 
-  server.registerTool(
-    'ls_write_skill',
-    { title: 'Write skill', description: 'Create or overwrite a custom skill.', inputSchema: { name: z.string().min(1), content: z.string().min(1) } },
-    writeSkillHandler
-  );
+  if (allowWrites) {
+    server.registerTool(
+      'ls_write_skill',
+      { title: 'Write skill', description: 'Create or overwrite a custom skill.', inputSchema: { name: z.string().min(1), content: z.string().min(1) } },
+      writeSkillHandler
+    );
 
-  server.registerTool(
-    'ls_delete_skill',
-    { title: 'Delete skill', description: 'Delete a custom skill.', inputSchema: { name: z.string().min(1) } },
-    deleteSkillHandler
-  );
+    server.registerTool(
+      'ls_delete_skill',
+      { title: 'Delete skill', description: 'Delete a custom skill.', inputSchema: { name: z.string().min(1) } },
+      deleteSkillHandler
+    );
+  }
+
+  if (!allowWrites) {
+    console.error('[latent-space-hub-mcp] Running in read-only mode. Set MCP_ALLOW_WRITES=true to enable write tools.');
+  } else {
+    console.error('[latent-space-hub-mcp] Write tools enabled (MCP_ALLOW_WRITES=true).');
+  }
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
