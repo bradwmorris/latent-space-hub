@@ -181,6 +181,8 @@ const DOC_ORDER = [
   'database',
   'ingestion',
   'index-search',
+  'tools',
+  'skills',
   'mcp-server',
   'slop-bot',
   'evals',
