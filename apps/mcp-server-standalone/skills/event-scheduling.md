@@ -33,7 +33,7 @@ Paper Club and Builders Club sessions are scheduled via Discord slash commands. 
 
 ## Validation Rules
 
-1. **Must be a member.** User must have run `/join` first. If not, reply: "You need to `/join` the graph first before scheduling events."
+1. **Auto-create member if needed.** If the user doesn't have a member node yet, create one automatically from their Discord info (discord_id, discord_handle, avatar_url, joined_at). Don't block them — `/join` is optional for enriching their profile later with interests, role, company, etc.
 2. **Date must be future.** Reject past dates with a clear message.
 3. **Date format.** Must be `YYYY-MM-DD`. Reject other formats.
 4. **Correct day of week.** Paper Club dates must fall on a Wednesday. Builders Club dates must fall on a Saturday (Sydney) / Friday (PT). Reject with: "Paper Club runs on Wednesdays" or "Builders Club runs on Fridays/Saturdays".
@@ -69,6 +69,7 @@ Event nodes use `node_type: 'event'` with dimensions `['event', '<event-type>']`
 
 ```
 Member runs /paper-club or /builders-club
+  → If no member node exists, auto-create from Discord info
   → Check: is the date the correct day of week?
   → Check: is the slot already booked?
   → Event node created (event_status: 'scheduled')
