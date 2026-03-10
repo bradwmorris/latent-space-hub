@@ -1,6 +1,6 @@
 ---
 title: Ingestion
-description: How content gets into the wiki-base — four sources, hourly cron, AI enrichment, and Discord notifications.
+description: "How content gets into the wiki-base: four sources, hourly cron, AI enrichment, and Discord notifications."
 ---
 
 # Content Sources
@@ -29,16 +29,16 @@ Both require `Authorization: Bearer $CRON_SECRET`. A concurrency guard prevents 
 
 When something new is found:
 
-1. **Discover** — RSS check finds items not already in the DB (dedup by link URL)
-2. **Extract** — YouTube transcript (`youtube-transcript-plus` with innertube/timedtext fallbacks) or article text (Cheerio scraper, Jina.ai fallback)
-3. **Create node** — title, link, event_date, node_type, dimensions, metadata, raw text
-4. **Generate description** — GPT-4.1-mini creates a one-sentence summary
-5. **Chunk** — split into ~2,000-character pieces with 400-char overlap at smart boundaries (paragraph > sentence > hard cut)
-6. **Embed** — OpenAI `text-embedding-3-small` (1536d). Node-level on title + description. Chunk-level in batches of 20.
-7. **Companion detection** — match podcast ↔ article pairs by title word overlap (Jaccard threshold 0.5). Creates `companion_article` / `companion_episode` edges.
-8. **Event recording linking** — for builders-club/paper-club, finds scheduled event nodes within ±3 days and links recording → event
-9. **Notify Discord** — post to #announcements + kick off Slop discussion thread
-10. **Log** — record in `ingestion_runs` table
+1. **Discover**: RSS check finds items not already in the DB (dedup by link URL)
+2. **Extract**: YouTube transcript (`youtube-transcript-plus` with innertube/timedtext fallbacks) or article text (Cheerio scraper, Jina.ai fallback)
+3. **Create node**: title, link, event_date, node_type, dimensions, metadata, raw text
+4. **Generate description**: GPT-4.1-mini creates a one-sentence summary
+5. **Chunk**: split into ~2,000-character pieces with 400-char overlap at smart boundaries (paragraph > sentence > hard cut)
+6. **Embed**: OpenAI `text-embedding-3-small` (1536d). Node-level on title + description. Chunk-level in batches of 20.
+7. **Companion detection**: match podcast ↔ article pairs by title word overlap (Jaccard threshold 0.5). Creates `companion_article` / `companion_episode` edges.
+8. **Event recording linking**: for builders-club/paper-club, finds scheduled event nodes within ±3 days and links recording → event
+9. **Notify Discord**: post to #announcements + kick off Slop discussion thread
+10. **Log**: record in `ingestion_runs` table
 
 No new content? Nothing happens. Runtime budget: 55 seconds, max 10 items per source per run.
 
@@ -48,8 +48,8 @@ Runs on the `:30` cron. Finds content nodes where `metadata.entity_extraction.st
 
 For each node:
 
-1. **AINews items** — try frontmatter-based extraction first (companies/topics from metadata)
-2. **All others** — send chunk text to GPT-4.1-mini with extraction prompt
+1. **AINews items**: try frontmatter-based extraction first (companies/topics from metadata)
+2. **All others**: send chunk text to GPT-4.1-mini with extraction prompt
 3. Extract structured entities: organizations (max 5) and research themes (max 5)
 4. For each entity: search existing nodes with fuzzy dedup (Levenshtein distance) → match or create new `guest`/`entity` node
 5. Generate entity descriptions via GPT-4.1-mini for new entity nodes
@@ -62,8 +62,8 @@ Processes up to 15 items per run (60-second budget).
 
 Each newly ingested item triggers:
 
-1. **#announcements** — Clean card with emoji header, title, event date, chunk count, and source link (webhook)
-2. **Slop discussion** — the hub calls Slop's internal API (`/internal/kickoff`) to start a graph-backed discussion thread. Falls back to a #yap webhook if the bot API isn't configured.
+1. **#announcements**: Clean card with emoji header, title, event date, chunk count, and source link (webhook)
+2. **Slop discussion**: the hub calls Slop's internal API (`/internal/kickoff`) to start a graph-backed discussion thread. Falls back to a #yap webhook if the bot API isn't configured.
 
 Companion items skip the discussion kickoff to avoid duplicate threads.
 
@@ -84,14 +84,3 @@ The bot API mode is preferred because Slop searches the wiki-base with its own t
 | Website | Cheerio + readability heuristics | Falls back to Jina.ai Reader API |
 | PDF | `pdf-parse` (local) / direct fetch (arXiv) | Handles multi-page documents |
 
-# Quick Add (Web UI)
-
-Paste any URL or text into the sidebar Quick Add input:
-
-| Input | Detection | What happens |
-|-------|-----------|-------------|
-| YouTube URL | `youtube.com` / `youtu.be` | Transcript extracted → node + chunks + embed |
-| Website URL | Any other URL | Cheerio scrape → content extraction → node + embed |
-| PDF / arXiv | `.pdf` or `arxiv.org` | PDF parse → text extraction → node + embed |
-| Chat transcript | Timestamps, "You said:", etc. | Summarized → note node created |
-| Plain text | Everything else | Note node created directly |

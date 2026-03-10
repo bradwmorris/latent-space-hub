@@ -39,8 +39,7 @@ function loadConfig() {
   const tursoToken = process.env.TURSO_AUTH_TOKEN || fileConfig.tursoToken || fileConfig.turso_token;
   const skillsDir = process.env.LSH_SKILLS_DIR || fileConfig.skillsDir || DEFAULT_SKILLS_DIR;
   const openAiApiKey = process.env.OPENAI_API_KEY || fileConfig.openAiApiKey || fileConfig.openai_api_key || null;
-  const allowWrites = (process.env.MCP_ALLOW_WRITES || fileConfig.allowWrites || 'false').toString().toLowerCase() === 'true';
-  return { tursoUrl, tursoToken, skillsDir, openAiApiKey, allowWrites };
+  return { tursoUrl, tursoToken, skillsDir, openAiApiKey };
 }
 
 function failConfig(message) {
@@ -118,38 +117,6 @@ function listSkills(skillsDir) {
   return [...system, ...custom];
 }
 
-function writeSkill(skillsDir, name, content) {
-  ensureDir(skillsDir);
-  const slug = slugifyName(name);
-  if (!slug) {
-    throw new Error('Skill name must contain letters or numbers.');
-  }
-
-  const systemNames = listMarkdownFiles(SYSTEM_SKILLS_DIR).map((f) => slugifyName(path.basename(f, '.md')));
-  if (systemNames.includes(slug)) {
-    throw new Error('System skill names cannot be overwritten. Choose a different name.');
-  }
-
-  const existingCustom = listMarkdownFiles(skillsDir);
-  if (!existingCustom.some((f) => path.basename(f, '.md') === slug) && existingCustom.length >= 10) {
-    throw new Error('Maximum of 10 custom skills reached. Delete one before adding another.');
-  }
-
-  const filePath = path.join(skillsDir, `${slug}.md`);
-  fs.writeFileSync(filePath, content, 'utf8');
-  return filePath;
-}
-
-function deleteSkill(skillsDir, name) {
-  ensureDir(skillsDir);
-  const slug = slugifyName(name);
-  const filePath = path.join(skillsDir, `${slug}.md`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Custom skill '${slug}' does not exist.`);
-  }
-  fs.unlinkSync(filePath);
-}
-
 function createDbClient(tursoUrl, tursoToken) {
   return createClient({
     url: tursoUrl,
@@ -192,34 +159,9 @@ function jsonFromContext(value) {
   }
 }
 
-const addNodeInputSchema = {
-  title: z.string().min(1).max(160),
-  content: z.string().max(20000).optional(),
-  link: z.string().url().optional(),
-  description: z.string().max(2000).optional(),
-  dimensions: z.array(z.string()).min(1).max(5),
-  metadata: z.record(z.any()).optional(),
-  chunk: z.string().max(50000).optional(),
-  node_type: z.string().optional(),
-  event_date: z.string().optional()
-};
-
-const updateNodeInputSchema = {
-  id: z.number().int().positive(),
-  updates: z.object({
-    title: z.string().max(160).optional(),
-    content: z.string().max(20000).optional(),
-    link: z.string().url().optional(),
-    description: z.string().max(2000).optional(),
-    dimensions: z.array(z.string()).min(1).max(5).optional(),
-    metadata: z.record(z.any()).optional(),
-    node_type: z.string().optional(),
-    event_date: z.string().optional()
-  })
-};
 
 async function main() {
-  const { tursoUrl, tursoToken, skillsDir, openAiApiKey, allowWrites } = loadConfig();
+  const { tursoUrl, tursoToken, skillsDir, openAiApiKey } = loadConfig();
   if (!tursoUrl) {
     failConfig('Missing Turso URL.');
   }
@@ -235,7 +177,7 @@ async function main() {
     { name: 'latent-space-hub-mcp', version: '0.1.0' },
     {
       instructions:
-        'Latent Space Hub MCP server. Call ls_read_skill("start-here") first for orientation. Search nodes before creating new ones. Create explicit edges with explanations.'
+        'Latent Space Hub MCP server. Read-only access to the Latent Space wiki-base. Call ls_read_skill("start-here") first for orientation.'
     }
   );
 
@@ -497,183 +439,6 @@ async function main() {
     }
   );
 
-  // ── Write tools — only registered when MCP_ALLOW_WRITES=true ──
-  if (allowWrites) {
-
-  server.registerTool(
-    'ls_add_node',
-    {
-      title: 'Add node',
-      description: 'Create a new node in Latent Space Hub.',
-      inputSchema: addNodeInputSchema
-    },
-    async ({ title, content, link, description, dimensions, metadata, chunk, node_type, event_date }) => {
-      const uniqueDimensions = Array.from(new Set((dimensions || []).map((d) => String(d).trim()).filter(Boolean))).slice(0, 5);
-      if (uniqueDimensions.length === 0) {
-        throw new Error('At least one dimension is required.');
-      }
-
-      const nodeInsert = await runQuery(
-        db,
-        `INSERT INTO nodes (title, notes, link, description, node_type, event_date, metadata, chunk)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-         RETURNING id, title`,
-        [
-          title.trim(),
-          content ? content.trim() : null,
-          link ? link.trim() : null,
-          description ? description.trim() : null,
-          node_type ? String(node_type).trim() : null,
-          event_date ? String(event_date).trim() : null,
-          metadata ? JSON.stringify(metadata) : null,
-          chunk ? chunk.trim() : null
-        ]
-      );
-
-      const node = nodeInsert.rows?.[0];
-      if (!node) {
-        throw new Error('Failed to create node.');
-      }
-
-      for (const dimension of uniqueDimensions) {
-        await runQuery(
-          db,
-          'INSERT OR IGNORE INTO node_dimensions (node_id, dimension) VALUES (?, ?)',
-          [Number(node.id), dimension]
-        );
-      }
-
-      return {
-        content: [{ type: 'text', text: `Created node #${node.id}: ${node.title}` }],
-        structuredContent: {
-          nodeId: Number(node.id),
-          title: String(node.title),
-          dimensions: uniqueDimensions
-        }
-      };
-    }
-  );
-
-  server.registerTool(
-    'ls_update_node',
-    {
-      title: 'Update node',
-      description: 'Update node fields. Content is appended to notes when provided.',
-      inputSchema: updateNodeInputSchema
-    },
-    async ({ id, updates }) => {
-      const setClauses = [];
-      const args = [];
-
-      if (updates.title != null) {
-        setClauses.push('title = ?');
-        args.push(updates.title.trim());
-      }
-      if (updates.link != null) {
-        setClauses.push('link = ?');
-        args.push(updates.link.trim());
-      }
-      if (updates.description != null) {
-        setClauses.push('description = ?');
-        args.push(updates.description.trim());
-      }
-      if (updates.node_type != null) {
-        setClauses.push('node_type = ?');
-        args.push(String(updates.node_type).trim());
-      }
-      if (updates.event_date != null) {
-        setClauses.push('event_date = ?');
-        args.push(String(updates.event_date).trim());
-      }
-      if (updates.metadata != null) {
-        setClauses.push('metadata = ?');
-        args.push(JSON.stringify(updates.metadata));
-      }
-      if (updates.content != null) {
-        setClauses.push("notes = CASE WHEN notes IS NULL OR notes = '' THEN ? ELSE notes || '\n\n' || ? END");
-        args.push(updates.content.trim(), updates.content.trim());
-      }
-
-      if (setClauses.length > 0) {
-        args.push(id);
-        await runQuery(db, `UPDATE nodes SET ${setClauses.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, args);
-      }
-
-      if (Array.isArray(updates.dimensions) && updates.dimensions.length > 0) {
-        const uniqueDimensions = Array.from(new Set(updates.dimensions.map((d) => String(d).trim()).filter(Boolean))).slice(0, 5);
-        await runQuery(db, 'DELETE FROM node_dimensions WHERE node_id = ?', [id]);
-        for (const dimension of uniqueDimensions) {
-          await runQuery(db, 'INSERT OR IGNORE INTO node_dimensions (node_id, dimension) VALUES (?, ?)', [id, dimension]);
-        }
-      }
-
-      return {
-        content: [{ type: 'text', text: `Updated node #${id}.` }],
-        structuredContent: { success: true, nodeId: id }
-      };
-    }
-  );
-
-  server.registerTool(
-    'ls_create_edge',
-    {
-      title: 'Create edge',
-      description: 'Connect two nodes with a directional relationship.',
-      inputSchema: {
-        sourceId: z.number().int().positive(),
-        targetId: z.number().int().positive(),
-        explanation: z.string().min(1)
-      }
-    },
-    async ({ sourceId, targetId, explanation }) => {
-      const context = JSON.stringify({ explanation: explanation.trim(), type: 'related_to' });
-      const res = await runQuery(
-        db,
-        `INSERT INTO edges (from_node_id, to_node_id, context, source)
-         VALUES (?, ?, ?, ?)
-         RETURNING id`,
-        [sourceId, targetId, context, 'user']
-      );
-      const edgeId = Number(res.rows?.[0]?.id);
-
-      return {
-        content: [{ type: 'text', text: `Created edge #${edgeId}: ${sourceId} -> ${targetId}` }],
-        structuredContent: { success: true, edgeId }
-      };
-    }
-  );
-
-  server.registerTool(
-    'ls_update_edge',
-    {
-      title: 'Update edge',
-      description: 'Update edge explanation in context JSON.',
-      inputSchema: {
-        id: z.number().int().positive(),
-        explanation: z.string().min(1)
-      }
-    },
-    async ({ id, explanation }) => {
-      const current = await runQuery(db, 'SELECT context FROM edges WHERE id = ?', [id]);
-      if (!current.rows?.[0]) {
-        throw new Error(`Edge ${id} not found.`);
-      }
-
-      const context = jsonFromContext(current.rows[0].context);
-      context.explanation = explanation.trim();
-      if (!context.type) {
-        context.type = 'related_to';
-      }
-
-      await runQuery(db, 'UPDATE edges SET context = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [JSON.stringify(context), id]);
-
-      return {
-        content: [{ type: 'text', text: `Updated edge #${id}.` }],
-        structuredContent: { success: true, edgeId: id }
-      };
-    }
-  );
-
   server.registerTool(
     'ls_list_dimensions',
     {
@@ -705,97 +470,6 @@ async function main() {
       };
     }
   );
-
-  server.registerTool(
-    'ls_create_dimension',
-    {
-      title: 'Create dimension',
-      description: 'Create a new dimension/tag.',
-      inputSchema: {
-        name: z.string().min(1),
-        description: z.string().optional(),
-        isPriority: z.boolean().optional()
-      }
-    },
-    async ({ name, description, isPriority = false }) => {
-      await runQuery(
-        db,
-        `INSERT INTO dimensions (name, description, is_priority)
-         VALUES (?, ?, ?)` ,
-        [name.trim().toLowerCase(), description ? description.trim() : null, isPriority ? 1 : 0]
-      );
-
-      return {
-        content: [{ type: 'text', text: `Created dimension '${name}'.` }],
-        structuredContent: { success: true, dimension: name.trim().toLowerCase() }
-      };
-    }
-  );
-
-  server.registerTool(
-    'ls_update_dimension',
-    {
-      title: 'Update dimension',
-      description: 'Rename or update dimension metadata.',
-      inputSchema: {
-        name: z.string().min(1),
-        newName: z.string().optional(),
-        description: z.string().optional(),
-        isPriority: z.boolean().optional()
-      }
-    },
-    async ({ name, newName, description, isPriority }) => {
-      const updates = [];
-      const args = [];
-
-      if (newName != null) {
-        updates.push('name = ?');
-        args.push(newName.trim().toLowerCase());
-      }
-      if (description != null) {
-        updates.push('description = ?');
-        args.push(description.trim());
-      }
-      if (isPriority != null) {
-        updates.push('is_priority = ?');
-        args.push(isPriority ? 1 : 0);
-      }
-
-      if (updates.length === 0) {
-        throw new Error('No updates provided.');
-      }
-
-      args.push(name.trim().toLowerCase());
-      await runQuery(db, `UPDATE dimensions SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE name = ?`, args);
-
-      return {
-        content: [{ type: 'text', text: `Updated dimension '${name}'.` }],
-        structuredContent: { success: true }
-      };
-    }
-  );
-
-  server.registerTool(
-    'ls_delete_dimension',
-    {
-      title: 'Delete dimension',
-      description: 'Delete dimension and its node links.',
-      inputSchema: {
-        name: z.string().min(1)
-      }
-    },
-    async ({ name }) => {
-      const dim = name.trim().toLowerCase();
-      await runQuery(db, 'DELETE FROM node_dimensions WHERE dimension = ?', [dim]);
-      await runQuery(db, 'DELETE FROM dimensions WHERE name = ?', [dim]);
-      return {
-        content: [{ type: 'text', text: `Deleted dimension '${dim}'.` }],
-        structuredContent: { success: true }
-      };
-    }
-  );
-
-  } // end if (allowWrites)
 
   server.registerTool(
     'ls_search_content',
@@ -901,23 +575,7 @@ async function main() {
     };
   };
 
-  const writeSkillHandler = async ({ name, content }) => {
-    const filePath = writeSkill(skillsDir, name, content);
-    return {
-      content: [{ type: 'text', text: `Wrote skill '${slugifyName(name)}'.` }],
-      structuredContent: { success: true, filePath }
-    };
-  };
-
-  const deleteSkillHandler = async ({ name }) => {
-    deleteSkill(skillsDir, name);
-    return {
-      content: [{ type: 'text', text: `Deleted custom skill '${slugifyName(name)}'.` }],
-      structuredContent: { success: true }
-    };
-  };
-
-  // Register skill tools
+  // Register skill tools (read-only)
   server.registerTool(
     'ls_list_skills',
     { title: 'List skills', description: 'List system and custom skills.', inputSchema: {} },
@@ -929,26 +587,6 @@ async function main() {
     { title: 'Read skill', description: 'Read a skill by name.', inputSchema: { name: z.string().min(1) } },
     readSkillHandler
   );
-
-  if (allowWrites) {
-    server.registerTool(
-      'ls_write_skill',
-      { title: 'Write skill', description: 'Create or overwrite a custom skill.', inputSchema: { name: z.string().min(1), content: z.string().min(1) } },
-      writeSkillHandler
-    );
-
-    server.registerTool(
-      'ls_delete_skill',
-      { title: 'Delete skill', description: 'Delete a custom skill.', inputSchema: { name: z.string().min(1) } },
-      deleteSkillHandler
-    );
-  }
-
-  if (!allowWrites) {
-    console.error('[latent-space-hub-mcp] Running in read-only mode. Set MCP_ALLOW_WRITES=true to enable write tools.');
-  } else {
-    console.error('[latent-space-hub-mcp] Write tools enabled (MCP_ALLOW_WRITES=true).');
-  }
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

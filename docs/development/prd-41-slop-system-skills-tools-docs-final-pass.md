@@ -1,6 +1,6 @@
 # PRD: Slop Bot Final Structure Review + Documentation Final Pass
 
-**Status:** Draft | **Created:** 2026-03-09
+**Status:** In Progress | **Created:** 2026-03-09
 
 ## 1. Background
 
@@ -118,6 +118,52 @@ This PRD is designed to remove remaining complexity and produce a clean, explain
 - This work spans two repos; keep boundaries explicit and avoid hidden assumptions.
 - Avoid premature docs edits before hierarchy approval gate is passed.
 - Prioritize clarity and maintainability over "comprehensive but bloated" documentation.
+
+## 6. Progress Log
+
+### 2026-03-09 / 2026-03-10
+
+**Step 1: Slop Bot Structure Check - DONE**
+
+Audited system message, skills, and tools. Found and fixed:
+
+**Bots repo (`latent-space-bots/`) changes:**
+
+| File | Change |
+|------|--------|
+| `src/config.ts` | Added optional `OPENAI_API_KEY` env var for embedding queries |
+| `src/db.ts` | Added `semanticSearch()`: embeds query via OpenAI, runs `vector_top_k()` on node + chunk embeddings, fuses with RRF |
+| `src/tools.ts` | Added `slop_semantic_search` tool (8 → 9 tools). Rewrote all tool descriptions to accurately reflect search method (LIKE vs FTS5 vs vector). Organized tools into 3 groups: search, graph traversal, utility. |
+| `src/llm/prompts.ts` | Replaced vague "start with semantic_search" with explicit routing: semantic for conceptual queries, search_nodes for known names, sqlite_query for temporal/events. Added critical event node_type caveat (recordings vs scheduled). |
+| `skills/start-here.md` | Condensed 5-step search list to 3 steps with semantic search as primary |
+| `skills/db-operations.md` | Replaced search strategy list with tool comparison table (vector vs LIKE vs FTS5) |
+
+Also fixed (earlier in session):
+- `src/db.ts` line 90: member notes overwrite bug (SET notes = ? → COALESCE append)
+
+**Step 4: Page-by-Page Documentation Cleanup - IN PROGRESS**
+
+Hub repo (`latent-space-hub/`) docs changes:
+
+| Page | Status | Changes |
+|------|--------|---------|
+| `overview.md` | Done | Simplified, removed fluff/em dashes, added ASCII diagram, added Origin section |
+| `database.md` | Done | Full-width schema image, removed em dashes, fixed YAML frontmatter |
+| `ingestion.md` | Done | Removed Quick Add section, fixed frontmatter |
+| `index-search.md` | Done | Full rewrite: separated storage vs indexing vs search, Dylan Patel example throughout, added Slop search section with tool decision tree, all data verified against DB |
+| `tools.md` | Done (new) | Created page covering both hub tools (3 groups) and Slop tools (9, with semantic search) |
+| `skills.md` | Done (new) | Created page covering both skill systems |
+| `slop-bot.md` | Done | Updated tool count 8→9, rewrote tools table (search vs utility split), updated architecture diagram, added routing explanation |
+| `mcp-server.md` | Not started | |
+| `evals.md` | Not started | |
+
+**Other hub changes:**
+- `app/docs/tools/page.tsx` and `app/docs/skills/page.tsx` created (route pages)
+- `src/services/docs/docsService.ts` updated (added tools/skills to nav order)
+- `docs/development/prd-42-description-quality.md` created (backlog item for fixing ingestion descriptions)
+- `docs/development/backlog/backlog.json` updated (added description-quality project)
+
+**Steps 2, 3, 5: Not started**
 
 ---
 

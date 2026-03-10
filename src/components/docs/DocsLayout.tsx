@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Menu, X, Moon, Sun, User, Bot } from 'lucide-react';
+import { ArrowLeft, Menu, X, Moon, Sun, User, Bot, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -57,6 +57,21 @@ export default function DocsLayout({ content, title, description, currentSlug, p
   const gettingStartedPages = pages.filter((p) => p.section === 'Getting Started (Human)');
   const slopSkillPages = pages.filter((p) => p.section === 'Slop Skills');
   const agentSkillPages = pages.filter((p) => p.section === 'Agent Skills');
+
+  // Determine which section the current page belongs to
+  const currentSection = pages.find(p => p.slug === currentSlug)?.section || 'Docs';
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => ({
+    'Docs': false,
+    'Getting Started (Human)': currentSection !== 'Getting Started (Human)',
+    'Slop Skills': currentSection !== 'Slop Skills',
+    'Agent Skills': currentSection !== 'Agent Skills',
+  }));
+
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
   const { theme, resolved, setTheme } = useTheme();
   const isLight = resolved === 'light';
 
@@ -218,188 +233,248 @@ export default function DocsLayout({ content, title, description, currentSlug, p
             overflowY: 'auto',
           }}
         >
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '11px',
-            letterSpacing: '0.04em',
-            color: 'var(--text-muted)',
-            marginBottom: '10px',
-            fontFamily: 'var(--font-mono)',
-          }}>
-            <User size={12} />
-            DOCS
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {docsPages.map((page) => {
-              const isCurrent = page.slug === currentSlug;
-              return (
-                <div key={page.slug}>
-                  <a
-                    href={page.href || `/docs/${page.slug}`}
-                    style={{
-                      display: 'block',
-                      padding: '9px 12px',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      lineHeight: 1.4,
-                      textDecoration: 'none',
-                      fontFamily: 'var(--font-body)',
-                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontWeight: isCurrent ? 600 : 400,
-                      background: isCurrent ? 'var(--bg-surface)' : 'transparent',
-                      border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {page.title}
-                  </a>
-                </div>
-              );
-            })}
-          </div>
-
-          {gettingStartedPages.length > 0 && (
-            <>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '11px',
-                letterSpacing: '0.04em',
-                color: 'var(--text-muted)',
-                marginTop: '20px',
-                marginBottom: '10px',
-                fontFamily: 'var(--font-mono)',
-              }}>
+          {/* --- DOCS section --- */}
+          {docsPages.length > 0 && (
+            <div style={{ marginBottom: '8px' }}>
+              <button
+                onClick={() => toggleSection('Docs')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: 'var(--bg-surface)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase' as const,
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-mono)',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {collapsedSections['Docs'] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                 <User size={12} />
-                GETTING STARTED (HUMAN)
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {gettingStartedPages.map((page) => {
-                  const isCurrent = page.slug === currentSlug;
-                  return (
-                    <a
-                      key={page.slug}
-                      href={page.href || `/docs/${page.slug}`}
-                      style={{
-                        display: 'block',
-                        padding: '9px 12px',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        lineHeight: 1.4,
-                        textDecoration: 'none',
-                        fontFamily: 'var(--font-body)',
-                        color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-                        fontWeight: isCurrent ? 600 : 400,
-                        background: isCurrent ? 'var(--bg-surface)' : 'transparent',
-                        border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      {page.title}
-                    </a>
-                  );
-                })}
-              </div>
-            </>
+                Docs
+              </button>
+              {!collapsedSections['Docs'] && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '4px' }}>
+                  {docsPages.map((page) => {
+                    const isCurrent = page.slug === currentSlug;
+                    return (
+                      <a
+                        key={page.slug}
+                        href={page.href || `/docs/${page.slug}`}
+                        style={{
+                          display: 'block',
+                          padding: '7px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          lineHeight: 1.4,
+                          textDecoration: 'none',
+                          fontFamily: 'var(--font-body)',
+                          color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          fontWeight: isCurrent ? 600 : 400,
+                          background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                          border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {page.title}
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
+          {/* --- GETTING STARTED section --- */}
+          {gettingStartedPages.length > 0 && (
+            <div style={{ marginBottom: '8px' }}>
+              <button
+                onClick={() => toggleSection('Getting Started (Human)')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: 'var(--bg-surface)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase' as const,
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-mono)',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {collapsedSections['Getting Started (Human)'] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                <User size={12} />
+                Getting Started
+              </button>
+              {!collapsedSections['Getting Started (Human)'] && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '4px' }}>
+                  {gettingStartedPages.map((page) => {
+                    const isCurrent = page.slug === currentSlug;
+                    return (
+                      <a
+                        key={page.slug}
+                        href={page.href || `/docs/${page.slug}`}
+                        style={{
+                          display: 'block',
+                          padding: '7px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          lineHeight: 1.4,
+                          textDecoration: 'none',
+                          fontFamily: 'var(--font-body)',
+                          color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          fontWeight: isCurrent ? 600 : 400,
+                          background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                          border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {page.title}
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* --- SLOP SKILLS section --- */}
           {slopSkillPages.length > 0 && (
-            <>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '11px',
-                letterSpacing: '0.04em',
-                color: 'var(--text-muted)',
-                marginTop: '20px',
-                marginBottom: '10px',
-                fontFamily: 'var(--font-mono)',
-              }}>
+            <div style={{ marginBottom: '8px' }}>
+              <button
+                onClick={() => toggleSection('Slop Skills')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: 'var(--bg-surface)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase' as const,
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-mono)',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {collapsedSections['Slop Skills'] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                 <Bot size={12} />
-                SLOP SKILLS
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {slopSkillPages.map((page) => {
-                  const isCurrent = page.slug === currentSlug;
-                  return (
-                    <a
-                      key={page.slug}
-                      href={page.href || `/docs/${page.slug}`}
-                      style={{
-                        display: 'block',
-                        padding: '9px 12px',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        lineHeight: 1.4,
-                        textDecoration: 'none',
-                        fontFamily: 'var(--font-body)',
-                        color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-                        fontWeight: isCurrent ? 600 : 400,
-                        background: isCurrent ? 'var(--bg-surface)' : 'transparent',
-                        border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      {page.title}
-                    </a>
-                  );
-                })}
-              </div>
-            </>
+                Slop Skills
+              </button>
+              {!collapsedSections['Slop Skills'] && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '4px' }}>
+                  {slopSkillPages.map((page) => {
+                    const isCurrent = page.slug === currentSlug;
+                    return (
+                      <a
+                        key={page.slug}
+                        href={page.href || `/docs/${page.slug}`}
+                        style={{
+                          display: 'block',
+                          padding: '7px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          lineHeight: 1.4,
+                          textDecoration: 'none',
+                          fontFamily: 'var(--font-body)',
+                          color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          fontWeight: isCurrent ? 600 : 400,
+                          background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                          border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {page.title}
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
+          {/* --- AGENT SKILLS section --- */}
           {agentSkillPages.length > 0 && (
-            <>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '11px',
-                letterSpacing: '0.04em',
-                color: 'var(--text-muted)',
-                marginTop: '20px',
-                marginBottom: '10px',
-                fontFamily: 'var(--font-mono)',
-              }}>
+            <div style={{ marginBottom: '8px' }}>
+              <button
+                onClick={() => toggleSection('Agent Skills')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: 'var(--bg-surface)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase' as const,
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-mono)',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {collapsedSections['Agent Skills'] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                 <Bot size={12} />
-                AGENT SKILLS
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {agentSkillPages.map((page) => {
-                  const isCurrent = page.slug === currentSlug;
-                  return (
-                    <a
-                      key={page.slug}
-                      href={page.href || `/docs/${page.slug}`}
-                      style={{
-                        display: 'block',
-                        padding: '9px 12px',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        lineHeight: 1.4,
-                        textDecoration: 'none',
-                        fontFamily: 'var(--font-body)',
-                        color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-                        fontWeight: isCurrent ? 600 : 400,
-                        background: isCurrent ? 'var(--bg-surface)' : 'transparent',
-                        border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      {page.title}
-                    </a>
-                  );
-                })}
-              </div>
-            </>
+                Agent Skills
+              </button>
+              {!collapsedSections['Agent Skills'] && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '4px' }}>
+                  {agentSkillPages.map((page) => {
+                    const isCurrent = page.slug === currentSlug;
+                    return (
+                      <a
+                        key={page.slug}
+                        href={page.href || `/docs/${page.slug}`}
+                        style={{
+                          display: 'block',
+                          padding: '7px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          lineHeight: 1.4,
+                          textDecoration: 'none',
+                          fontFamily: 'var(--font-body)',
+                          color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          fontWeight: isCurrent ? 600 : 400,
+                          background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                          border: isCurrent ? '1px solid var(--border-default)' : '1px solid transparent',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {page.title}
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
           {sections.length > 0 && (

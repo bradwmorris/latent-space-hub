@@ -176,9 +176,42 @@
       "title": "Data refinement & hygiene \u2014 type migration, descriptions/notes, dates, edge cleanup"
     }
   ],
-  "lastUpdated": "2026-03-09",
-  "nextPrdNumber": 42,
+  "lastUpdated": "2026-03-10",
+  "nextPrdNumber": 44,
   "projects": {
+    "description-quality": {
+      "id": "description-quality",
+      "notes": "Auto-ingestion generates weak, vague node descriptions (transcript snippets, 'discusses X'). Port RA-H's strict description prompt (forbidden words, format-first openers, sanitization, quality monitoring), unify the two description generators, backfill ~530 content nodes, re-embed.",
+      "owner": "brad",
+      "prd": "docs/development/prd-42-description-quality.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        { "done": false, "text": "Step 1: Port RA-H description prompt (forbidden words, format-first, 280-char limit)" },
+        { "done": false, "text": "Step 2: Unify generateContentDescription() and generateDescription() into one function" },
+        { "done": false, "text": "Step 3: Add quality monitoring (weak-pattern regex, retry on failure)" },
+        { "done": false, "text": "Step 4: Backfill script for ~530 content nodes with weak descriptions" },
+        { "done": false, "text": "Step 5: Re-embed all backfilled nodes" }
+      ],
+      "title": "Ingestion description quality: port RA-H strict prompt, unify generators, backfill existing nodes",
+      "type": "fix"
+    },
+    "entity-dedup": {
+      "id": "entity-dedup",
+      "notes": "Entity extraction cron creates duplicate nodes for people/orgs that already exist (e.g. two 'Dylan Patel' nodes: guest 3129 and entity 4212). Dedup search doesn't match across node types or handle name variations. Fix dedup at ingestion time (broader search, normalized matching, cross-type), then run retroactive scan to find and merge all existing duplicates.",
+      "owner": "brad",
+      "prd": "docs/development/prd-43-entity-dedup.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        { "done": false, "text": "Step 1: Fix entity dedup at ingestion (cross-type search, name normalization, multi-strategy matching)" },
+        { "done": false, "text": "Step 2: Add pre-creation confirmation (threshold matching, pick canonical by edge count)" },
+        { "done": false, "text": "Step 3: Retroactive dedup scan script (find dupes, merge edges, delete duplicates)" },
+        { "done": false, "text": "Step 4: Ongoing dedup monitoring (weekly check, warnings on near-matches)" }
+      ],
+      "title": "Entity deduplication: fix ingestion dedup + retroactive cleanup of existing duplicates",
+      "type": "fix"
+    },
     "bot-write-guardrails": {
       "id": "bot-write-guardrails",
       "notes": "Tighten DB write safety in latent-space-bots. Add a centralized write gate, explicit action policy checks, idempotency protections, and write audit logging so writes are intentional, explainable, and reviewable.",
@@ -536,6 +569,8 @@
   "queue": [
     "skills-tools-audit",
     "wiki-base-rebrand",
+    "entity-dedup",
+    "description-quality",
     "ui-ux-cleanup",
     "slop-final-structure-docs-pass",
     "builders-club-prep",

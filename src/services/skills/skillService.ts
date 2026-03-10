@@ -17,7 +17,7 @@ export interface Skill extends SkillMeta {
 const isReadOnly = process.env.NEXT_PUBLIC_READONLY_MODE === 'true';
 
 const BUNDLED_AGENT_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/agents');
-const BUNDLED_SLOP_SKILLS_DIR = path.resolve(process.cwd(), '../latent-space-bots/skills');
+const BUNDLED_SLOP_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/slop');
 const USER_SKILLS_DIR = path.join(os.homedir(), '.latent-space-hub/skills');
 
 const MAX_USER_SKILLS = 10;

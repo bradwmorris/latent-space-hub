@@ -50,9 +50,9 @@ The `/evals` page on the web app provides a visual interface for reviewing bot i
 
 - **Chronological feed** of all bot interactions
 - **Expandable traces** showing the full tool-calling chain for each interaction
-- **Tool call details** — arguments, results, timing for each tool call
-- **Filter by retrieval method** — see only agentic, smalltalk, or kickoff interactions
-- **Response quality review** — compare what the bot said against what was in the wiki-base
+- **Tool call details**: arguments, results, timing for each tool call
+- **Filter by retrieval method**: see only agentic, smalltalk, or kickoff interactions
+- **Response quality review**: compare what the bot said against what was in the wiki-base
 
 ## Access
 
@@ -89,7 +89,7 @@ The full `metadata` JSON stored per interaction:
 }
 ```
 
-Tool call results are summarized to keep row sizes reasonable — large results are reduced to counts like `{ "results_count": 5 }`.
+Tool call results are summarized to keep row sizes reasonable: large results are reduced to counts like `{ "results_count": 5 }`.
 
 # Querying Traces via SQL
 

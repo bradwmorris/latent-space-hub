@@ -1,17 +1,17 @@
 ---
 title: Database
-description: Turso cloud SQLite — schema, categories, edge types, and the relational model.
+description: Turso cloud SQLite, schema, categories, edge types, and the relational model.
 ---
 
 # Schema
 
-![Schema Diagram](/images/docs/schema-diagram.svg)
+<img src="/images/docs/schema-diagram.svg" alt="Schema Diagram" style="width: 100%; max-width: 1200px;" />
 
 # SQLite and the Relational Model
 
-The wiki-base is a relational database. That means everything is stored in tables with rows and columns, and tables are connected to each other through foreign keys. If you know spreadsheets, think of each table as a sheet — but sheets can reference rows in other sheets.
+The wiki-base is a relational database. That means everything is stored in tables with rows and columns, and tables are connected to each other through foreign keys. If you know spreadsheets, think of each table as a sheet, but sheets can reference rows in other sheets.
 
-We use **SQLite** — the most widely deployed database in the world. It's a single-file database engine, no separate server process. Turso hosts it in the cloud so the web app, bot, and MCP server all share one instance.
+We use **SQLite**, the most widely deployed database in the world. It's a single-file database engine, no separate server process. Turso hosts it in the cloud so the web app, bot, and MCP server all share one instance.
 
 | Detail | Value |
 |--------|-------|
@@ -82,10 +82,10 @@ Discord bot interaction traces. Full MCP tool call logs, timing, Discord context
 | Paper Club | `paper-club` | Deep-dive paper discussions | Recent |
 | Workshop | `workshop` | Conference talks, tutorials | Recent |
 | Event | `event` | Scheduled community events (paper club, builders club sessions) | Recent |
-| Guest | `guest` | People — guests, speakers, authors | Most connected |
+| Guest | `guest` | People, guests, speakers, authors | Most connected |
 | Entity | `entity` | Organizations and technical topics | Most connected |
-| Hub | `hub` | Internal structural anchors (hidden) | — |
-| Member | `member` | Discord community member profiles | — |
+| Hub | `hub` | Internal structural anchors (hidden) | - |
+| Member | `member` | Discord community member profiles | - |
 
 # Edge Context Model
 
