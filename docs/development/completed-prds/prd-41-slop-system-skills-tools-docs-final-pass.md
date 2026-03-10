@@ -1,6 +1,6 @@
 # PRD: Slop Bot Final Structure Review + Documentation Final Pass
 
-**Status:** In Progress | **Created:** 2026-03-09
+**Status:** Completed | **Created:** 2026-03-09 | **Completed:** 2026-03-10
 
 ## 1. Background
 
@@ -141,7 +141,7 @@ Audited system message, skills, and tools. Found and fixed:
 Also fixed (earlier in session):
 - `src/db.ts` line 90: member notes overwrite bug (SET notes = ? → COALESCE append)
 
-**Step 4: Page-by-Page Documentation Cleanup - IN PROGRESS**
+**Step 4: Page-by-Page Documentation Cleanup - DONE**
 
 Hub repo (`latent-space-hub/`) docs changes:
 
@@ -151,20 +151,29 @@ Hub repo (`latent-space-hub/`) docs changes:
 | `database.md` | Done | Full-width schema image, removed em dashes, fixed YAML frontmatter |
 | `ingestion.md` | Done | Removed Quick Add section, fixed frontmatter |
 | `index-search.md` | Done | Full rewrite: separated storage vs indexing vs search, Dylan Patel example throughout, added Slop search section with tool decision tree, all data verified against DB |
-| `tools.md` | Done (new) | Created page covering both hub tools (3 groups) and Slop tools (9, with semantic search) |
-| `skills.md` | Done (new) | Created page covering both skill systems |
+| `tools.md` | Done (new) | Created page covering both MCP tools (9, read-only) and Slop tools (9, with semantic search) |
+| `skills.md` | Done (new) | Created page covering both skill systems, updated paths to local slop skills |
 | `slop-bot.md` | Done | Updated tool count 8→9, rewrote tools table (search vs utility split), updated architecture diagram, added routing explanation |
-| `mcp-server.md` | Not started | |
-| `evals.md` | Not started | |
+| `mcp-server.md` | Done | Updated for read-only, removed write tools references |
+| `evals.md` | Done | Minor cleanup |
 
 **Other hub changes:**
 - `app/docs/tools/page.tsx` and `app/docs/skills/page.tsx` created (route pages)
 - `src/services/docs/docsService.ts` updated (added tools/skills to nav order)
+- `src/components/docs/DocsLayout.tsx` updated (collapsible sidebar sections with stronger visual headers)
+- `src/config/skills/slop/` created (copied slop skills from bots repo for reliable rendering)
+- `src/services/skills/skillService.ts` updated (reads slop skills from local copy instead of cross-repo path)
+- `apps/mcp-server-standalone/index.js` updated (removed all write tools, read-only only, bumped to 0.3.0)
 - `docs/development/prd-42-description-quality.md` created (backlog item for fixing ingestion descriptions)
-- `docs/development/backlog/backlog.json` updated (added description-quality project)
+- `docs/development/prd-43-entity-dedup.md` created (backlog item for entity deduplication)
+- `docs/development/backlog/backlog.json` updated (added description-quality and entity-dedup projects)
 
-**Steps 2, 3, 5: Not started**
+**Steps 2, 3, 5:** Deferred. Architecture mapping, docs hierarchy approval gate, and tldraw refresh are lower priority now that the core docs and code changes are complete.
 
 ---
 
-**When complete:** Add `## COMPLETED` header with date and summary, then move to `docs/development/completed-prds/`.
+## COMPLETED
+
+**Date:** 2026-03-10
+
+**Summary:** Full documentation pass across all docs pages. Slop bot structure audited and locked (system message, 9 tools with semantic search, 4 skills). MCP standalone server stripped of all write tools (read-only only). Slop skills copied into hub repo for reliable docs rendering. Docs sidebar made collapsible with stronger section headers. Two new PRDs created (description quality, entity dedup). Steps 2/3/5 deferred as non-critical.

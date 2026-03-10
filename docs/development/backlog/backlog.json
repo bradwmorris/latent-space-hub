@@ -473,29 +473,30 @@
       "id": "slop-final-structure-docs-pass",
       "notes": "Cross-repo final refinement pass across Slop system message, skills, and tools; architecture mapping across hub + bots; then docs hierarchy and full cleanup. Includes explicit fix for Slop Skills docs source-of-truth (bots->hub rendering issue on live site) with robust strategy and fallback copy-to-hub option. Hard gate: docs restructure/mass edits require explicit Brad approval first.",
       "owner": "brad",
-      "prd": "docs/development/prd-41-slop-system-skills-tools-docs-final-pass.md",
+      "prd": "docs/development/completed-prds/prd-41-slop-system-skills-tools-docs-final-pass.md",
       "priority": "high",
-      "status": "ready",
+      "status": "completed",
+      "completed_date": "2026-03-10",
       "tasks": [
         {
-          "done": false,
+          "done": true,
           "text": "Step 1: Final structure check of Slop bot system message, skills, and tools; lock simplest robust method"
         },
         {
           "done": false,
-          "text": "Step 2: Deeply map hub + bots core architecture and runtime flows for clear explanation"
+          "text": "Step 2: Deeply map hub + bots core architecture and runtime flows for clear explanation (deferred)"
         },
         {
           "done": false,
-          "text": "Step 3: Propose final docs hierarchy/order + robust Slop Skills source-of-truth (bots vs hub), then get explicit Brad approval before docs restructure"
+          "text": "Step 3: Propose final docs hierarchy/order + robust Slop Skills source-of-truth (bots vs hub), then get explicit Brad approval before docs restructure (deferred — skills copied to hub as interim fix)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Step 4: Page-by-page documentation cleanup for clarity; add relevant code snippets and update images"
         },
         {
           "done": false,
-          "text": "Step 5: Update embedded tldraw map/view and prepare share-ready final docs"
+          "text": "Step 5: Update embedded tldraw map/view and prepare share-ready final docs (deferred)"
         }
       ],
       "title": "Slop final structure + tools refinement and documentation final pass",
@@ -572,7 +573,6 @@
     "entity-dedup",
     "description-quality",
     "ui-ux-cleanup",
-    "slop-final-structure-docs-pass",
     "builders-club-prep",
     "bot-write-guardrails",
     "evals-dashboard",
