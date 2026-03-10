@@ -519,7 +519,7 @@
           "text": "Step 2: Audit focus/tab state \u2014 add back button when node focused, verify cleanup on view switches"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Step 3: Fix Paper Club upcoming events \u2014 change event_date sort to show upcoming first, verify client-side split"
         }
       ],

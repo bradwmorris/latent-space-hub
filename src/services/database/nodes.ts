@@ -71,7 +71,10 @@ export class NodeService {
     } else if (sortBy === 'edges') {
       query += ' ORDER BY edge_count DESC, n.updated_at DESC';
     } else if (sortBy === 'event_date') {
-      query += ' ORDER BY n.event_date DESC NULLS LAST, n.updated_at DESC';
+      query += ` ORDER BY
+        CASE WHEN n.event_date >= date('now') THEN 0 ELSE 1 END,
+        CASE WHEN n.event_date >= date('now') THEN n.event_date END ASC,
+        CASE WHEN n.event_date < date('now') THEN n.event_date END DESC`;
     } else {
       query += ' ORDER BY n.event_date DESC NULLS LAST, n.updated_at DESC';
     }

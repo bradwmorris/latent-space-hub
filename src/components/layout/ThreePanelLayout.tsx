@@ -40,6 +40,23 @@ function formatRelativeDate(dateStr: string): string {
   return `${Math.floor(diffDays / 365)}y ago`;
 }
 
+function formatEventDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T12:00:00');
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function formatCountdown(dateStr: string): string | null {
+  const eventDate = new Date(dateStr + 'T00:00:00');
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const diffMs = eventDate.getTime() - now.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'tomorrow';
+  if (diffDays <= 14) return `in ${diffDays} days`;
+  return null;
+}
+
 function TypeNodeList({
   selectedType,
   onNodeClick,
@@ -58,7 +75,9 @@ function TypeNodeList({
       return;
     }
     setLoading(true);
-    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=100&sortBy=event_date`)
+    const eventTypes = new Set(['event', 'paper-club', 'builders-club', 'podcast']);
+    const fetchLimit = eventTypes.has(selectedType) ? 200 : 100;
+    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=${fetchLimit}&sortBy=event_date`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setNodes(data.data);
@@ -154,21 +173,21 @@ function TypeNodeList({
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      borderBottom: '1px solid var(--border-subtle)',
+      borderBottom: label === 'Upcoming' ? '1px solid rgba(139, 92, 246, 0.2)' : '1px solid var(--border-subtle)',
     }}>
       {label === 'Upcoming' && (
         <span style={{
           width: '6px',
           height: '6px',
           borderRadius: '50%',
-          background: 'var(--success)',
+          background: '#8b5cf6',
           flexShrink: 0,
         }} />
       )}
       <span style={{
         fontSize: '11px',
         fontWeight: 600,
-        color: label === 'Upcoming' ? 'var(--success)' : 'var(--text-muted)',
+        color: label === 'Upcoming' ? '#8b5cf6' : 'var(--text-muted)',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
       }}>
@@ -198,13 +217,24 @@ function TypeNodeList({
         </span>
       </div>
 
-      {/* Upcoming events section (event type only) */}
-      {hasEventSections && upcomingNodes.length > 0 && (
+      {/* Upcoming events section */}
+      {hasEventSections && (
         <>
           {renderSectionHeader('Upcoming', upcomingNodes.length)}
-          <div style={{ padding: '4px 0' }}>
-            {upcomingNodes.map(node => renderNodeRow(node, true))}
-          </div>
+          {upcomingNodes.length > 0 ? (
+            <div style={{ padding: '4px 0' }}>
+              {upcomingNodes.map(node => renderNodeRow(node, true))}
+            </div>
+          ) : (
+            <div style={{
+              padding: '20px 24px',
+              fontSize: '12px',
+              color: 'var(--text-muted)',
+              fontStyle: 'italic',
+            }}>
+              No upcoming events scheduled
+            </div>
+          )}
         </>
       )}
 
@@ -224,8 +254,11 @@ function TypeNodeList({
     const edgeCount = node.edge_count ?? 0;
     const dateStr = node.event_date || node.updated_at || node.created_at;
     const formattedDate = dateStr
-      ? (node.event_date ? formatAbsoluteDate(dateStr) : formatRelativeDate(dateStr))
+      ? (node.event_date
+        ? (isUpcoming ? formatEventDate(dateStr) : formatAbsoluteDate(dateStr))
+        : formatRelativeDate(dateStr))
       : '';
+    const countdown = isUpcoming && node.event_date ? formatCountdown(node.event_date) : null;
     const thumb = getYouTubeThumbnail(node.link);
     const isMember = node.node_type === 'member';
     const memberAvatar = isMember ? (node.metadata as any)?.avatar_url : null;
@@ -248,10 +281,10 @@ function TypeNodeList({
           display: 'flex',
           gap: '12px',
           padding: '12px 24px',
-          background: isHovered ? 'var(--bg-hover)' : (isUpcoming ? 'rgba(22, 163, 74, 0.06)' : 'transparent'),
+          background: isHovered ? 'var(--bg-hover)' : (isUpcoming ? 'rgba(139, 92, 246, 0.06)' : 'transparent'),
           border: 'none',
           borderBottom: '1px solid var(--bg-hover)',
-          borderLeft: isUpcoming ? '3px solid var(--success)' : '3px solid transparent',
+          borderLeft: isUpcoming ? '3px solid #8b5cf6' : '3px solid transparent',
           color: 'var(--text-primary)',
           cursor: 'pointer',
           textAlign: 'left',
@@ -381,13 +414,28 @@ function TypeNodeList({
               {eventType === 'paper-club' ? 'Paper Club' : 'Builders Club'}
             </span>
           )}
-          {isUpcoming && (
+          {isUpcoming && countdown && (
             <span style={{
               fontSize: '10px',
-              fontWeight: 700,
-              color: 'var(--success)',
-              background: 'rgba(22, 163, 74, 0.1)',
-              border: '1px solid rgba(22, 163, 74, 0.3)',
+              fontWeight: 600,
+              color: '#8b5cf6',
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              flexShrink: 0,
+              letterSpacing: '0.02em',
+            }}>
+              {countdown}
+            </span>
+          )}
+          {isUpcoming && !countdown && (
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 600,
+              color: '#8b5cf6',
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
               padding: '2px 8px',
               borderRadius: '4px',
               flexShrink: 0,
@@ -400,7 +448,7 @@ function TypeNodeList({
 
         {/* Presenter */}
         {presenterName && (
-          <div style={{ fontSize: '12px', color: isUpcoming ? 'var(--success)' : 'var(--text-secondary)', lineHeight: 1.4 }}>
+          <div style={{ fontSize: '12px', color: isUpcoming ? '#8b5cf6' : 'var(--text-secondary)', lineHeight: 1.4 }}>
             Hosted by {presenterName}
           </div>
         )}
@@ -433,7 +481,7 @@ function TypeNodeList({
             <span style={{
               fontSize: '13px',
               fontWeight: 600,
-              color: isUpcoming ? 'var(--success)' : 'var(--text-secondary)',
+              color: isUpcoming ? '#8b5cf6' : 'var(--text-secondary)',
               fontVariantNumeric: 'tabular-nums',
               fontFamily: 'var(--font-mono)',
             }}>
