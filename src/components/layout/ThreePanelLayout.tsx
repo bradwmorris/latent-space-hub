@@ -77,10 +77,39 @@ function TypeNodeList({
     setLoading(true);
     const eventTypes = new Set(['event', 'paper-club', 'builders-club', 'podcast']);
     const fetchLimit = eventTypes.has(selectedType) ? 200 : 100;
-    fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=${fetchLimit}&sortBy=event_date`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) setNodes(data.data);
+
+    // For paper-club and builders-club, also fetch scheduled event nodes that match
+    const typesWithScheduledEvents = new Set(['paper-club', 'builders-club']);
+    const fetches: Promise<Node[]>[] = [
+      fetch(`/api/nodes?type=${encodeURIComponent(selectedType)}&limit=${fetchLimit}&sortBy=event_date`)
+        .then(res => res.json())
+        .then(data => (data.success ? data.data : []))
+    ];
+
+    if (typesWithScheduledEvents.has(selectedType)) {
+      fetches.push(
+        fetch(`/api/nodes?type=event&limit=50&sortBy=event_date`)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.success) return [];
+            return data.data.filter((n: Node) => {
+              const meta = n.metadata as any;
+              return meta?.event_type === selectedType && meta?.event_status === 'scheduled';
+            });
+          })
+      );
+    }
+
+    Promise.all(fetches)
+      .then(results => {
+        const merged = results.flat();
+        // Dedupe by id in case of overlap
+        const seen = new Set<number>();
+        setNodes(merged.filter(n => {
+          if (seen.has(n.id)) return false;
+          seen.add(n.id);
+          return true;
+        }));
       })
       .catch(err => console.error('Failed to fetch type nodes:', err))
       .finally(() => setLoading(false));
@@ -136,10 +165,11 @@ function TypeNodeList({
 
   const upcomingNodes = hasEventSections
     ? nodes.filter(n => {
-        if (selectedType === 'event') {
-          return (n.metadata as any)?.event_status === 'scheduled';
+        const meta = n.metadata as any;
+        // Event nodes use event_status, content nodes use date comparison
+        if (n.node_type === 'event') {
+          return meta?.event_status === 'scheduled';
         }
-        // For content types, compare event_date to today
         return (n.event_date || '') >= today;
       }).sort((a, b) => {
         const dateA = a.event_date || '';
@@ -149,8 +179,9 @@ function TypeNodeList({
     : [];
   const pastNodes = hasEventSections
     ? nodes.filter(n => {
-        if (selectedType === 'event') {
-          return (n.metadata as any)?.event_status !== 'scheduled';
+        const meta = n.metadata as any;
+        if (n.node_type === 'event') {
+          return meta?.event_status !== 'scheduled';
         }
         return (n.event_date || '') < today;
       })
