@@ -201,3 +201,21 @@ Do not hardcode `1107320650961518663` in code.
 - Known adjacent risk remains in PRD-45: if duplicate scheduled event rows exist for same slot, reminders run once per duplicate event row until atomic scheduling lands.
 
 ---
+
+## Addendum — 1-Hour Reminder Implemented
+
+**Date:** 2026-03-11  
+**Repo:** `latent-space-bots`  
+**Commit:** `6c831c2`
+
+Added a second reminder window for Paper Club:
+
+- **1-hour reminder** at `11:00` in `America/Los_Angeles` for same-day sessions
+- Uses separate durable metadata fields:
+  - `reminded_1h_claimed_at`
+  - `reminded_1h_claimed_by`
+  - `reminded_1h_at`
+  - `reminded_1h_message_id`
+- Keeps multi-instance safety with claim/finalize/release flow (same architecture as 24h reminders)
+- Config flag:
+  - `REMINDERS_ONE_HOUR_ENABLED` (default `true`)
