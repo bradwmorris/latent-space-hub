@@ -214,3 +214,108 @@ Priority test cases:
 - **Turso batch atomicity:** Turso's `batch("write")` runs statements sequentially in a single HTTP call with implicit transaction. Confirm this provides the atomicity guarantee needed for Step 1.
 - **`/edit-event` vs thread-based editing:** Slash command is more discoverable. Thread-based ("reply edit in your scheduling thread") is more contextual but harder to implement (threads may be archived). Recommend slash command.
 - **Deep link query params:** If adding `?view=paper-club` support to the hub is low-effort, do it. If not, the fallback message ("open Paper Club from the sidebar") is fine for v1.
+
+---
+
+## COMPLETED
+
+**Status:** Completed  
+**Date:** 2026-03-11  
+**Repos:** `latent-space-bots`, `latent-space-hub`
+
+### Shipped commits
+
+- `latent-space-bots`: `7b1dc8f` (core implementation), `f5ebade` (runtime skills update)
+- `latent-space-hub`: `bc9c5a3` (deep links + backlog/PRD sync), `e2d4674` (skills/docs update)
+
+### What was implemented
+
+#### 1) Atomic slot booking
+
+- Added `ensureScheduledEventSlotIndex()` in `latent-space-bots/src/db.ts`
+  - Creates unique index for scheduled slots by `(event_date, metadata.event_type)` on `node_type='event'`.
+- Added `createEventNodeAtomic()` in `latent-space-bots/src/db.ts`
+  - Uses insert + unique-constraint handling to return `{ alreadyBooked: true }` safely under race.
+- Startup now ensures the unique index exists in `latent-space-bots/src/index.ts`.
+
+**Note:** Implementation uses a DB uniqueness constraint + error handling instead of Turso batch `SELECT+INSERT`. This still guarantees one winner under concurrency.
+
+#### 2) Input validation and sanitization
+
+- Added `latent-space-bots/src/commands/validation.ts`:
+  - `validatePaperUrl()` (http/https only, max length, strips tracking params)
+  - `validateEventTitle()` (trim/collapse whitespace, length and control-char checks)
+  - `validateEventDate()` (strict `YYYY-MM-DD`, future date, weekday check by event type)
+- Wired validation into scheduling flow in `latent-space-bots/src/commands/schedule.ts`.
+
+#### 3) Session robustness
+
+- Added per-user in-flight dedupe for scheduling commands.
+- Added 8-minute warning + 10-minute session expiry cleanup.
+- Added channel fallback collision check if thread creation fails.
+- Added cleaner session timer lifecycle management.
+
+#### 4) `/join` hardening
+
+- `updateMemberNode()` now returns rows-affected count.
+- `/join` now:
+  - verifies metadata update success and retries once when needed,
+  - wraps DB operations with 10-second timeout helper,
+  - uses safe avatar URL fallback,
+  - returns improved retry/support guidance on failure.
+
+#### 5) Hub deep link after scheduling
+
+- Bot now posts deep link after successful schedule:
+  - `${HUB_BASE_URL}/?type=paper-club` or `${HUB_BASE_URL}/?type=builders-club`
+- Added `HUB_BASE_URL` config + `.env.example` entry in bots repo.
+- Hub now supports deep-link category selection on load:
+  - `latent-space-hub/src/components/layout/ThreePanelLayout.tsx`
+  - Accepts both `?type=` and `?view=`.
+
+#### 6) Event editing (`/edit-event`)
+
+- Added new slash command registration for `/edit-event`.
+- Added interactive edit flow in `latent-space-bots/src/commands/edit-event.ts`:
+  - list owned scheduled events,
+  - select event,
+  - change title/topic,
+  - update/remove paper URL (paper-club),
+  - reschedule date with availability checks,
+  - cancel event.
+- Added DB helpers:
+  - `getScheduledEventsByPresenter()`
+  - `updateEventNode()` with ownership guard and booked-slot conflict handling.
+- Integrated message handling in `latent-space-bots/src/discord/bot.ts`.
+
+#### 7) Tests
+
+- Added Vitest to `latent-space-bots`.
+- Added tests:
+  - `src/__tests__/validation.test.ts`
+  - `src/__tests__/schedule.test.ts`
+- Added pure date helper module `src/commands/schedulingDates.ts` for isolated testing.
+
+### Additional related improvements completed
+
+- Reminder robustness improvements (adjacent to PRD-46 and called out as risk during review):
+  - stale-claim recovery window in DB claim query,
+  - safer send/finalize sequencing to reduce duplicate or stuck reminders,
+  - implemented in `latent-space-bots/src/db.ts` and `latent-space-bots/src/reminders/index.ts`.
+- Runtime skill updates in bots (`skills/start-here.md`, `skills/event-scheduling.md`) to include `/edit-event`.
+- Hub docs/skills updates to keep guidance aligned with shipped behavior:
+  - `src/config/skills/slop/start-here.md`
+  - `src/config/skills/slop/event-scheduling.md`
+  - `src/config/docs/slop-bot.md`
+  - `src/config/docs/tools.md`
+  - `src/config/docs/getting-started-contribute-with-slash-commands.md`
+  - `src/config/docs/getting-started-sign-up-for-sessions.md`
+  - `AGENTS.md` (event-scheduling scope note)
+
+### Validation run
+
+- `latent-space-bots`
+  - `npm run build` passed
+  - `npm test` passed (`5` tests)
+- `latent-space-hub`
+  - `npm run type-check` passed
