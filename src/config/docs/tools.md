@@ -86,6 +86,7 @@ Slop's write operations happen **outside the LLM tool loop**, triggered only by 
 | `/join` | Creates a member node |
 | `/paper-club` | Creates a scheduled event node |
 | `/builders-club` | Creates a scheduled event node |
+| `/edit-event` | Updates or cancels the caller's scheduled event |
 
 Member profile updates also happen post-response (updating notes, metadata, and edges) but are not LLM-callable tools.
 
