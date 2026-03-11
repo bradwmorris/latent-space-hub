@@ -35,7 +35,7 @@ For Slop requests, load skills in this order:
 1. `start-here` (scope and retrieval sequence)
 2. `db-operations` (safe graph reads/writes)
 3. `curation` (dedup and metadata quality)
-4. `event-scheduling` (only for `/paper-club` and `/builders-club`)
+4. `event-scheduling` (for `/paper-club`, `/builders-club`, and `/edit-event`)
 5. `/docs/slop-bot` for human-facing bot behavior and architecture details
 
 For general agent requests, load:

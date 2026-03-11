@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import EventsCalendarPane from '../panes/EventsCalendarPane';
 import EvalsClient from '@/app/evals/EvalsClient';
 import SearchModal from '../nodes/SearchModal';
@@ -565,17 +566,32 @@ function TypeNodeList({
 // ─── Main Layout ─────────────────────────────────────────────────────────────
 export default function ThreePanelLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
 
   // ── New simple state model ──
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = usePersistentState<boolean>('ui.leftPanel.collapsed', false);
   const [activeView, setActiveView] = usePersistentState<MainView>('ui.activeView', 'dashboard');
   const [selectedType, setSelectedType] = usePersistentState<string | null>('ui.selectedType', null);
 
+  const deepLinkedType = useMemo(() => {
+    const type = searchParams.get('type') || searchParams.get('view');
+    if (!type) return null;
+    const normalized = type.trim().toLowerCase();
+    const allowed = new Set(['event', 'paper-club', 'builders-club', 'podcast', 'article', 'ainews', 'workshop', 'member', 'entity', 'guest']);
+    return allowed.has(normalized) ? normalized : null;
+  }, [searchParams]);
+
   // Always land on Dashboard on a fresh page load.
   useEffect(() => {
     setActiveView('dashboard');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!deepLinkedType) return;
+    setSelectedType(deepLinkedType);
+    setActiveView('type');
+  }, [deepLinkedType, setSelectedType, setActiveView]);
 
   // Node focus state
   const [openTabs, setOpenTabs] = useState<number[]>([]);

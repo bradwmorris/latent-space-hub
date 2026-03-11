@@ -84,7 +84,7 @@ Bot updates member profile (non-blocking)
 
 # Slash Commands
 
-Three commands registered with Discord. These are typed directly in the message input.
+Four commands registered with Discord. These are typed directly in the message input.
 
 ## /join
 
@@ -112,6 +112,16 @@ Schedule a Paper Club session (every Wednesday, 12-1pm PT).
 **Usage:** `/builders-club`
 
 Same as `/paper-club` but for Builders Club sessions (every Saturday 8am Sydney / Friday afternoon PT). You provide a topic instead of a paper.
+
+## /edit-event
+
+**Usage:** `/edit-event`
+
+Edits one of your scheduled events. You can:
+- Change title/topic
+- Update or remove Paper Club URL
+- Reschedule to another available slot
+- Cancel the event
 
 ---
 
