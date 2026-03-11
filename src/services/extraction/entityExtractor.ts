@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { edgeService, nodeService } from '@/services/database';
+import { generateDescription } from '@/services/database/descriptionService';
 import { getSQLiteClient } from '@/services/database/sqlite-client';
 import { NodeType } from '@/types/database';
 
@@ -238,39 +239,12 @@ export async function generateContentDescription(
   nodeType: string,
   chunk: string
 ): Promise<string> {
-  if (!process.env.OPENAI_API_KEY) {
-    return title;
-  }
-
-  const openai = getOpenAIClient();
-
-  const response = await withRetry(async () => {
-    return openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
-      temperature: 0,
-      max_tokens: 200,
-      messages: [{
-        role: 'user',
-        content: `Write a one-sentence description for this ${nodeType}.
-
-Title: "${title}"
-Content: ${chunk.slice(0, 2000)}
-
-Rules:
-- Start with what it IS: "A Latent Space podcast episode featuring X, discussing Y."
-- Include who's involved and what they talk about.
-- One sentence, max 50 words.
-- No fluff, no opinions. Just facts.
-
-Examples:
-- "Latent Space podcast episode featuring Ilya Sutskever, discussing scaling laws, compute efficiency, and the future of foundation models."
-- "AI News daily digest covering OpenAI's GPT-5 release, Google's Gemini updates, and new research on chain-of-thought reasoning."
-- "Latent Space blog post by swyx analyzing the shift from RAG to long-context models, with benchmarks and practical recommendations."`,
-      }],
-    });
+  return generateDescription({
+    title,
+    node_type: nodeType,
+    content: chunk,
+    notes: chunk,
   });
-
-  return response.choices[0]?.message?.content?.trim() || title;
 }
 
 // --- Entity dedup + creation ---

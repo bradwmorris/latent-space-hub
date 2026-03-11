@@ -4,6 +4,7 @@ import { generateText } from 'ai';
 export interface DescriptionInput {
   title: string;
   notes?: string;
+  content?: string;
   link?: string;
   metadata?: {
     source?: string;
@@ -15,50 +16,134 @@ export interface DescriptionInput {
   dimensions?: string[];
 }
 
+const MAX_DESCRIPTION_CHARS = 280;
+const FORBIDDEN_PHRASES = [
+  'discusses',
+  'explores',
+  'examines',
+  'talks about',
+  'is about',
+  'delves into',
+  'emphasizing the need for',
+] as const;
+
+const TRANSCRIPT_OPENING_PATTERNS: RegExp[] = [
+  /^\[?\d{1,3}(?:\.\d+)?s\]?\s*/i,
+  /^\d{1,2}:\d{2}\s*/,
+  /^hey everyone\b/i,
+  /^welcome (?:back\s+)?to\b/i,
+  /^\s*(uh|um)\b/i,
+];
+
+const SOURCE_TYPE_LABELS: Record<string, string> = {
+  podcast: 'Podcast episode',
+  article: 'Article',
+  ainews: 'AINews digest',
+  workshop: 'Workshop talk',
+  'paper-club': 'Paper Club session',
+  'builders-club': 'Builders Club session',
+  event: 'Event listing',
+  entity: 'Entity profile',
+  guest: 'Guest profile',
+  member: 'Member profile',
+};
+
+const FORMAT_OPENERS: Record<string, string> = {
+  podcast: 'Podcast episode where',
+  article: 'Article arguing',
+  ainews: 'AINews digest covering',
+  workshop: 'Workshop talk showing',
+  'paper-club': 'Paper Club session where',
+  'builders-club': 'Builders Club session where',
+  event: 'Event listing for',
+};
+
+const EXPLICIT_PREFIX_BY_TYPE: Record<string, string> = {
+  podcast: 'Podcast episode',
+  article: 'Article',
+  ainews: 'AINews digest',
+  workshop: 'Workshop talk',
+  'paper-club': 'Paper Club session',
+  'builders-club': 'Builders Club session',
+};
+
+const descriptionModel = process.env.OPENAI_DESCRIPTION_MODEL || 'gpt-4.1-mini';
+
 /**
- * Generate a 280-character description for a knowledge node.
- * Contextually grounded - adapts to node type (person, concept, article, etc.)
+ * Generate a strict 280-character description for a node.
+ * Node-level embeddings use title + description, so quality here impacts retrieval quality directly.
  */
 export async function generateDescription(input: DescriptionInput): Promise<string> {
+  const normalizedTitle = (input.title || '').trim();
+  if (!normalizedTitle) {
+    return 'Untitled node';
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    return buildFallbackDescription(input);
+  }
+
   try {
-    const prompt = buildDescriptionPrompt(input);
+    console.log(`[DescriptionService] Generating description for: "${normalizedTitle}"`);
 
-    console.log(`[DescriptionService] Generating description for: "${input.title}"`);
+    const firstAttempt = await runGenerationAttempt(input, false);
+    if (firstAttempt.reasons.length === 0) {
+      console.log(`[DescriptionService] Generated: "${firstAttempt.description}"`);
+      return firstAttempt.description;
+    }
 
-    const response = await generateText({
-      model: openaiProvider('gpt-4o-mini'),
-      prompt,
-      maxOutputTokens: 100,
-      temperature: 0.3,
-    });
+    console.warn(
+      `[DescriptionService] Weak description detected for "${normalizedTitle}"; retrying with stricter prompt. Reasons: ${firstAttempt.reasons.join(', ')}`
+    );
 
-    const description = response.text.trim();
+    const retryAttempt = await runGenerationAttempt(input, true);
+    if (retryAttempt.reasons.length === 0) {
+      console.log(`[DescriptionService] Generated after retry: "${retryAttempt.description}"`);
+      return retryAttempt.description;
+    }
 
-    // Ensure within character limit
-    const finalDescription = description.slice(0, 280);
+    console.warn(
+      `[DescriptionService] Retry still weak for "${normalizedTitle}". Reasons: ${retryAttempt.reasons.join(', ')}. Using deterministic fallback.`
+    );
 
-    console.log(`[DescriptionService] Generated: "${finalDescription}"`);
-
-    return finalDescription;
+    return buildFallbackDescription(input);
   } catch (error) {
     console.error('[DescriptionService] Error generating description:', error);
-    // Return a fallback description
-    return `This is a ${input.node_type || 'knowledge item'} titled "${input.title.slice(0, 200)}".`;
+    return buildFallbackDescription(input);
   }
 }
 
-function buildDescriptionPrompt(input: DescriptionInput): string {
+interface GenerationAttemptResult {
+  description: string;
+  reasons: string[];
+}
+
+async function runGenerationAttempt(input: DescriptionInput, strictRetry: boolean): Promise<GenerationAttemptResult> {
+  const prompt = buildDescriptionPrompt(input, strictRetry);
+
+  const response = await generateText({
+    model: openaiProvider(descriptionModel),
+    prompt,
+    maxOutputTokens: 140,
+    temperature: 0,
+  });
+
+  const description = sanitizeDescription(response.text, input);
+  const reasons = getWeakDescriptionReasons(description, input);
+
+  return { description, reasons };
+}
+
+function buildDescriptionPrompt(input: DescriptionInput, strictRetry: boolean): string {
   const normalizedSource = (input.metadata?.source || '').toLowerCase();
   const url = typeof input.link === 'string' ? input.link.trim() : '';
+  const nodeType = (input.node_type || '').toLowerCase();
 
-  // Best-effort creator hint from structured metadata (when available),
-  // but never assume a particular extraction source (YouTube vs paper vs website vs note).
   const creatorHint =
     input.metadata?.author?.trim() ||
     input.metadata?.channel_name?.trim() ||
     '';
 
-  // Best-effort publisher / container hint (less ideal than a true author, but better than nothing).
   const publisherHint = input.metadata?.site_name?.trim() || '';
 
   const likelyExternal =
@@ -73,11 +158,11 @@ function buildDescriptionPrompt(input: DescriptionInput): string {
     !likelyExternal &&
     (normalizedSource.includes('quick-add-note') ||
       normalizedSource.includes('quick-add-chat') ||
-      normalizedSource.includes('note') ||
-      normalizedSource.length === 0);
+      normalizedSource.includes('note'));
 
   const lines: string[] = [`Title: ${input.title}`];
 
+  if (nodeType) lines.push(`Node type: ${nodeType}`);
   if (input.link) lines.push(`URL: ${input.link}`);
   if (input.dimensions?.length) lines.push(`Dimensions: ${input.dimensions.join(', ')}`);
   if (input.metadata?.channel_name) lines.push(`Channel: ${input.metadata.channel_name}`);
@@ -87,27 +172,154 @@ function buildDescriptionPrompt(input: DescriptionInput): string {
   if (publisherHint) lines.push(`Publisher hint: ${publisherHint}`);
   lines.push(`Likely user-authored: ${likelyUserAuthored ? 'yes' : 'no'}`);
 
-  const notesPreview = input.notes?.slice(0, 800) || '';
-  if (notesPreview) lines.push(`Notes: ${notesPreview}${input.notes && input.notes.length > 800 ? '...' : ''}`);
+  const contentPreview = (input.content || input.notes || '').slice(0, 1600);
+  if (contentPreview) {
+    lines.push(`Content preview: ${contentPreview}${(input.content || input.notes || '').length > 1600 ? '...' : ''}`);
+  }
 
-  return `Your job is to answer: "what is this?" in one short line. Max 280 characters.
+  const formatOpeners = selectFormatOpeners(nodeType, likelyUserAuthored);
+  const extraRetryBlock = strictRetry
+    ? `
+RETRY OVERRIDES (MANDATORY):
+- If you output any forbidden phrase, the response is invalid.
+- If the line equals the title or starts with transcript words/timestamps, the response is invalid.
+- Rewrite to concrete claim + why it matters, then stop.
+`
+    : '';
 
-GOAL: Include "who created it" when possible.
+  return `Write exactly one line (max ${MAX_DESCRIPTION_CHARS} chars) answering: what is this artifact and why does it matter?
 
-RULES (in priority order):
-1) ONLY use a creator if you have a creator hint (Author/Channel) or the content explicitly says "by <X>" / "hosted by <X>".
-   - Do NOT treat prominent people in the title/transcript (e.g. a guest) as the creator.
-   - If a creator hint is provided, prefer it.
-2) If you can identify a creator/author/channel/person/org from a creator hint, start with: "By <creator> — ..."
-3) If it's likely user-authored, start with: "Your <thing> — ..." (don't invent a creator name).
-4) If creator is unknown, do NOT guess; omit the byline.
+FORMAT (must follow):
+- Start with one of these openers: ${formatOpeners.join(' | ')}
+- State concrete claim/finding/detail, not a generic topic summary.
+- End with why it matters in one direct phrase.
 
-Then, in the remainder, state what it is (video/paper/article/note/idea/etc) + what it's about (high-signal).
-If unsure, say so briefly.
+FORBIDDEN PHRASES (hard reject): ${FORBIDDEN_PHRASES.join(', ')}
+
+ADDITIONAL RULES:
+- Do not start with "Your note" or "This note".
+- Do not copy transcript text or timestamps.
+- Do not return markdown, bullets, quotes, or labels.
+- Return only the description line.${extraRetryBlock}
 
 ${lines.join('\n')}`;
 }
 
+function selectFormatOpeners(nodeType: string, likelyUserAuthored: boolean): string[] {
+  if (likelyUserAuthored) {
+    return ['Personal note capturing', 'Idea that', 'Draft outlining'];
+  }
+
+  const specific = FORMAT_OPENERS[nodeType];
+  if (specific) {
+    return [specific, 'Article arguing', 'Podcast episode where'];
+  }
+
+  return ['Artifact where', 'Research note showing', 'Analysis arguing'];
+}
+
+function sanitizeDescription(rawText: string, input: DescriptionInput): string {
+  const collapsed = rawText
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/^['"`]|['"`]$/g, '')
+    .replace(/^[\-•*]\s*/, '');
+
+  if (!collapsed) {
+    return buildFallbackDescription(input);
+  }
+
+  const noGenericPrefix = collapsed.replace(
+    /^(your note|this note)\s*[—:-]\s*/i,
+    'Personal note capturing '
+  );
+
+  const explicitArtifact = enforceExplicitArtifact(noGenericPrefix, input);
+  return truncateDescription(explicitArtifact);
+}
+
+function enforceExplicitArtifact(description: string, input: DescriptionInput): string {
+  const nodeType = (input.node_type || '').toLowerCase();
+  const requiredPrefix = EXPLICIT_PREFIX_BY_TYPE[nodeType];
+  if (!requiredPrefix) {
+    return description;
+  }
+
+  const normalized = description.trim();
+  const hasExplicitPrefix = new RegExp(`^${requiredPrefix.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(normalized);
+  if (hasExplicitPrefix) {
+    return normalized;
+  }
+
+  const withoutLeadingConnector = normalized
+    .replace(/^(idea that|analysis that|artifact where|research note showing|draft outlining)\s+/i, '')
+    .replace(/^(this|it)\s+/i, '')
+    .trim();
+
+  if (!withoutLeadingConnector) {
+    return `${requiredPrefix} covering ${input.title.trim()}`;
+  }
+
+  const body = withoutLeadingConnector.charAt(0).toLowerCase() + withoutLeadingConnector.slice(1);
+  return `${requiredPrefix} covering ${body}`;
+}
+
+function truncateDescription(description: string): string {
+  if (description.length <= MAX_DESCRIPTION_CHARS) {
+    return description;
+  }
+
+  const trimmed = description.slice(0, MAX_DESCRIPTION_CHARS);
+  const lastBoundary = Math.max(trimmed.lastIndexOf('. '), trimmed.lastIndexOf('; '), trimmed.lastIndexOf(', '));
+  if (lastBoundary >= 140) {
+    return trimmed.slice(0, lastBoundary + 1).trim();
+  }
+  return trimmed.trim();
+}
+
+export function getWeakDescriptionReasons(description: string, input: DescriptionInput): string[] {
+  const reasons: string[] = [];
+  const normalized = description.toLowerCase();
+  const normalizedTitle = normalizeComparison(input.title);
+
+  for (const phrase of FORBIDDEN_PHRASES) {
+    if (normalized.includes(phrase.toLowerCase())) {
+      reasons.push(`contains forbidden phrase \"${phrase}\"`);
+    }
+  }
+
+  if (normalizeComparison(description) === normalizedTitle) {
+    reasons.push('matches title');
+  }
+
+  if (/^(your note|this note)\b/i.test(description)) {
+    reasons.push('generic opener');
+  }
+
+  if (TRANSCRIPT_OPENING_PATTERNS.some((pattern) => pattern.test(description))) {
+    reasons.push('looks like transcript opener');
+  }
+
+  if (description.length > MAX_DESCRIPTION_CHARS) {
+    reasons.push(`exceeds ${MAX_DESCRIPTION_CHARS} chars`);
+  }
+
+  return reasons;
+}
+
+function normalizeComparison(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function buildFallbackDescription(input: DescriptionInput): string {
+  const title = input.title.trim();
+  const nodeType = (input.node_type || '').toLowerCase();
+  const sourceLabel = SOURCE_TYPE_LABELS[nodeType] || 'Knowledge item';
+
+  return truncateDescription(`${sourceLabel} on "${title.slice(0, 180)}" with key context for the LS Wiki-Base.`);
+}
+
 export const descriptionService = {
-  generateDescription
+  generateDescription,
+  getWeakDescriptionReasons,
 };
