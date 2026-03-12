@@ -16,6 +16,21 @@ Slop is Latent Space's Discord bot. It searches the wiki-base, answers questions
 
 ---
 
+# What Slop Does
+
+1. **Answers questions** — Tag @Slop in any allowed channel and it searches the wiki-base to answer with source links
+2. **Schedules community events** via slash commands:
+   - `/paper-club` — schedule a Paper Club session
+   - `/builders-club` — schedule a Builders Club session
+   - `/edit-event` — edit or cancel a scheduled event
+   - `/join` — create your member profile (optional)
+3. **Sends event reminders** — Automated reminders for upcoming Paper Club sessions:
+   - 24 hours before the session
+   - 1 hour before the session
+   - If a paper URL is registered, the reminder includes the link and tells folks to read it
+
+---
+
 # How It Works
 
 ## The simple version
@@ -213,6 +228,54 @@ The preference is stored in your member metadata and injected into the system pr
 ## Member Edges
 
 After each interaction, Slop creates edges linking your member node to any content nodes discussed. Over time this builds a map of what you've engaged with.
+
+---
+
+# Event Reminders
+
+Slop posts automated reminders for upcoming Paper Club sessions. Reminders are scheduled via `node-cron` and run on the bot process (not a separate service).
+
+## Reminder Windows
+
+| Reminder | Fires at | Looks for | Message |
+|----------|----------|-----------|---------|
+| **24-hour** | 12:00 PM PT daily | Tomorrow's Paper Club events | "Paper Club tomorrow (12pm PT)" with presenter mention + paper link |
+| **1-hour** | 11:00 AM PT daily | Same-day Paper Club events | "Paper Club in 1 hour" with presenter mention + paper link |
+
+Both reminders post to the channel configured by `PAPER_CLUB_CHANNEL_ID`.
+
+## How It Works
+
+1. Cron fires at the scheduled time (timezone: `America/Los_Angeles`)
+2. Queries Turso for `node_type='event'` where `metadata.event_type='paper-club'`, `metadata.event_status='scheduled'`, and the relevant `reminded_*_at` field is NULL
+3. Atomically claims the row in the DB to prevent duplicate posts (safe across restarts and multiple instances)
+4. Posts the reminder to Discord
+5. On success: writes `reminded_*_at` and `reminded_*_message_id` to the event's metadata
+6. On failure: releases the claim so it can retry next cycle
+
+## Idempotency
+
+Reminders use DB-backed durable state, not in-memory tracking. Each reminder window writes separate metadata fields:
+
+- **24h**: `reminded_24h_claimed_at`, `reminded_24h_at`, `reminded_24h_message_id`
+- **1h**: `reminded_1h_claimed_at`, `reminded_1h_at`, `reminded_1h_message_id`
+
+This means reminders survive bot restarts and won't duplicate if multiple bot instances are running.
+
+## Configuration
+
+| Env var | Default | Purpose |
+|---------|---------|---------|
+| `PAPER_CLUB_CHANNEL_ID` | — | Channel to post reminders (required) |
+| `REMINDERS_ENABLED` | `true` | Master toggle for all reminders |
+| `REMINDERS_ONE_HOUR_ENABLED` | `true` | Toggle for the 1-hour reminder |
+| `REMINDERS_TIMEZONE` | `America/Los_Angeles` | Timezone for cron scheduling |
+| `BOT_INSTANCE_ID` | hostname/pid | Identifies which instance claimed a reminder |
+
+## Limitations
+
+- `event_date` is date-only (`YYYY-MM-DD`), not datetime. Reminder timing is hardcoded to Paper Club's fixed Wednesday 12pm PT schedule rather than computed from per-event times.
+- If duplicate event rows exist for the same slot (see PRD-45), a reminder posts once per duplicate.
 
 ---
 
