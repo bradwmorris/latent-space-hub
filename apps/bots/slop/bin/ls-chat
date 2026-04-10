@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+if [[ -f "$DIR/dist/adapters/console/repl.js" ]]; then
+  exec node "$DIR/dist/adapters/console/repl.js"
+fi
+
+exec "$DIR/node_modules/.bin/tsx" "$DIR/src/adapters/console/repl.ts"

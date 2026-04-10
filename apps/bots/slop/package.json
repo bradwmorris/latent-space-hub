@@ -1,0 +1,32 @@
+{
+  "name": "latent-space-bots",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Slop — Discord bot for Latent Space",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "db:init:local": "node scripts/init-local-db.cjs",
+    "repl": "tsx src/adapters/console/repl.ts",
+    "test": "vitest run",
+    "backfill:member-avatars": "tsx scripts/backfill-member-avatars.ts"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.0",
+    "discord.js": "^14.19.3",
+    "dotenv": "^17.2.3",
+    "node-cron": "^4.2.1",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.20.3",
+    "vitest": "^2.1.9"
+  }
+}
