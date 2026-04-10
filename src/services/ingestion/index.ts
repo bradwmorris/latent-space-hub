@@ -117,9 +117,7 @@ export async function checkAndIngest(options: CheckAndIngestOptions = {}): Promi
                 publishedAt: result.publishedAt,
                 url: result.url,
               };
-              // Always announce
               await notifyAnnouncement(payload);
-              // Only kick off yap discussion if this isn't a companion to something already discussed
               if (!result.hasCompanion) {
                 await notifyYapKickoff(payload);
               }

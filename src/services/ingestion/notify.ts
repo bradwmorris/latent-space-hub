@@ -8,6 +8,13 @@ interface NotifyPayload {
   url?: string;
 }
 
+function notificationsEnabled(): boolean {
+  const raw = process.env.DISCORD_INGESTION_NOTIFICATIONS_ENABLED;
+  if (raw == null || raw.trim() === '') return true;
+  const normalized = raw.trim().toLowerCase();
+  return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
+}
+
 function formatDate(iso?: string): string {
   if (!iso) return 'unknown';
   const date = new Date(iso);
@@ -93,6 +100,7 @@ async function sendWebhook(webhookUrl: string, content: string): Promise<void> {
 }
 
 export async function notifyAnnouncement(payload: NotifyPayload): Promise<void> {
+  if (!notificationsEnabled()) return;
   const announcementsWebhook = process.env.DISCORD_ANNOUNCEMENTS_WEBHOOK_URL;
   if (announcementsWebhook) {
     await sendWebhook(announcementsWebhook, buildAnnouncementContent(payload));
@@ -100,6 +108,7 @@ export async function notifyAnnouncement(payload: NotifyPayload): Promise<void> 
 }
 
 export async function notifyYapKickoff(payload: NotifyPayload): Promise<void> {
+  if (!notificationsEnabled()) return;
   const yapWebhook = process.env.DISCORD_YAP_WEBHOOK_URL;
   if (yapWebhook) {
     await sendWebhook(yapWebhook, buildYapContent(payload));
