@@ -76,6 +76,14 @@ function stripBotMention(content: string, botUserId: string): string {
   return cleaned;
 }
 
+function parseOptionValue(
+  value: string | number | boolean | null | undefined
+): string | boolean | null {
+  if (typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number") return String(value);
+  return null;
+}
+
 export function createRuntimeMessageEvent(
   message: Message,
   botUserId: string,
@@ -171,6 +179,11 @@ export function createDiscordChatTransport(message: Message): RuntimeChatTranspo
 export function createRuntimeCommandEvent(
   interaction: ChatInputCommandInteraction
 ): RuntimeCommandEvent {
+  const options: Record<string, string | boolean | null> = {};
+  for (const option of interaction.options.data) {
+    options[option.name] = parseOptionValue(option.value);
+  }
+
   return {
     kind: "command",
     id: interaction.id,
@@ -191,6 +204,7 @@ export function createRuntimeCommandEvent(
           : undefined,
     },
     commandName: interaction.commandName as RuntimeCommandEvent["commandName"],
+    options,
   };
 }
 

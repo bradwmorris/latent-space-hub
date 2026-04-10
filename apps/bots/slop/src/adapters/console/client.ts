@@ -134,6 +134,7 @@ export class ConsoleRuntimeClient extends EventEmitter {
       actor: this.getCurrentUser(),
       conversation: this.getCurrentConversation(),
       commandName,
+      options: {},
     };
   }
 

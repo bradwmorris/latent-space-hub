@@ -13,6 +13,7 @@
     "start": "NEXT_PUBLIC_DEPLOYMENT_MODE=local NEXT_PUBLIC_ENABLE_SUBSCRIPTION_BACKEND=false NODE_OPTIONS=\"--dns-result-order=ipv4first\" next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "backlog:backfill-issues": "tsx scripts/backlog/backfill-github-issues.ts",
     "setup": "npm install",
     "sqlite:backup": "bash scripts/database/sqlite-backup.sh",
     "sqlite:restore": "bash scripts/database/sqlite-restore.sh",

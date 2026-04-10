@@ -36,7 +36,10 @@ export type RuntimeCommandName =
   | "join"
   | "paper-club"
   | "builders-club"
-  | "edit-event";
+  | "edit-event"
+  | "backlog-create";
+
+export type RuntimeCommandOptionValue = string | boolean | null;
 
 export type RuntimeCommandEvent = {
   kind: "command";
@@ -44,6 +47,7 @@ export type RuntimeCommandEvent = {
   actor: RuntimeActor;
   conversation: RuntimeConversation;
   commandName: RuntimeCommandName;
+  options: Record<string, RuntimeCommandOptionValue>;
 };
 
 export type RuntimeMessageRef = {

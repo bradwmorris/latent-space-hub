@@ -7,7 +7,25 @@ This folder contains the prioritized backlog of development tasks for Latent Spa
 - **`backlog.json`** - Master list of all pending tasks, ordered by priority
 - **`prd-template.md`** - Template for creating PRDs from backlog items
 
-## Backlog UI
+## Primary UI
+
+- Deployed app route: `/backlog`
+- Data source: `docs/development/backlog/backlog.json` + linked `docs/development/prd-*.md`
+- Mutations: GitHub-backed when `GITHUB_BACKLOG_TOKEN` + repo env vars are configured
+
+## Required Env Vars For Mutations
+
+- `GITHUB_BACKLOG_TOKEN`
+- `GITHUB_REPO_OWNER`
+- `GITHUB_REPO_NAME`
+- `GITHUB_DEFAULT_BRANCH`
+- `BACKLOG_ADMIN_SECRET`
+
+For Discord-driven writes, the bot also needs:
+
+- `BACKLOG_ALLOWED_DISCORD_USER_IDS`
+
+## Legacy Local UI
 
 ```bash
 cd docs/development/backlog/ui
@@ -17,6 +35,8 @@ pip install -r requirements.txt
 python server.py
 # Open http://localhost:5561
 ```
+
+The Python UI is now a legacy local reference surface. The Next.js `/backlog` route is the primary operating dashboard.
 
 ## How This Works
 
@@ -56,6 +76,11 @@ Each project in `backlog.json`:
   "priority": "high",
   "prd": "docs/development/prd-XX-name.md",
   "notes": "Context",
+  "due_date": "2026-04-30",
+  "github": {
+    "issue_number": 123,
+    "issue_url": "https://github.com/OWNER/REPO/issues/123"
+  },
   "tasks": [
     { "text": "Task description", "done": false }
   ]

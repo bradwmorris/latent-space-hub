@@ -183,9 +183,45 @@
       "title": "Data refinement & hygiene — type migration, descriptions/notes, dates, edge cleanup"
     }
   ],
-  "lastUpdated": "2026-03-11",
-  "nextPrdNumber": 47,
+  "lastUpdated": "2026-04-10",
+  "nextPrdNumber": 49,
   "projects": {
+    "backlog-dashboard-github-sync": {
+      "id": "backlog-dashboard-github-sync",
+      "notes": "Build a first-class backlog dashboard inside the deployed Hub, reimplementing the RA-H board/calendar pattern in Next.js, syncing each active backlog item to a GitHub issue, and giving Slop a safe Discord-native intake flow for creating backlog entries and PRDs.",
+      "owner": "brad",
+      "prd": "docs/development/prd-48-backlog-dashboard-github-sync.md",
+      "priority": "medium",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Create backlog domain layer and extend backlog.json schema with due dates + GitHub metadata"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Build read APIs and dedicated /backlog route in the Next.js app"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Implement GitHub-backed mutation flows for creating/updating backlog items and PRDs"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Backfill GitHub issues for existing active backlog projects and add reconciliation checks"
+        },
+        {
+          "done": false,
+          "text": "Step 5: Add Slop Discord backlog creation flow with permission checks and confirmation"
+        },
+        {
+          "done": false,
+          "text": "Step 6: Document the new workflow and deprecate the legacy local Python backlog UI"
+        }
+      ],
+      "title": "Backlog Ops Dashboard — Next.js UI, GitHub issue sync, and Slop Discord intake",
+      "type": "feature"
+    },
     "bot-write-guardrails": {
       "id": "bot-write-guardrails",
       "notes": "Tighten DB write safety in latent-space-bots. Add a centralized write gate, explicit action policy checks, idempotency protections, and write audit logging so writes are intentional, explainable, and reviewable.",
@@ -225,6 +261,42 @@
       ],
       "title": "Bot write guardrails — centralized policy, execution gate, idempotency, and audit logging",
       "type": "security"
+    },
+    "bots-repo-consolidation": {
+      "id": "bots-repo-consolidation",
+      "notes": "Move `latent-space-bots` into this repo while keeping deploy separation: Vercel stays on the hub root, Railway stays on the bot runtime. Preserve a plural `apps/bots/` namespace because the project originally had multiple bots and may again later, but make clear that Slop is the only active bot today.",
+      "owner": "brad",
+      "prd": "docs/development/prd-47-bot-repo-consolidation.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Lock target structure — keep hub at repo root, add `apps/bots/slop` as the imported bot runtime"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Import `latent-space-bots` with history preservation"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Remove cross-repo path assumptions and stale MCP artifacts"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Update docs — Slop only for now, plural bots namespace retained for future bots"
+        },
+        {
+          "done": false,
+          "text": "Step 5: Reconfigure Railway for the in-repo bot path without disturbing Vercel"
+        },
+        {
+          "done": false,
+          "text": "Step 6: Validate local builds/tests and live deployment cutover, then archive/sunset the standalone repo"
+        }
+      ],
+      "title": "Bot repo consolidation — move `latent-space-bots` into LS Hub, keep Slop-first, preserve future bots namespace",
+      "type": "refactor"
     },
     "builders-club-prep": {
       "id": "builders-club-prep",
@@ -675,6 +747,7 @@
   },
   "queue": [
     "description-quality",
+    "bots-repo-consolidation",
     "skills-tools-audit",
     "wiki-base-rebrand",
     "ui-ux-cleanup",
@@ -685,6 +758,7 @@
     "evals-dashboard",
     "public-roadmap-contributing",
     "inbox",
-    "setup-handover"
+    "setup-handover",
+    "backlog-dashboard-github-sync"
   ]
 }

@@ -11,6 +11,7 @@ import {
   FileText,
   FlaskConical,
   BookOpen,
+  KanbanSquare,
 } from 'lucide-react';
 import { Node } from '@/types/database';
 import { CATEGORIES } from '@/config/categories';
@@ -231,6 +232,25 @@ export default function LeftTypePanel({
         >
           <FileText size={16} />
         </button>
+        <a
+          href="/backlog"
+          title="Backlog"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textDecoration: 'none',
+          }}
+        >
+          <KanbanSquare size={16} />
+        </a>
         <a
           href="/docs"
           title="Docs"
@@ -500,6 +520,28 @@ export default function LeftTypePanel({
         >
           <FlaskConical size={14} />
           <span>Evals</span>
+        </button>
+        <button
+          onClick={() => {
+            window.location.href = '/backlog';
+          }}
+          style={{
+            width: '100%',
+            height: '30px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--accent-dark)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '0 8px',
+            fontSize: '12px',
+          }}
+        >
+          <KanbanSquare size={14} />
+          <span>Backlog</span>
         </button>
         <button
           onClick={onSkillsClick}
