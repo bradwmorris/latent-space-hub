@@ -22,7 +22,7 @@ The web app deploys to Vercel from the `main` branch.
 Read-only mode is for public access. Writes happen via:
 - The ingestion pipeline (admin, uses Turso credentials directly)
 - MCP tools (with appropriate auth)
-- Discord bot member-memory flow (via MCP tool calls from bot runtime)
+- Discord bot member-memory flow (direct Turso writes from the Railway runtime)
 
 ## Vercel Cron Jobs
 
@@ -66,7 +66,7 @@ Local dev has full write access — no readonly restriction.
 
 ## Discord Bots (Railway)
 
-The bot runs on Railway as an always-on process from the `latent-space-bots` repo. It connects to Discord via the gateway WebSocket and stays logged in 24/7.
+The bot runs on Railway as an always-on process from `apps/bots/slop/` inside this repo. It connects to Discord via the gateway WebSocket and stays logged in 24/7.
 
 Railway is separate from Vercel because Discord bots need persistent connections. Vercel handles short-lived request/response — Railway handles always-on.
 
@@ -84,7 +84,9 @@ The bot uses **OpenRouter** for LLM calls — a single API that routes to many m
 | `OPENROUTER_API_KEY` | LLM API access (model-agnostic) |
 | `ALLOWED_CHANNEL_IDS` | Comma-separated Discord channel IDs where the bot can respond |
 | `SLOP_MODEL` | OpenRouter model name for Slop |
-| `LS_HUB_MCP_SERVER_PATH` | Optional local override path for MCP server script |
+| `PAPER_CLUB_CHANNEL_ID` | Channel used for Paper Club reminders |
+| `REMINDERS_ENABLED` | Enable scheduled Paper Club reminders |
+| `REMINDERS_ONE_HOUR_ENABLED` | Enable the optional 1h-before reminder |
 
 ### Webhook vs bot
 

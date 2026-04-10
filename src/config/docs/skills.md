@@ -12,7 +12,7 @@ Skills are markdown files with YAML frontmatter that give agents operational ins
 | | Slop Skills | Agent Skills |
 |---|------------|--------------|
 | **Used by** | Discord bot (Slop) | MCP clients (Claude Code, Cursor, etc.) |
-| **Location** | `src/config/skills/slop/` | `src/config/skills/agents/` |
+| **Runtime location** | `apps/bots/slop/skills/` | `src/config/skills/agents/` |
 | **Count** | 4 | 2 |
 | **Loaded** | At bot startup, cached in memory | On demand via `ls_read_skill` tool |
 | **Read tool** | `slop_read_skill(name)` | `ls_read_skill(name)` |
@@ -36,10 +36,10 @@ See [Start Here](/docs/skills/start-here) for the entry-point skill.
 
 ### How They Load
 
-Skills are validated and cached at startup in the bots repo (`latent-space-bots/src/skills/index.ts`). The hub keeps its own copy in `src/config/skills/slop/` for docs rendering:
+Skills are validated and cached at startup in `apps/bots/slop/src/skills/index.ts`. The hub also keeps mirrored copies in `src/config/skills/slop/` for docs and skill browsing:
 
 ```typescript
-const REQUIRED_SLOP_SKILL_ORDER = ['Start Here', 'DB Operations', 'Member Profiles', 'Event Scheduling'];
+const REQUIRED_SLOP_SKILLS = ['Start Here', 'Member Profiles', 'DB Operations', 'Event Scheduling'];
 
 // Loaded once, cached globally
 function loadSkillsContextFromLocalStrict(): string {
@@ -105,7 +105,7 @@ The hub's skill service (`src/services/skills/skillService.ts`) manages three so
 
 ```typescript
 const BUNDLED_AGENT_SKILLS_DIR = 'src/config/skills/agents';      // 2 agent skills
-const BUNDLED_SLOP_SKILLS_DIR  = 'src/config/skills/slop';          // 4 slop skills (copied from bots repo)
+const BUNDLED_SLOP_SKILLS_DIR  = 'src/config/skills/slop';          // 4 mirrored slop skills
 const USER_SKILLS_DIR          = '~/.latent-space-hub/skills';     // up to 10 user skills
 ```
 

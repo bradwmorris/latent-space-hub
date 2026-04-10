@@ -96,4 +96,4 @@ The Turso credentials are the primary security boundary. Do not share them publi
 
 # Slop Does Not Use MCP
 
-The Discord bot (Slop) used to connect via MCP but has been decoupled. Slop now queries Turso directly with its own internal tools (`slop_*` prefix) in the `latent-space-bots` repo. The MCP server is exclusively for external agent access.
+The Discord bot (Slop) used to connect via MCP but has been decoupled. Slop now queries Turso directly with its own internal tools (`slop_*` prefix) in `apps/bots/slop/`. The MCP server is exclusively for external agent access.

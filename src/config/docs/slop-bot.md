@@ -9,7 +9,7 @@ Slop is Latent Space's Discord bot. It searches the wiki-base, answers questions
 
 | | |
 |---|---|
-| **Repo** | `latent-space-bots` (separate from latent-space-hub) |
+| **Code path** | `apps/bots/slop/` inside `latent-space-hub` |
 | **Hosted on** | Railway (always-on process) |
 | **LLM** | Claude Sonnet 4.6 via OpenRouter |
 | **Database** | Same Turso instance as the hub |
@@ -45,7 +45,7 @@ Slop is Latent Space's Discord bot. It searches the wiki-base, answers questions
 
 ## Architecture
 
-Slop connects **directly to Turso**: it does not use the MCP server. All tools and skills are internal to the `latent-space-bots` repo.
+Slop connects **directly to Turso**: it does not use the MCP server. Its runtime lives in `apps/bots/slop/`.
 
 ```
 User @mentions Slop in a channel
@@ -152,7 +152,7 @@ Mention @Slop in any allowed channel to start a conversation. Slop creates a thr
 
 # Tools
 
-Slop has 9 internal tools that query Turso directly. These are defined in the `latent-space-bots` repo, not via MCP.
+Slop has 9 internal tools that query Turso directly. These are defined in `apps/bots/slop/src/tools.ts`, not via MCP.
 
 **Search tools** (each uses a different index type):
 
@@ -194,7 +194,7 @@ Skills are instruction sets that Slop loads on demand. The system prompt include
 | **Member Profiles** | How to build profiles over time, the `<profile>` block format, interaction preferences | When users share personal info or ask about their profile |
 | **Event Scheduling** | How events work, SQL queries for upcoming/past events, directing users to slash commands | Questions about Paper Club or Builders Club |
 
-Skills live in the `skills/` directory of the bots repo as markdown files with YAML frontmatter. The frontmatter (name, description, when to use) appears in the system prompt. The body is fetched on demand from local files: this keeps the system prompt small.
+Skills live in `apps/bots/slop/skills/` as markdown files with YAML frontmatter. The frontmatter (name, description, when to use) appears in the system prompt. The body is fetched on demand from local files: this keeps the system prompt small.
 
 ---
 

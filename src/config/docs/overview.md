@@ -26,14 +26,14 @@ The documentation, the database, and the AI agent layer are the same thing.
 
 These docs describe how it all works. Each page covers a layer of the system.
 
-# Two Repos, One Database
+# One Repo, Two Deploy Targets
 
-| Repo | What it is | Deployed on |
+| Path | What it is | Deployed on |
 |------|-----------|-------------|
 | **[latent-space-hub](https://github.com/bradwmorris/latent-space-hub)** | Web app, ingestion pipeline, MCP server, evals | Vercel |
-| **[latent-space-bots](https://github.com/bradwmorris/latent-space-bots)** | Discord bot (Slop), agentic tool-calling, member memory | Railway |
+| **`apps/bots/slop/`** | Discord bot runtime (Slop), agentic tool-calling, member memory | Railway |
 
-They share one Turso database. The hub writes to it (ingestion, web UI, API). The bot reads from it (direct Turso queries) and writes member data back.
+They share one Turso database. The hub writes to it (ingestion, web UI, API). Slop reads from it with direct Turso queries and writes member/event data back.
 
 # Architecture
 

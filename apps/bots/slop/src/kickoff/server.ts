@@ -35,7 +35,7 @@ export function startKickoffServer(): void {
   const server = http.createServer(async (req, res) => {
     try {
       if (req.method === "GET" && req.url === "/health") {
-        writeJson(res, 200, { ok: true, service: "latent-space-bots", kickoff: "enabled" });
+        writeJson(res, 200, { ok: true, service: "slop-bot", kickoff: "enabled" });
         return;
       }
 

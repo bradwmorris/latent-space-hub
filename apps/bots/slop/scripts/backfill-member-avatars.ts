@@ -1,74 +1,60 @@
 import "dotenv/config";
 import { Client, GatewayIntentBits } from "discord.js";
-import { McpGraphClient } from "../src/mcpGraphClient";
+import { db } from "../src/config";
+import { updateMemberNode } from "../src/db";
+import { parseMetadata } from "../src/members";
+import type { MemberMetadata } from "../src/types";
 
 type MemberRow = {
   id: number;
-  metadata: Record<string, unknown>;
+  metadata: MemberMetadata;
 };
-
-function parseMetadata(raw: unknown): Record<string, unknown> {
-  if (raw && typeof raw === "object") return raw as Record<string, unknown>;
-  if (typeof raw === "string") {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return parsed as Record<string, unknown>;
-    } catch {
-      return {};
-    }
-  }
-  return {};
-}
 
 async function main(): Promise<void> {
   const token = process.env.BOT_TOKEN_SLOP;
   if (!token) throw new Error("Missing BOT_TOKEN_SLOP");
 
-  const mcp = new McpGraphClient();
-  await mcp.connect();
-
-  const response = await mcp.callTool("ls_sqlite_query", {
-    sql: "SELECT id, metadata FROM nodes WHERE node_type = 'member' ORDER BY id ASC"
+  const response = await db.execute({
+    sql: "SELECT id, metadata FROM nodes WHERE node_type = 'member' ORDER BY id ASC",
+    args: [],
   });
-  const rows = ((response.structuredContent as { rows?: unknown[] } | undefined)?.rows || []) as Array<
-    Record<string, unknown>
-  >;
-  const members: MemberRow[] = rows.map((row) => ({
+  const members: MemberRow[] = response.rows.map((row) => ({
     id: Number(row.id),
-    metadata: parseMetadata(row.metadata)
+    metadata: parseMetadata(row.metadata),
   }));
 
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-  await client.login(token);
 
   let updated = 0;
   let skipped = 0;
   let failed = 0;
 
-  for (const member of members) {
-    const discordId = String(member.metadata.discord_id || "");
-    if (!discordId) {
-      skipped += 1;
-      continue;
-    }
+  try {
+    await client.login(token);
 
-    try {
-      const user = await client.users.fetch(discordId);
-      const avatarUrl = user.displayAvatarURL({ size: 256, extension: "png" });
-      const nextMetadata = { ...member.metadata, avatar_url: avatarUrl };
-      await mcp.callTool("ls_update_node", {
-        id: member.id,
-        updates: { metadata: nextMetadata }
-      });
-      updated += 1;
-      console.log(`updated member ${member.id} (${discordId})`);
-    } catch (error) {
-      failed += 1;
-      console.warn(`failed member ${member.id} (${discordId}):`, error);
+    for (const member of members) {
+      const discordId = String(member.metadata.discord_id || "");
+      if (!discordId) {
+        skipped += 1;
+        continue;
+      }
+
+      try {
+        const user = await client.users.fetch(discordId);
+        const avatarUrl = user.displayAvatarURL({ size: 256, extension: "png" });
+        const nextMetadata = { ...member.metadata, avatar_url: avatarUrl };
+        await updateMemberNode(db, member.id, { metadata: nextMetadata });
+        updated += 1;
+        console.log(`updated member ${member.id} (${discordId})`);
+      } catch (error) {
+        failed += 1;
+        console.warn(`failed member ${member.id} (${discordId}):`, error);
+      }
     }
+  } finally {
+    await client.destroy();
   }
 
-  await client.destroy();
   console.log(`done: updated=${updated} skipped=${skipped} failed=${failed}`);
 }
 

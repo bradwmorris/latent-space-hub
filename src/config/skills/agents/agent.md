@@ -35,4 +35,4 @@ Policy for agents using the Latent Space Hub wiki-base via MCP.
 
 ## About Slop
 
-Slop is the Discord bot for the Latent Space community. It operates independently with its own tools and skills in a separate repo (`latent-space-bots`). Slop connects directly to the shared Turso database — it does not use MCP. If someone asks about Slop behavior, refer them to the Discord server or the `/docs/slop-bot` page.
+Slop is the Discord bot for the Latent Space community. It operates independently with its own tools and skills in `apps/bots/slop/`. Slop connects directly to the shared Turso database — it does not use MCP. If someone asks about Slop behavior, refer them to the Discord server or the `/docs/slop-bot` page.

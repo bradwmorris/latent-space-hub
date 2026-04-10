@@ -22,10 +22,11 @@ export interface DocNavLink {
 }
 
 const DOCS_DIR = path.join(process.cwd(), 'src/config/docs');
-const BOTS_REPO_DIR = path.resolve(process.cwd(), '../latent-space-bots');
-const BOTS_INDEX_PATH = path.join(BOTS_REPO_DIR, 'src/index.ts');
-const BOTS_SKILLS_DIR = path.join(BOTS_REPO_DIR, 'skills');
-const HUB_SLOP_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/agents');
+const SLOP_BOT_DIR = path.join(process.cwd(), 'apps/bots/slop');
+const SLOP_PROMPTS_PATH = path.join(SLOP_BOT_DIR, 'src/llm/prompts.ts');
+const SLOP_SKILLS_INDEX_PATH = path.join(SLOP_BOT_DIR, 'src/skills/index.ts');
+const SLOP_SKILLS_DIR = path.join(SLOP_BOT_DIR, 'skills');
+const HUB_SLOP_SKILLS_DIR = path.join(process.cwd(), 'src/config/skills/slop');
 const AUTO_SYSTEM_START = '<!-- AUTO:SLOP_SYSTEM_PROMPT_START -->';
 const AUTO_SYSTEM_END = '<!-- AUTO:SLOP_SYSTEM_PROMPT_END -->';
 const LEGACY_SKILL_SLUG_REDIRECTS: Record<string, string> = {
@@ -92,14 +93,16 @@ function buildSlopSkillsLinesFromDir(skillDir: string, orderedSkillNames: string
 
 function buildSlopSystemPromptSection(): string {
   const fallbackOrderedSkills = ['Start Here', 'Graph Search', 'Member Profiles', 'DB Operations', 'Curation', 'Event Scheduling'];
-  const botsIndexAvailable = fs.existsSync(BOTS_INDEX_PATH);
-  const source = botsIndexAvailable ? fs.readFileSync(BOTS_INDEX_PATH, 'utf-8') : '';
-  const orderedSkillNames = botsIndexAvailable
-    ? extractArrayStrings(source, 'REQUIRED_SLOP_SKILLS')
+  const promptsAvailable = fs.existsSync(SLOP_PROMPTS_PATH);
+  const skillsIndexAvailable = fs.existsSync(SLOP_SKILLS_INDEX_PATH);
+  const promptsSource = promptsAvailable ? fs.readFileSync(SLOP_PROMPTS_PATH, 'utf-8') : '';
+  const skillsSource = skillsIndexAvailable ? fs.readFileSync(SLOP_SKILLS_INDEX_PATH, 'utf-8') : '';
+  const orderedSkillNames = skillsIndexAvailable
+    ? extractArrayStrings(skillsSource, 'REQUIRED_SLOP_SKILLS')
     : fallbackOrderedSkills;
 
-  const identityLines = botsIndexAvailable
-    ? extractJoinBlockStrings(source, 'identity')
+  const identityLines = promptsAvailable
+    ? extractJoinBlockStrings(promptsSource, 'identity')
     : [
         '[IDENTITY]',
         "You are Slop — Latent Space community's AI. Opinionated, sharp, concise.",
@@ -108,8 +111,8 @@ function buildSlopSystemPromptSection(): string {
         "Never agree just to be agreeable. Never hedge. Never use filler like 'interesting' or 'fascinating'.",
         'You are not an assistant. You are an interlocutor.',
       ];
-  const rulesLines = botsIndexAvailable
-    ? extractJoinBlockStrings(source, 'rules')
+  const rulesLines = promptsAvailable
+    ? extractJoinBlockStrings(promptsSource, 'rules')
     : [
         '[RULES]',
         "Search the knowledge base BEFORE answering factual questions. Don't guess — look it up.",
@@ -117,11 +120,11 @@ function buildSlopSystemPromptSection(): string {
         'Never fabricate names, dates, episodes, quotes, or links. If tools return nothing, say so.',
         "Mark speculation explicitly: 'No hard data, but...' or 'Extrapolating here...'",
       ];
-  const skillsHeader = botsIndexAvailable
-    ? extractSkillsHeaderLine(source)
+  const skillsHeader = skillsIndexAvailable
+    ? extractSkillsHeaderLine(skillsSource)
     : '[SKILLS] Canonical source: local bot skills directory. Use ls_read_skill(name) for full instructions.';
-  const skillsLines = botsIndexAvailable
-    ? buildSlopSkillsLinesFromDir(BOTS_SKILLS_DIR, orderedSkillNames)
+  const skillsLines = fs.existsSync(SLOP_SKILLS_DIR)
+    ? buildSlopSkillsLinesFromDir(SLOP_SKILLS_DIR, orderedSkillNames)
     : buildSlopSkillsLinesFromDir(HUB_SLOP_SKILLS_DIR, orderedSkillNames);
   const memberBlock = [
     '[MEMBER CONTEXT]',
@@ -149,13 +152,13 @@ function buildSlopSystemPromptSection(): string {
 
   return [
     AUTO_SYSTEM_START,
-    '## Slop System Message (Live from `latent-space-bots`)',
+    '## Slop System Message (Live from `apps/bots/slop`)',
     '',
-    botsIndexAvailable
+    promptsAvailable || skillsIndexAvailable
       ? 'This section is generated at runtime from:'
       : 'This section is generated from fallback mirrored sources (bots repo not mounted here):',
-    ...(botsIndexAvailable
-      ? ['- `../latent-space-bots/src/index.ts`', '- `../latent-space-bots/skills/*.md`']
+    ...(promptsAvailable || skillsIndexAvailable
+      ? ['- `apps/bots/slop/src/llm/prompts.ts`', '- `apps/bots/slop/src/skills/index.ts`', '- `apps/bots/slop/skills/*.md`']
       : ['- `src/config/skills/slop/*.md`']),
     '',
     '```text',

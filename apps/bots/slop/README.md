@@ -1,10 +1,10 @@
-# latent-space-bots
+# Slop Bot
 
-Discord bots for Latent Space. Launches with Slop; Sig is optional.
+Discord bot runtime for Latent Space. This package now lives in `apps/bots/slop/` inside the `latent-space-hub` repo. The platform namespace stays `apps/bots/` for future bots, but Slop is the only active production bot today.
 
 ## Status
 Gateway runtime implemented for:
-- Slop primary client (Sig optional — omit `BOT_TOKEN_SIG` to run Slop-only)
+- Slop primary client
 - Mention/reply handling with thread-first replies
 - Single-owner thread routing: if a user tags one bot, that bot owns the thread follow-up conversation
 - Slash commands: `/join`, `/paper-club`, `/builders-club`
@@ -41,7 +41,7 @@ The repo includes a Slop-only local console REPL backed by the same transport-ne
 Before using a brand-new local SQLite file, bootstrap the schema once:
 
 ```bash
-npm run db:init:local -- .local/latent-space-bots.db
+npm run db:init:local -- .local/slop.db
 ```
 
 That creates the hub-compatible core tables this repo expects (`nodes`, `edges`, `node_dimensions`, `chunks`, `dimensions`, `chats`, `logs`) plus the member/event indexes used by the bot. It is a local dev schema, not a production data clone.
@@ -81,7 +81,7 @@ Usage notes:
 Example local REPL startup:
 
 ```bash
-TURSO_DATABASE_URL='/absolute/path/to/.local/latent-space-bots.db' \
+TURSO_DATABASE_URL='/absolute/path/to/.local/slop.db' \
 OPENROUTER_API_KEY='your-openrouter-key' \
 npm run repl
 ```
@@ -92,15 +92,11 @@ npm run repl
 
 Bots use direct Turso access (`@libsql/client`) for graph reads/writes.
 
-## Persona (`SOUL`) files
+## Prompt and Persona Artifacts
 
-Bots now load persona instructions from:
-- `personas/sig.soul.md` — **Sig** ("signal"): Precise, skeptical analyst. Structures arguments, cites sources, flags uncertainty. The person in the room who says "show me the benchmark."
-- `personas/slop.soul.md` — **Slop** (ironic): First-principles provocateur. Takes strong stances, deconstructs consensus, ends with a challenge. Named after the enemy, fighting from the inside.
+Slop's active runtime prompt is assembled in `src/llm/prompts.ts` plus `skills/*.md` and member context from the database.
 
-Both personas share strict anti-hallucination rules (no fabrication, source-grounded claims, flagged speculation) and are tuned to the Latent Space community's builder-first, anti-slop values.
-
-Startup fails if a required bot's soul file is missing or empty, so persona behavior cannot silently drift.
+`personas/sig.soul.md` is kept only as an archived artifact for potential future reuse. Sig is not an active production bot.
 
 ## Kickoff API
 

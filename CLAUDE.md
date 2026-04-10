@@ -14,7 +14,7 @@ LS Wiki-Base for the Latent Space community. Built on the RA-H foundation, deplo
 - **AI:** Anthropic (Claude) + OpenAI (GPT) models via Vercel AI SDK — BYO keys
 - **MCP:** Model Context Protocol server in `apps/mcp-server/` (HTTP + stdio)
 - **Deployment:** Vercel (readonly mode for public)
-- **Bots:** Discord bots (Sig & Slop) in separate repo (`latent-space-bots`)
+- **Bots:** Discord bot platform in `apps/bots/`; only Slop is active today (`apps/bots/slop/`)
 - **UI:** Dashboard + 8-category sidebar + focus panel
 
 ## Database
@@ -96,7 +96,10 @@ latent-space-hub/
 │
 ├── apps/
 │   ├── mcp-server/                In-app MCP server (HTTP + stdio)
-│   └── mcp-server-standalone/     NPX-installable MCP server
+│   ├── mcp-server-standalone/     NPX-installable MCP server
+│   └── bots/
+│       ├── README.md              Bot platform notes
+│       └── slop/                  Slop Discord runtime deployed to Railway
 │
 ├── scripts/                       Ingestion, data refinement, companion backfill
 ├── docs/

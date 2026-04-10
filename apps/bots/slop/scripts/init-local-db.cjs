@@ -142,7 +142,7 @@ const optionalSchemaStatements = [
 ];
 
 function resolveTarget(arg) {
-  const raw = (arg || ".local/latent-space-bots.db").trim();
+  const raw = (arg || ".local/slop.db").trim();
   if (raw.startsWith("file:")) {
     const filePath = raw.slice("file:".length);
     return { filePath, url: raw };

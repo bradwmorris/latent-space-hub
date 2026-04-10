@@ -5,12 +5,12 @@ description: "How agents interact with the wiki-base: MCP tools for external age
 
 # Tools
 
-Two independent tool systems exist. Both query the same Turso database but are completely separate codebases.
+Two independent tool systems exist. Both query the same Turso database but serve different runtimes.
 
 | System | Where | Used by | Access |
 |--------|-------|---------|--------|
 | **MCP tools** | `apps/mcp-server-standalone/` | External agents (Claude Code, Cursor, etc.) | Read-only |
-| **Slop tools** | `latent-space-bots/src/tools.ts` | Discord bot | Read-only (writes via slash commands only) |
+| **Slop tools** | `apps/bots/slop/src/tools.ts` | Discord bot | Read-only (writes via slash commands only) |
 
 ---
 
@@ -52,12 +52,12 @@ The MCP server does not expose write tools. External agents cannot create, updat
 
 ## Slop Tools (Discord Bot)
 
-Slop has its own tool definitions in `latent-space-bots/src/tools.ts`. These are completely independent from the MCP tools: defined as OpenAI function-calling format, executed via direct Turso queries.
+Slop has its own tool definitions in `apps/bots/slop/src/tools.ts`. These are completely independent from the MCP tools: defined as OpenAI function-calling format, executed via direct Turso queries.
 
 ### All 9 Tools (Read-Only)
 
 ```typescript
-// latent-space-bots/src/tools.ts
+// apps/bots/slop/src/tools.ts
 
 // search tools
 { name: "slop_semantic_search",  description: "Vector search by meaning (default for questions)" },
@@ -97,7 +97,7 @@ Member profile updates also happen post-response (updating notes, metadata, and 
 | | MCP Tools | Slop Tools |
 |---|-----------|-----------|
 | **Format** | MCP SDK + Zod schemas | OpenAI function-calling JSON |
-| **DB access** | Direct Turso (standalone package) | Direct Turso (bots repo) |
+| **DB access** | Direct Turso (standalone package) | Direct Turso (`apps/bots/slop`) |
 | **Search** | Hybrid (vector + FTS5 + RRF) via `ls_search_content` | 3 separate tools: semantic, keyword, FTS5 |
 | **Read tools** | 9 | 9 |
 | **Write tools** | 0 | 0 (writes via slash commands only) |

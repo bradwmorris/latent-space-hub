@@ -8,7 +8,7 @@ import { loadSkillsContextFromLocalStrict } from "./skills";
 import { TOOL_DEFINITIONS } from "./tools";
 
 async function main(): Promise<void> {
-  console.log("Starting Latent Space bots...");
+  console.log("Starting Slop bot runtime...");
 
   const activeProfiles = profiles.filter((profile) => profile.token.trim());
 
@@ -17,7 +17,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`Active bots: ${activeProfiles.map((p) => p.name).join(", ")}`);
+  console.log(`Active bot profiles: ${activeProfiles.map((p) => p.name).join(", ")}`);
 
   if (ALLOWED_CHANNEL_IDS.size) {
     console.log(`Allowed channels: ${[...ALLOWED_CHANNEL_IDS].join(", ")}`);

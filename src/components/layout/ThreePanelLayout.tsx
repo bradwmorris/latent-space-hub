@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { Suspense, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import EventsCalendarPane from '../panes/EventsCalendarPane';
 import EvalsClient from '@/app/evals/EvalsClient';
@@ -564,7 +564,7 @@ function TypeNodeList({
 }
 
 // ─── Main Layout ─────────────────────────────────────────────────────────────
-export default function ThreePanelLayout() {
+function ThreePanelLayoutContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
@@ -948,5 +948,13 @@ export default function ThreePanelLayout() {
         />
       )}
     </div>
+  );
+}
+
+export default function ThreePanelLayout() {
+  return (
+    <Suspense fallback={null}>
+      <ThreePanelLayoutContent />
+    </Suspense>
   );
 }

@@ -156,12 +156,12 @@ The cron is managed by Vercel — it's configured in the project settings and ru
            └─────────────┘
 ```
 
-### How Slop uses the knowledge graph
+### How Slop uses the wiki-base
 
 When someone @mentions Slop or new content triggers a discussion:
 
 1. Slop receives the message from Discord
-2. Retrieves graph context via MCP tools
+2. Retrieves wiki-base context via direct Turso-backed `slop_*` tools
 3. Merges retrieval + skill context + member context into prompt assembly
 4. Sends grounded context + persona prompt to a model via OpenRouter
 5. Posts a response grounded in actual Latent Space content — with specific references
@@ -301,7 +301,7 @@ These are updated in Vercel and Railway after receiving the webhook URLs and bot
 | `DISCORD_WEBHOOK_USERNAME` | `Latent Space Hub` |
 | `DISCORD_WEBHOOK_AVATAR_URL` | Avatar image URL |
 
-### Railway (latent-space-bots)
+### Railway (`apps/bots/slop`)
 
 | Variable | Value |
 |----------|-------|
@@ -312,7 +312,7 @@ These are updated in Vercel and Railway after receiving the webhook URLs and bot
 | `TURSO_DATABASE_URL` | Turso DB URL |
 | `TURSO_AUTH_TOKEN` | Turso token |
 | `SLOP_MODEL` | Model name (optional override) |
-| `LS_HUB_MCP_SERVER_PATH` | Optional local override for MCP server script |
+| `PAPER_CLUB_CHANNEL_ID` | Channel ID used for Paper Club reminders |
 
 The bot token is now `BOT_TOKEN_SLOP` (not `DISCORD_TOKEN`).
 
