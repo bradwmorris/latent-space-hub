@@ -99,7 +99,11 @@ async function handleLocalCommand(input: string): Promise<boolean> {
     return true;
   }
   if (input.startsWith("/switch ")) {
-    const target = input.split(" ")[1];
+    const target = input.slice("/switch ".length).trim();
+    if (!target) {
+      printSystem("Usage: /switch <thread-id|thread-name>");
+      return true;
+    }
     const current = client.getCurrentConversation();
     if (current.kind === "thread" && (target === current.parentId || target === "general")) {
       const conversation = client.setCurrentConversation(current.parentId!);
