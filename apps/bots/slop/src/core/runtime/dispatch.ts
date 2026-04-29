@@ -11,7 +11,7 @@ import {
   handleEditEventReplyEvent,
   startEditEventCommandEvent,
 } from "../commands/edit-event-service";
-import { handleBacklogCreateCommandEvent } from "../commands/backlog-service";
+import { handleIssueCommandEvent } from "../commands/issue-service";
 import type {
   RuntimeChatTransport,
   RuntimeCommandEvent,
@@ -57,8 +57,8 @@ export async function dispatchRuntimeCommandEvent(
     case "edit-event":
       await startEditEventCommandEvent(event, transport);
       return;
-    case "backlog-create":
-      await handleBacklogCreateCommandEvent(event, transport);
+    case "issue":
+      await handleIssueCommandEvent(event, transport);
       return;
   }
 }

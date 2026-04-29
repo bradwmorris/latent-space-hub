@@ -59,7 +59,7 @@ function updatePrompt(): void {
 
 function printHelp(): void {
   printSystem(
-    "Commands: /as <@user|name>, /users, /threads, /switch <id|name>, /join, /paper-club, /builders-club, /edit-event, /help, /quit"
+    "Commands: /as <@user|name>, /users, /threads, /switch <id|name>, /join, /paper-club, /builders-club, /edit-event, /issue, /help, /quit"
   );
 }
 
@@ -125,7 +125,8 @@ async function handleLocalCommand(input: string): Promise<boolean> {
     input === "/join" ||
     input === "/paper-club" ||
     input === "/builders-club" ||
-    input === "/edit-event"
+    input === "/edit-event" ||
+    input === "/issue"
   ) {
     const event = client.createCommandEvent(input.slice(1) as RuntimeCommandName);
     try {
@@ -150,7 +151,7 @@ printSystem(`Channel: #${client.getCurrentConversation().name}`);
 printSystem(`Active user: @${client.getCurrentUser().username}`);
 printSystem('Mention the bot with "@slop" to begin');
 printSystem(
-  "Type /help to see local commands. Supported literal local commands: /join, /paper-club, /builders-club, /edit-event"
+  "Type /help to see local commands. Supported literal local commands: /join, /paper-club, /builders-club, /edit-event, /issue"
 );
 updatePrompt();
 

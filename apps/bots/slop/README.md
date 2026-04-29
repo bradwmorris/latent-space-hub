@@ -9,6 +9,7 @@ Gateway runtime implemented for:
 - Single-owner thread routing: if a user tags one bot, that bot owns the thread follow-up conversation
 - Slash commands: `/join`, `/paper-club`, `/builders-club`
 - Slash command: `/edit-event` for updating/canceling your scheduled sessions
+- Slash command: `/issue` for creating a GitHub issue directly in the Hub repo
 - Direct Turso graph access via parameterized SQL
 - Channel allowlist + basic rate limiting
 - Optional chat logging to Turso (`ENABLE_CHAT_LOG_WRITE=true`)
@@ -24,6 +25,7 @@ Gateway runtime implemented for:
 | `/paper-club` | none | Schedule a Paper Club session — pick a date and paper |
 | `/builders-club` | none | Schedule a Builders Club session — pick a date and topic |
 | `/edit-event` | none | Edit title, paper URL, date, or cancel your scheduled event |
+| `/issue` | `title`, `body`, optional `labels` | Create a GitHub issue directly in the Hub repo |
 
 ## Member Memory
 
@@ -69,6 +71,7 @@ Supported local commands:
 - `/paper-club`
 - `/builders-club`
 - `/edit-event`
+- `/issue`
 - `/quit`
 
 Usage notes:

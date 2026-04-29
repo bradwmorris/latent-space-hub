@@ -307,49 +307,40 @@ Add a second script or admin action that checks for:
 
 This does not auto-resolve every mismatch in v1, but it should make drift visible.
 
-### Step 6: Slop Discord backlog intake
+### Step 6: Slop Discord intake
 
-Add a backlog creation flow to `apps/bots/slop/`.
+Original plan was `/backlog-create`, which created a backlog item, PRD, and GitHub issue through the Hub API. That proved too heavyweight for Discord intake. The active direction is to remove `/backlog-create` and expose one smaller command that creates a GitHub issue directly.
 
 **Files to add / modify:**
 
 - `apps/bots/slop/src/commands/register.ts`
 - `apps/bots/slop/src/core/runtime/types.ts`
 - `apps/bots/slop/src/core/runtime/dispatch.ts`
-- `apps/bots/slop/src/core/commands/backlog-service.ts`
+- `apps/bots/slop/src/core/commands/issue-service.ts`
 - `apps/bots/slop/src/config.ts`
 
 **Command surface:**
 
-Start with an explicit slash-command path, not fully implicit casual chat writes.
+Use an explicit slash-command path, not fully implicit casual chat writes.
 
-Recommended command:
+Command:
 
-- `/backlog-create`
+- `/issue`
 
 Arguments:
 
 - `title`
-- `type`
-- `priority`
-- `notes`
-- optional `due_date`
+- `body`
+- optional `labels`
 
 **Interaction flow:**
 
-1. User invokes `/backlog-create`
+1. User invokes `/issue`
 2. Slop validates permission / role
-3. Slop drafts a structured preview:
-   - normalized title
-   - proposed backlog id
-   - proposed PRD filename
-   - proposed issue title
-   - first-pass task breakdown
-4. User confirms
-5. Slop calls the shared backlog mutation API
-6. Slop replies with links to:
-   - GitHub issue
-   - PRD file / hub backlog detail
+3. Slop creates a GitHub issue directly in the Hub repo
+4. Slop replies with the issue link
+
+This command does not create a backlog item or PRD. Backlog/PRD expansion can happen after triage if the issue is worth promoting.
 
 **Natural-language support:**
 
@@ -391,7 +382,7 @@ The old `docs/development/backlog/ui/` folder can remain temporarily as a local 
 | `apps/bots/slop/src/commands/register.ts` | Modify |
 | `apps/bots/slop/src/core/runtime/types.ts` | Modify |
 | `apps/bots/slop/src/core/runtime/dispatch.ts` | Modify |
-| `apps/bots/slop/src/core/commands/backlog-service.ts` | Create |
+| `apps/bots/slop/src/core/commands/issue-service.ts` | Create |
 | `scripts/backlog/backfill-github-issues.ts` | Create |
 
 ## 8. Constraints

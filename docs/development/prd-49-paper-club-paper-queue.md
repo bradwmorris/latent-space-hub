@@ -466,6 +466,7 @@ Slop watches for presenter nominations that happen outside Slop, such as organiz
 
 ## 9. Open Questions / Notes
 
+- Data repair note, 2026-04-29: the existing wiki-base Paper Club event data is not reliable enough for automation. Paper Club runs weekly, but the DB has missing weekly rows, stale scheduled rows, wrong dates from YouTube upload/ingestion timestamps, and missing presenter metadata. See `docs/development/paper-club-data-audit-2026-04-29.md` for the current date-to-paper-to-presenter mapping and repair plan.
 - Is the highest leverage target attendees, organizers, or presenters?
 - Should this live primarily in Discord, the Hub, or both?
 - What exact URLs count as paper-ish in v1?

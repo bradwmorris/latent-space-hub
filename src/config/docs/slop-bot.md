@@ -23,6 +23,7 @@ Slop is Latent Space's Discord bot. It searches the wiki-base, answers questions
    - `/paper-club` — schedule a Paper Club session
    - `/builders-club` — schedule a Builders Club session
    - `/edit-event` — edit or cancel a scheduled event
+   - `/issue` — create a GitHub issue directly in the Hub repo
    - `/join` — create your member profile (optional)
 3. **Sends event reminders** — Automated reminders for upcoming Paper Club sessions:
    - 24 hours before the session
@@ -99,7 +100,7 @@ Bot updates member profile (non-blocking)
 
 # Slash Commands
 
-Four commands registered with Discord. These are typed directly in the message input.
+Five commands registered with Discord. These are typed directly in the message input.
 
 ## /join
 
@@ -137,6 +138,12 @@ Edits one of your scheduled events. You can:
 - Update or remove Paper Club URL
 - Reschedule to another available slot
 - Cancel the event
+
+## /issue
+
+**Usage:** `/issue title:"..." body:"..." [labels:"bug,discord"]`
+
+Creates a GitHub issue directly in the Hub repo. This does not create a backlog item or PRD.
 
 ---
 
