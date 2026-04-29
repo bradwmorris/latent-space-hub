@@ -32,6 +32,17 @@ function isWhitelisted(pathname: string): boolean {
   return WHITELISTED_PREFIXES.some(prefix => pathname.startsWith(prefix));
 }
 
+function isAuthorizedBacklogMutation(request: NextRequest, pathname: string): boolean {
+  if (!pathname.startsWith('/api/backlog/')) return false;
+  const secret = process.env.BACKLOG_ADMIN_SECRET;
+  if (!secret) return false;
+
+  const headerSecret = request.headers.get('x-backlog-admin-secret')
+    || request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+    || '';
+  return headerSecret === secret;
+}
+
 export function middleware(request: NextRequest) {
   if (!READONLY) return NextResponse.next();
   if (!MUTATION_METHODS.has(request.method)) return NextResponse.next();
@@ -42,6 +53,7 @@ export function middleware(request: NextRequest) {
   if (!pathname.startsWith('/api/')) return NextResponse.next();
 
   if (isWhitelisted(pathname)) return NextResponse.next();
+  if (isAuthorizedBacklogMutation(request, pathname)) return NextResponse.next();
 
   return NextResponse.json(
     { success: false, error: 'This instance is read-only.' },

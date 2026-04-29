@@ -64,11 +64,17 @@ export async function handleInteraction(client: Client, profile: BotProfile, int
   }
 
   await interaction.deferReply();
-  await dispatchRuntimeCommandEvent(
-    profile,
-    createRuntimeCommandEvent(interaction),
-    createDiscordCommandTransport(interaction)
-  );
+  try {
+    await dispatchRuntimeCommandEvent(
+      profile,
+      createRuntimeCommandEvent(interaction),
+      createDiscordCommandTransport(interaction)
+    );
+  } catch (error) {
+    console.error(`${profile.name} command failed:`, error);
+    const message = error instanceof Error ? error.message : "Unknown command error";
+    await interaction.editReply(`Command failed: ${message}`);
+  }
 }
 
 export async function startBot(profile: BotProfile): Promise<void> {
