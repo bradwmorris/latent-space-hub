@@ -125,7 +125,7 @@ function buildBacklogNotes(event: RuntimeCommandEvent, body: string, labels: str
     .join("\n");
 }
 
-async function githubFetch(pathname: string, init: RequestInit = {}): Promise<Response> {
+async function githubFetch(operation: string, pathname: string, init: RequestInit = {}): Promise<Response> {
   const response = await fetch(`https://api.github.com${pathname}`, {
     ...init,
     headers: {
@@ -140,7 +140,8 @@ async function githubFetch(pathname: string, init: RequestInit = {}): Promise<Re
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => ({}))) as { message?: string };
-    throw new Error(payload.message || `GitHub API failed with HTTP ${response.status}`);
+    const message = payload.message || `GitHub API failed with HTTP ${response.status}`;
+    throw new Error(`${operation} failed: ${message}`);
   }
 
   return response;
@@ -148,6 +149,7 @@ async function githubFetch(pathname: string, init: RequestInit = {}): Promise<Re
 
 async function readBacklogFile(): Promise<{ file: BacklogFile; sha: string }> {
   const response = await githubFetch(
+    "Read backlog file",
     `/repos/${GITHUB_ISSUE_REPO_OWNER}/${GITHUB_ISSUE_REPO_NAME}/contents/${encodeRepoPath(BACKLOG_PATH)}?ref=${encodeURIComponent(GITHUB_ISSUE_BRANCH)}`
   );
   const payload = (await response.json()) as GitHubFileResponse;
@@ -165,6 +167,7 @@ async function writeRepoFile(params: {
   sha?: string;
 }): Promise<void> {
   await githubFetch(
+    `Write ${params.repoPath}`,
     `/repos/${GITHUB_ISSUE_REPO_OWNER}/${GITHUB_ISSUE_REPO_NAME}/contents/${encodeRepoPath(params.repoPath)}`,
     {
       method: "PUT",
@@ -183,14 +186,18 @@ async function createGitHubIssue(params: {
   body: string;
   labels: string[];
 }): Promise<GitHubIssueResponse> {
-  const response = await githubFetch(`/repos/${GITHUB_ISSUE_REPO_OWNER}/${GITHUB_ISSUE_REPO_NAME}/issues`, {
-    method: "POST",
-    body: JSON.stringify({
-      title: params.title,
-      body: params.body,
-      labels: Array.from(new Set(["backlog", ...params.labels])),
-    }),
-  });
+  const response = await githubFetch(
+    "Create GitHub issue",
+    `/repos/${GITHUB_ISSUE_REPO_OWNER}/${GITHUB_ISSUE_REPO_NAME}/issues`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        title: params.title,
+        body: params.body,
+        labels: Array.from(new Set(["backlog", ...params.labels])),
+      }),
+    }
+  );
   return (await response.json()) as GitHubIssueResponse;
 }
 
