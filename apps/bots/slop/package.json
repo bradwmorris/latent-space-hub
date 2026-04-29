@@ -21,7 +21,8 @@
     "discord.js": "^14.19.3",
     "dotenv": "^17.2.3",
     "node-cron": "^4.2.1",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "youtube-transcript-plus": "^1.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

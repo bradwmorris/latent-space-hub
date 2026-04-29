@@ -72,7 +72,7 @@ Slop doesn't use one fixed AI model. It uses **OpenRouter**, which is a single A
 
 Why this matters: we can swap which model Slop uses at any time — just change one environment variable. If a new model comes out that's better or cheaper, we switch to it without changing any code. If one provider has an outage, we can point to a different model in minutes.
 
-Right now Slop uses Claude via OpenRouter, but this is a config choice, not a hard dependency.
+Right now Slop uses DeepSeek V4 Pro via OpenRouter, but this is a config choice, not a hard dependency.
 
 #### 3. Turso — the database
 

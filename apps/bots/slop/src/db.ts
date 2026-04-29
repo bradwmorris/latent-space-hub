@@ -49,6 +49,19 @@ export type UpcomingEventRow = {
   presenter_name: string;
 };
 
+export type RecordingTargetEventRow = {
+  id: number;
+  title: string;
+  event_date: string;
+  link: string | null;
+  event_type: "paper-club" | "builders-club";
+  event_status: string;
+  presenter_name: string | null;
+  paper_title: string | null;
+  topic: string | null;
+  metadata: Record<string, unknown>;
+};
+
 type EdgeContext = {
   type: string;
   confidence: number;
@@ -542,6 +555,207 @@ export async function updateEventNode(
   }
 
   return { ok: true };
+}
+
+export async function findRecordingNodeByYouTubeVideoId(
+  db: LibsqlClient,
+  params: { videoId: string; canonicalUrl: string }
+): Promise<NodeRow | null> {
+  const shortUrl = `https://youtu.be/${params.videoId}`;
+  const result = await db.execute({
+    sql: `SELECT id, title, description, notes, link, node_type, event_date, metadata
+          FROM nodes
+          WHERE link IN (?, ?)
+             OR json_extract(metadata, '$.video_id') = ?
+             OR json_extract(metadata, '$.youtube_video_id') = ?
+          ORDER BY updated_at DESC
+          LIMIT 1`,
+    args: [params.canonicalUrl, shortUrl, params.videoId, params.videoId],
+  });
+  if (!result.rows.length) return null;
+  return rowToNode(result.rows[0]);
+}
+
+export async function getRecentRecordingTargetEvents(
+  db: LibsqlClient,
+  params: { eventType?: "paper-club" | "builders-club"; limit?: number } = {}
+): Promise<RecordingTargetEventRow[]> {
+  const where = [
+    "node_type = 'event'",
+    "json_extract(metadata, '$.event_type') IN ('paper-club', 'builders-club')",
+    "COALESCE(json_extract(metadata, '$.event_status'), '') NOT IN ('cancelled', 'superseded')",
+  ];
+  const args: Array<string | number> = [];
+  if (params.eventType) {
+    where.push("json_extract(metadata, '$.event_type') = ?");
+    args.push(params.eventType);
+  }
+  args.push(Math.min(Math.max(Number(params.limit) || 40, 1), 100));
+
+  const result = await db.execute({
+    sql: `SELECT id, title, event_date, link, metadata,
+                 json_extract(metadata, '$.event_type') AS event_type,
+                 json_extract(metadata, '$.event_status') AS event_status,
+                 json_extract(metadata, '$.presenter_name') AS presenter_name,
+                 json_extract(metadata, '$.paper_title') AS paper_title,
+                 json_extract(metadata, '$.topic') AS topic
+          FROM nodes
+          WHERE ${where.join(" AND ")}
+          ORDER BY event_date DESC
+          LIMIT ?`,
+    args,
+  });
+
+  return result.rows
+    .map((row) => ({
+      id: Number(row.id),
+      title: String(row.title || ""),
+      event_date: String(row.event_date || ""),
+      link: row.link == null ? null : String(row.link),
+      event_type: String(row.event_type || "") as "paper-club" | "builders-club",
+      event_status: String(row.event_status || ""),
+      presenter_name: row.presenter_name == null ? null : String(row.presenter_name),
+      paper_title: row.paper_title == null ? null : String(row.paper_title),
+      topic: row.topic == null ? null : String(row.topic),
+      metadata: parseMetadata(row.metadata) as Record<string, unknown>,
+    }))
+    .filter((row) => row.event_type === "paper-club" || row.event_type === "builders-club");
+}
+
+export async function createRecordingNodeForEvent(
+  db: LibsqlClient,
+  params: {
+    targetEvent: RecordingTargetEventRow;
+    title: string;
+    canonicalUrl: string;
+    videoId: string;
+    channelName?: string;
+    channelUrl?: string;
+    thumbnailUrl?: string;
+    transcript?: string;
+    transcriptMetadata?: Record<string, unknown>;
+    addedByDiscordId: string;
+    addedByUsername: string;
+    discordChannelId: string;
+    discordMessageId: string;
+  }
+): Promise<{ id: number }> {
+  const now = new Date().toISOString();
+  const eventType = params.targetEvent.event_type;
+  const description = `Recording for ${params.targetEvent.title}.`;
+  const metadata = {
+    event_status: "recording",
+    event_type: eventType,
+    recording_for_event_node_id: params.targetEvent.id,
+    video_id: params.videoId,
+    youtube_url: params.canonicalUrl,
+    channel_name: params.channelName,
+    channel_url: params.channelUrl,
+    thumbnail_url: params.thumbnailUrl,
+    source_type: "youtube_recording",
+    provider: "YouTube",
+    ingestion_status: params.transcript ? "transcript_chunked" : "metadata_only",
+    ...(params.transcriptMetadata || {}),
+    added_via: "slop-recording-intake",
+    added_by_discord_id: params.addedByDiscordId,
+    added_by_username: params.addedByUsername,
+    source_discord_channel_id: params.discordChannelId,
+    source_discord_message_id: params.discordMessageId,
+    added_at: now,
+  };
+
+  const result = await db.execute({
+    sql: `INSERT INTO nodes (title, description, link, node_type, event_date, metadata, chunk, chunk_status, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      params.title,
+      description,
+      params.canonicalUrl,
+      eventType,
+      params.targetEvent.event_date || null,
+      JSON.stringify(metadata),
+      params.transcript || null,
+      params.transcript ? "chunked" : "not_chunked",
+      now,
+      now,
+    ],
+  });
+
+  const nodeId = Number(result.lastInsertRowid);
+  if (!Number.isFinite(nodeId) || nodeId <= 0) {
+    throw new Error("INSERT did not return a valid recording node ID.");
+  }
+
+  await db.execute({
+    sql: `INSERT OR IGNORE INTO node_dimensions (node_id, dimension) VALUES (?, ?)`,
+    args: [nodeId, eventType],
+  });
+
+  if (params.transcript) {
+    const chunks = chunkTextForStorage(params.transcript);
+    for (let idx = 0; idx < chunks.length; idx++) {
+      await db.execute({
+        sql: `INSERT INTO chunks (node_id, chunk_idx, text, embedding_type, metadata, created_at)
+              VALUES (?, ?, ?, 'text-embedding-3-small', ?, ?)`,
+        args: [
+          nodeId,
+          idx,
+          chunks[idx],
+          JSON.stringify({ created_via: "slop-recording-intake" }),
+          now,
+        ],
+      });
+    }
+  }
+
+  return { id: nodeId };
+}
+
+export async function attachRecordingToEvent(
+  db: LibsqlClient,
+  params: {
+    recordingNodeId: number;
+    targetEvent: RecordingTargetEventRow;
+    recordingUrl: string;
+    addedByDiscordId: string;
+    addedByUsername: string;
+  }
+): Promise<void> {
+  const now = new Date().toISOString();
+  const eventMetadata = {
+    ...params.targetEvent.metadata,
+    event_status: "completed",
+    recording_node_id: params.recordingNodeId,
+    recording_url: params.recordingUrl,
+    recording_attached_at: now,
+    recording_attached_by_discord_id: params.addedByDiscordId,
+    recording_attached_by_username: params.addedByUsername,
+  };
+
+  await db.execute({
+    sql: `UPDATE nodes SET metadata = ?, updated_at = ? WHERE id = ? AND node_type = 'event'`,
+    args: [JSON.stringify(eventMetadata), now, params.targetEvent.id],
+  });
+
+  const existingEdge = await db.execute({
+    sql: `SELECT 1 FROM edges WHERE from_node_id = ? AND to_node_id = ? LIMIT 1`,
+    args: [params.recordingNodeId, params.targetEvent.id],
+  });
+  if (existingEdge.rows.length) return;
+
+  const label = params.targetEvent.event_type === "paper-club" ? "Paper Club" : "Builders Club";
+  const context: EdgeContext = {
+    type: "recording_of",
+    confidence: 1,
+    inferred_at: now,
+    explanation: `recording of ${label} session`,
+    created_via: "slop-recording-intake",
+  };
+  await db.execute({
+    sql: `INSERT INTO edges (from_node_id, to_node_id, context, source, created_at)
+          VALUES (?, ?, ?, 'discord-bot', ?)`,
+    args: [params.recordingNodeId, params.targetEvent.id, JSON.stringify(context), now],
+  });
 }
 
 export async function getBookedDates(
@@ -1198,6 +1412,30 @@ function parseMetadata(raw: unknown): unknown {
     }
   }
   return {};
+}
+
+function chunkTextForStorage(text: string): string[] {
+  const chunkSize = 2000;
+  const overlap = 400;
+  const chunks: string[] = [];
+  let pos = 0;
+  while (pos < text.length) {
+    let end = Math.min(pos + chunkSize, text.length);
+    if (end < text.length) {
+      const paragraphBreak = text.lastIndexOf("\n\n", end);
+      const sentenceBreak = text.lastIndexOf(". ", end);
+      if (paragraphBreak > pos + chunkSize * 0.5) {
+        end = paragraphBreak;
+      } else if (sentenceBreak > pos + chunkSize * 0.5) {
+        end = sentenceBreak + 1;
+      }
+    }
+    const chunk = text.slice(pos, end).trim();
+    if (chunk) chunks.push(chunk);
+    const next = end - overlap;
+    pos = next <= pos ? end : next;
+  }
+  return chunks;
 }
 
 function isUniqueConstraintError(error: unknown): boolean {

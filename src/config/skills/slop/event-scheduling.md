@@ -24,6 +24,7 @@ Paper Club and Builders Club sessions are scheduled via Discord slash commands. 
 - `/builders-club` — schedule a Builders Club session
 - `/edit-event` — edit title, paper URL, date, or cancel your own scheduled event
 - `/join` — optional, enriches your member profile with interests, role, company, etc.
+- Recording intake — mention Slop with "add this recording" plus a YouTube URL. Slop creates or reuses the recording node, marks the matching event completed, and links recording → event. If the match is unclear, Slop asks which event to attach.
 
 If someone schedules without having `/join`'d, a member node is auto-created from their Discord info. If someone asks you to schedule or edit an event, direct them to use the slash command.
 

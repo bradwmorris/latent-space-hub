@@ -48,7 +48,7 @@ export const TURSO_AUTH_TOKEN = isLocalLibsqlUrl(RAW_TURSO_DATABASE_URL)
   : requiredEnv("TURSO_AUTH_TOKEN");
 export const OPENROUTER_API_KEY = requiredEnv("OPENROUTER_API_KEY");
 
-export const SLOP_MODEL = process.env.SLOP_MODEL || "anthropic/claude-sonnet-4-6";
+export const SLOP_MODEL = process.env.SLOP_MODEL || "deepseek/deepseek-v4-pro";
 export const DISCORD_TEST_GUILD_ID = process.env.DISCORD_TEST_GUILD_ID || "";
 export const ALLOWED_CHANNEL_IDS = new Set(
   (process.env.ALLOWED_CHANNEL_IDS || "")

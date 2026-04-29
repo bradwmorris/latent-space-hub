@@ -16,6 +16,7 @@ import {
   type RuntimeChatTransport,
   type RuntimeMessageEvent,
 } from "../runtime/types";
+import { handleRecordingIntakeMessage } from "./recording-intake";
 
 function isGreetingOrSmalltalk(text: string): boolean {
   const normalized = text.trim().toLowerCase();
@@ -84,6 +85,10 @@ export async function handleRuntimeChatMessage(
     profile.name
   );
   await transport.sendTyping(destination);
+
+  if (await handleRecordingIntakeMessage(profile, event, transport, destination, prompt)) {
+    return;
+  }
 
   const skillsContext = getSkillsContextOrThrow();
   const member = await lookupMember(event.actor.id);

@@ -2,6 +2,17 @@
 
 **Status:** Draft | **Created:** 2026-04-23
 
+## Latest Status
+
+Updated 2026-04-30:
+
+- Community feedback and Discord channel research has been folded into this PRD: the direction is now a Discord-native paper-thread loop, not a standalone Hub-first queue.
+- The strongest current v1 remains: detect paper-ish shares in `#llm-paper-club`, attach to or create one discussion thread, post a short source-grounded TLDR, and offer one `Present this at Paper Club` button that routes into the existing `/paper-club` scheduling flow.
+- The repo-side Slop model default has been changed to `deepseek/deepseek-v4-pro` via OpenRouter, with build and bot tests passing. Production Railway still needs the live `SLOP_MODEL=deepseek/deepseek-v4-pro` env update from an authenticated Railway session.
+- GitHub issue #19 now tracks the DeepSeek V4 Pro switch.
+- Recording intake is now implemented repo-side: mentioning Slop with "add this recording" plus a YouTube URL creates/reuses a Paper/Builders Club recording node, extracts transcript chunks when available, marks the matched event completed, and creates a recording → event edge. The DeepSeek V4 Paper Club recording was added live as node #4556 and linked to event #4555.
+- Still unresolved: we need to really think through an impressive, simple, non-obtrusive refinement that gets this more attention and actual usage. The feature should feel like it amplifies the existing Paper Club channel culture, not like another workflow people have to adopt.
+
 ## 1. Background
 
 Build the lowest-friction Paper Club loop that is useful enough for members to preread papers, discuss them before the session, and volunteer to present. This should help organizers see where there is real community interest and keep the presenter pipeline healthy without adding administrative overhead.

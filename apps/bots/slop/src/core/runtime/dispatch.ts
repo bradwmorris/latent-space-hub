@@ -12,6 +12,10 @@ import {
   startEditEventCommandEvent,
 } from "../commands/edit-event-service";
 import { handleIssueCommandEvent } from "../commands/issue-service";
+import {
+  handleRecordingIntakeReplyEvent,
+} from "../chat/recording-intake";
+import { recordingIntakeSessionStore } from "../sessions/recording-intake-store";
 import type {
   RuntimeChatTransport,
   RuntimeCommandEvent,
@@ -35,6 +39,12 @@ export async function dispatchRuntimeMessageEvent(
   const editSession = getEditEventSession(event.conversation.id);
   if (editSession && event.actor.id === editSession.memberDiscordId) {
     await handleEditEventReplyEvent(event, replyPort, editSession);
+    return;
+  }
+
+  const recordingSession = recordingIntakeSessionStore.get(event.conversation.id);
+  if (recordingSession && event.actor.id === recordingSession.memberDiscordId) {
+    await handleRecordingIntakeReplyEvent(event, replyPort, recordingSession);
     return;
   }
 

@@ -12,7 +12,7 @@ import { ConsoleRuntimeClient } from "./client";
 const profile: BotProfile = {
   name: "Slop",
   token: "",
-  model: process.env.SLOP_MODEL || "anthropic/claude-sonnet-4-6",
+  model: process.env.SLOP_MODEL || "deepseek/deepseek-v4-pro",
 };
 const client = new ConsoleRuntimeClient();
 const skillsContext = loadSkillsContextFromLocalStrict();
