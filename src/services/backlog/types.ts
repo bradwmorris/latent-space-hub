@@ -99,6 +99,7 @@ export interface BacklogProjectDetail {
 export interface CreateBacklogProjectInput {
   title: string;
   notes: string;
+  labels?: string[];
   type?: BacklogProjectType;
   priority?: BacklogPriority;
   status?: Exclude<BacklogStatus, 'completed'>;

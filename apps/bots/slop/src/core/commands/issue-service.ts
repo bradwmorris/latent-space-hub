@@ -1,14 +1,22 @@
 import {
-  GITHUB_ISSUE_REPO_NAME,
-  GITHUB_ISSUE_REPO_OWNER,
-  GITHUB_ISSUE_TOKEN,
+  BACKLOG_ADMIN_SECRET,
+  HUB_BASE_URL,
 } from "../../config";
 import type { RuntimeCommandEvent, RuntimeCommandTransport } from "../runtime/types";
 
-type GitHubIssueResponse = {
-  number?: number;
-  html_url?: string;
-  title?: string;
+type BacklogCreateResponse = {
+  success?: boolean;
+  data?: {
+    project?: {
+      id?: string;
+      github?: {
+        issue_number?: number;
+        issue_url?: string;
+      };
+    };
+    warning?: string;
+  };
+  error?: string;
 };
 
 function optionString(event: RuntimeCommandEvent, name: string): string {
@@ -16,10 +24,8 @@ function optionString(event: RuntimeCommandEvent, name: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function canCreateIssue(event: RuntimeCommandEvent): boolean {
-  void event;
-  if (!GITHUB_ISSUE_TOKEN) return false;
-  return true;
+function canCreateIssue(): boolean {
+  return Boolean(BACKLOG_ADMIN_SECRET);
 }
 
 function parseLabels(raw: string): string[] {
@@ -30,10 +36,11 @@ function parseLabels(raw: string): string[] {
     .slice(0, 10);
 }
 
-function buildIssueBody(event: RuntimeCommandEvent, body: string): string {
+function buildBacklogNotes(event: RuntimeCommandEvent, body: string, labels: string[]): string {
   const actorName = event.actor.globalName
     ? `${event.actor.globalName} (@${event.actor.username})`
     : `@${event.actor.username}`;
+  const labelLine = labels.length ? `Requested labels: ${labels.map((label) => `\`${label}\``).join(", ")}` : null;
 
   return [
     body,
@@ -43,39 +50,40 @@ function buildIssueBody(event: RuntimeCommandEvent, body: string): string {
     `Discord user: ${actorName} (${event.actor.id})`,
     `Discord conversation: ${event.conversation.name} (${event.conversation.id})`,
     `Discord command id: ${event.id}`,
-  ].join("\n");
+    labelLine,
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
 }
 
-async function createGitHubIssue(params: {
+async function createBacklogProject(params: {
   title: string;
-  body: string;
+  notes: string;
   labels: string[];
-}): Promise<GitHubIssueResponse> {
-  const response = await fetch(
-    `https://api.github.com/repos/${encodeURIComponent(GITHUB_ISSUE_REPO_OWNER)}/${encodeURIComponent(GITHUB_ISSUE_REPO_NAME)}/issues`,
-    {
-      method: "POST",
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${GITHUB_ISSUE_TOKEN}`,
-        "Content-Type": "application/json",
-        "User-Agent": "latent-space-slop-issue-command",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-      body: JSON.stringify({
-        title: params.title,
-        body: params.body,
-        labels: params.labels.length ? params.labels : undefined,
-      }),
-    }
-  );
+  event: RuntimeCommandEvent;
+}): Promise<BacklogCreateResponse> {
+  const response = await fetch(`${HUB_BASE_URL.replace(/\/$/, "")}/api/backlog/projects`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-backlog-admin-secret": BACKLOG_ADMIN_SECRET,
+    },
+    body: JSON.stringify({
+      title: params.title,
+      notes: params.notes,
+      labels: params.labels,
+      type: "feature",
+      priority: "medium",
+      status: "prd",
+      sourceSurface: "discord",
+      sourceActor: params.event.actor.username,
+      sourceConversationId: params.event.conversation.id,
+    }),
+  });
 
-  const payload = (await response.json().catch(() => ({}))) as GitHubIssueResponse & {
-    message?: string;
-  };
-
-  if (!response.ok) {
-    throw new Error(payload.message || `GitHub issue create failed with HTTP ${response.status}`);
+  const payload = (await response.json().catch(() => ({}))) as BacklogCreateResponse;
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.error || `Backlog issue create failed with HTTP ${response.status}`);
   }
 
   return payload;
@@ -85,9 +93,9 @@ export async function handleIssueCommandEvent(
   event: RuntimeCommandEvent,
   transport: RuntimeCommandTransport
 ): Promise<void> {
-  if (!canCreateIssue(event)) {
+  if (!canCreateIssue()) {
     await transport.editReply(
-      "Issue creation is not configured for this bot instance. Set `GITHUB_ISSUE_TOKEN` in Railway."
+      "Issue creation is not configured for this bot instance. Set `BACKLOG_ADMIN_SECRET` in Railway."
     );
     return;
   }
@@ -106,16 +114,32 @@ export async function handleIssueCommandEvent(
     return;
   }
 
-  const issue = await createGitHubIssue({
+  const result = await createBacklogProject({
     title,
-    body: buildIssueBody(event, body),
+    notes: buildBacklogNotes(event, body, labels),
     labels,
+    event,
   });
 
-  if (!issue.html_url || !issue.number) {
-    await transport.editReply("Issue was created, but GitHub did not return a usable issue URL.");
+  const project = result.data?.project;
+  if (!project?.id) {
+    await transport.editReply("Backlog item was created, but the Hub did not return a usable project id.");
     return;
   }
 
-  await transport.editReply(`Created issue #${issue.number}: ${issue.html_url}`);
+  const backlogUrl = `${HUB_BASE_URL.replace(/\/$/, "")}/backlog?id=${encodeURIComponent(project.id)}`;
+  const issueLine = project.github?.issue_url
+    ? `Issue #${project.github.issue_number}: ${project.github.issue_url}`
+    : "Issue: not created because the Hub GitHub backlog integration is not configured.";
+
+  await transport.editReply(
+    [
+      `Created backlog item \`${project.id}\`.`,
+      `Backlog: ${backlogUrl}`,
+      issueLine,
+      result.data?.warning || null,
+    ]
+      .filter((line) => line !== null)
+      .join("\n")
+  );
 }

@@ -1,5 +1,3 @@
-import 'server-only';
-
 import path from 'path';
 import type { BacklogGitHubMetadata, BacklogTask, CreateBacklogProjectInput } from '@/services/backlog/types';
 

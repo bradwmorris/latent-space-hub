@@ -1,5 +1,3 @@
-import 'server-only';
-
 export interface GitHubBacklogConfig {
   token: string;
   owner: string;

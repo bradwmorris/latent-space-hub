@@ -87,7 +87,7 @@ Slop's write operations happen **outside the LLM tool loop**, triggered only by 
 | `/paper-club` | Creates a scheduled event node |
 | `/builders-club` | Creates a scheduled event node |
 | `/edit-event` | Updates or cancels the caller's scheduled event |
-| `/issue` | Creates a GitHub issue directly in the Hub repo |
+| `/issue` | Creates a Hub backlog item, PRD, and linked GitHub issue |
 
 Member profile updates also happen post-response (updating notes, metadata, and edges) but are not LLM-callable tools.
 

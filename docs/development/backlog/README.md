@@ -12,6 +12,7 @@ This folder contains the prioritized backlog of development tasks for Latent Spa
 - Deployed app route: `/backlog`
 - Data source: `docs/development/backlog/backlog.json` + linked `docs/development/prd-*.md`
 - Mutations: GitHub-backed when `GITHUB_BACKLOG_TOKEN` + repo env vars are configured
+- Discord intake: Slop `/issue` posts to `/api/backlog/projects`, creating the backlog item, PRD, and linked GitHub issue together
 
 ## Required Env Vars For Mutations
 
@@ -21,9 +22,9 @@ This folder contains the prioritized backlog of development tasks for Latent Spa
 - `GITHUB_DEFAULT_BRANCH`
 - `BACKLOG_ADMIN_SECRET`
 
-For Discord-driven writes, the bot also needs:
+For Discord-driven writes, the bot also needs the same `BACKLOG_ADMIN_SECRET` and `HUB_BASE_URL`.
 
-- `BACKLOG_ALLOWED_DISCORD_USER_IDS`
+To backfill GitHub issues for existing active backlog items, call `POST /api/backlog/github/backfill` with `x-backlog-admin-secret`.
 
 ## Legacy Local UI
 

@@ -16,6 +16,14 @@ function isAuthorized(request: NextRequest): boolean {
   return headerSecret === secret;
 }
 
+function parseLabels(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value
+    .map((label) => typeof label === 'string' ? label.trim() : '')
+    .filter(Boolean)
+    .slice(0, 10);
+}
+
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -33,6 +41,7 @@ export async function POST(request: NextRequest) {
     const result = await createBacklogProject({
       title: body.title,
       notes: body.notes,
+      labels: parseLabels(body.labels),
       type: body.type,
       priority: body.priority,
       status: body.status,

@@ -1,5 +1,3 @@
-import 'server-only';
-
 import fs from 'fs/promises';
 import path from 'path';
 import { parseBacklogFile } from '@/services/backlog/schema';
@@ -188,6 +186,7 @@ async function syncProjectIssue(params: {
   tasks: BacklogTask[];
   prdPath: string;
   dueDate?: string;
+  labels?: string[];
 }): Promise<GitHubIssueReference | null> {
   const config = getGitHubBacklogConfig();
   if (!config) {
@@ -222,7 +221,7 @@ async function syncProjectIssue(params: {
   const created = await createIssue({
     title: params.title,
     body,
-    labels: ['backlog'],
+    labels: Array.from(new Set(['backlog', ...(params.labels || [])])),
   });
 
   return {
@@ -326,6 +325,7 @@ export async function createBacklogProject(input: CreateBacklogProjectInput): Pr
     tasks: ensureTaskList(input.tasks, title),
     prdPath,
     dueDate: normalizeDueDate(input.dueDate),
+    labels: input.labels,
   });
 
   const project = buildProjectRecord({
