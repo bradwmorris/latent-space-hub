@@ -48,6 +48,7 @@ The `/api/cron/ingest/trigger` endpoint allows manual triggering with source fil
 | `CRON_SECRET` | Auth secret for cron endpoints |
 | `OPENAI_API_KEY` | Embedding generation |
 | `ANTHROPIC_API_KEY` | Entity extraction |
+| `DISCORD_INGESTION_NOTIFICATIONS_ENABLED` | Opt-in flag for ingest announcement/kickoff posts. Must be `true` to send Discord notifications. |
 | `DISCORD_ANNOUNCEMENTS_WEBHOOK_URL` | Webhook for #announcements channel |
 | `DISCORD_YAP_WEBHOOK_URL` | Webhook for #yap channel |
 | `DISCORD_SLOP_USER_ID` | Slop user ID for @mentions in yap kickoff |

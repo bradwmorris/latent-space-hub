@@ -124,6 +124,12 @@ const coreSchemaStatements = [
     WHERE node_type = 'event'
       AND json_extract(metadata, '$.event_status') = 'scheduled'
       AND event_date IS NOT NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_nodes_paper_candidate_discord_message_unique
+    ON nodes(json_extract(metadata, '$.discord_message_id'))
+    WHERE node_type = 'event'
+      AND json_extract(metadata, '$.event_type') = 'paper-club'
+      AND json_extract(metadata, '$.event_status') = 'candidate'
+      AND json_extract(metadata, '$.discord_message_id') IS NOT NULL`,
 ];
 
 const optionalSchemaStatements = [

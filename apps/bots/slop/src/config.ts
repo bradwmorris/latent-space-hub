@@ -63,6 +63,12 @@ export const BACKLOG_ALLOWED_DISCORD_USER_IDS = new Set(
 export const REMINDERS_ENABLED = boolFromEnv(process.env.REMINDERS_ENABLED, true);
 export const REMINDERS_ONE_HOUR_ENABLED = boolFromEnv(process.env.REMINDERS_ONE_HOUR_ENABLED, true);
 export const PAPER_CLUB_CHANNEL_ID = process.env.PAPER_CLUB_CHANNEL_ID || "";
+export const PAPER_CANDIDATE_CHANNEL_IDS = new Set(
+  (process.env.PAPER_CANDIDATE_CHANNEL_IDS || PAPER_CLUB_CHANNEL_ID)
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 export const REMINDERS_TIMEZONE = process.env.REMINDERS_TIMEZONE || "America/Los_Angeles";
 export const BOT_INSTANCE_ID =
   process.env.BOT_INSTANCE_ID ||

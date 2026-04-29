@@ -37,7 +37,7 @@ export interface Node {
 
 // ─── Node Metadata Schemas (application-layer validation) ────────────────────
 
-export type EventStatus = 'scheduled' | 'completed' | 'cancelled' | 'recording';
+export type EventStatus = 'candidate' | 'scheduled' | 'completed' | 'cancelled' | 'recording';
 
 export interface ContentMetadata {
   source?: string;
@@ -101,6 +101,16 @@ export interface EventMetadata {
   topic?: string;
   recording_node_id?: number | null;
   scheduled_at?: string;
+  paper_candidate_node_id?: number;
+  source_discord_thread_id?: string;
+  source_discord_message_id?: string;
+  discord_channel_id?: string;
+  discord_message_id?: string;
+  discord_thread_id?: string;
+  tldr?: string[];
+  tldr_sources?: string[];
+  presenter_status?: 'none' | 'known';
+  scheduled_event_node_id?: number;
 }
 
 export interface MemberMetadata {

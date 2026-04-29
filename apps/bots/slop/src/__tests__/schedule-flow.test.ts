@@ -9,6 +9,7 @@ vi.mock("../db", () => ({
   createEventNodeAtomic: vi.fn(),
   createEdge: vi.fn(),
   getBookedDates: vi.fn(),
+  markPaperCandidateScheduled: vi.fn(),
 }));
 
 vi.mock("../members", () => ({
@@ -54,6 +55,51 @@ describe("schedule flow", () => {
     expect(session.chosenDate).toBe("2026-04-15");
     expect(message.reply).toHaveBeenCalledWith(
       "Got it: **Wed, Apr 15**. What paper are you presenting? (title, optionally URL)"
+    );
+  });
+
+  it("uses a prefilled paper when the user selects a date from a candidate thread", async () => {
+    const dbOps = await import("../db");
+    vi.mocked(dbOps.createEventNodeAtomic).mockResolvedValue({
+      nodeId: 42,
+      alreadyBooked: false,
+    });
+    vi.mocked(dbOps.createEdge).mockResolvedValue(undefined);
+    vi.mocked(dbOps.markPaperCandidateScheduled).mockResolvedValue(undefined);
+    const session: SchedulingSession = {
+      eventType: "paper-club",
+      memberId: 1,
+      memberDiscordId: "user-1",
+      memberUsername: "alice",
+      availableDates: ["2026-05-06"],
+      step: "pick_date",
+      prefilledPaperTitle: "Learning Mechanics",
+      prefilledPaperUrl: "https://arxiv.org/abs/2604.21691",
+      paperCandidateNodeId: 9,
+      sourceDiscordThreadId: "thread-1",
+      sourceDiscordMessageId: "msg-original",
+    };
+    const message = makeMessage("1");
+
+    await handleSchedulingReply({ name: "Slop", model: "model", token: "token" }, message, session);
+
+    expect(dbOps.createEventNodeAtomic).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({
+        event_type: "paper-club",
+        paper_title: "Learning Mechanics",
+        paper_url: "https://arxiv.org/abs/2604.21691",
+        paper_candidate_node_id: 9,
+        source_discord_thread_id: "thread-1",
+        source_discord_message_id: "msg-original",
+      })
+    );
+    expect(dbOps.markPaperCandidateScheduled).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({
+        candidateNodeId: 9,
+        scheduledEventNodeId: 42,
+      })
     );
   });
 

@@ -184,7 +184,7 @@
     }
   ],
   "lastUpdated": "2026-04-10",
-  "nextPrdNumber": 49,
+  "nextPrdNumber": 50,
   "projects": {
     "backlog-dashboard-github-sync": {
       "id": "backlog-dashboard-github-sync",
@@ -536,6 +536,34 @@
       "title": "Inbox — conversation-style view of all bot interactions (Discord now, email later)",
       "type": "feature"
     },
+    "paper-club-paper-queue": {
+      "id": "paper-club-paper-queue",
+      "notes": "Expand the Paper Club idea into a simple, high-leverage community feedback and Discord re-engagement loop. Current state: Slop can schedule Paper Club presenters and send reminders, but almost nobody uses the flow. Organizers mainly need a healthy presenter pipeline: members should feel encouraged to volunteer, should have enough context to do a good job, and should see Paper Club as an ongoing conversation rather than a one-hour meeting. Explore the smallest Hub + Slop update that captures paper interest, prompts lightweight pre-session discussion, surfaces good presenter candidates, and helps organizers see what the community wants next. Keep this at ideation/PRD level for now; avoid prescribing a specific implementation until the strongest simple loop is chosen.",
+      "owner": "brad",
+      "prd": "docs/development/prd-49-paper-club-paper-queue.md",
+      "priority": "high",
+      "status": "prd",
+      "tasks": [
+        {
+          "done": false,
+          "text": "Step 1: Clarify the core re-engagement loop for Paper Club attendees and organizers"
+        },
+        {
+          "done": false,
+          "text": "Step 2: Ideate the smallest useful Hub + Slop experience that encourages volunteers and prereading"
+        },
+        {
+          "done": false,
+          "text": "Step 3: Identify what organizers need to see to confidently recruit presenters"
+        },
+        {
+          "done": false,
+          "text": "Step 4: Convert the best idea into a narrow implementation PRD with acceptance criteria and non-goals"
+        }
+      ],
+      "title": "Paper Club re-engagement — simple Hub + Slop loop for volunteers, prereading, and organizer signal",
+      "type": "feature"
+    },
     "public-roadmap-contributing": {
       "id": "public-roadmap-contributing",
       "notes": "Expose the development process to non-technical community members. Public /docs/roadmap page (live from backlog.json) and /docs/contributing page (non-technical ways to help). No editing — read-only display surface.",
@@ -577,7 +605,7 @@
       "notes": "No code. Owner does 3 tasks (invite bot, create webhooks, test channel), then Brad tests and switches to live.",
       "prd": "docs/development/prd-17-setup-handover.md",
       "priority": "high",
-      "status": "in_progress",
+      "status": "ready",
       "tasks": [
         {
           "done": false,
@@ -759,6 +787,7 @@
     "public-roadmap-contributing",
     "inbox",
     "setup-handover",
+    "paper-club-paper-queue",
     "backlog-dashboard-github-sync"
   ]
 }

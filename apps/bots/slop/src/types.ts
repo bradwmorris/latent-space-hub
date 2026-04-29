@@ -39,6 +39,11 @@ export type SchedulingSession = {
   availableDates: string[];
   step: "pick_date" | "pick_title";
   chosenDate?: string;
+  prefilledPaperTitle?: string;
+  prefilledPaperUrl?: string;
+  sourceDiscordThreadId?: string;
+  sourceDiscordMessageId?: string;
+  paperCandidateNodeId?: number;
 };
 
 export type MemberMetadata = {

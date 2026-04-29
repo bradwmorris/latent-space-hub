@@ -10,7 +10,7 @@ interface NotifyPayload {
 
 function notificationsEnabled(): boolean {
   const raw = process.env.DISCORD_INGESTION_NOTIFICATIONS_ENABLED;
-  if (raw == null || raw.trim() === '') return true;
+  if (raw == null || raw.trim() === '') return false;
   const normalized = raw.trim().toLowerCase();
   return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
 }

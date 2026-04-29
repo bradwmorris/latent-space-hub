@@ -35,6 +35,43 @@ export async function startScheduleCommandEvent(
   transport: RuntimeCommandTransport,
   command: "paper-club" | "builders-club"
 ): Promise<void> {
+  await startScheduleFlow(profile, event, transport, command, { openThread: true });
+}
+
+export async function startPrefilledPaperClubScheduleEvent(
+  profile: BotProfile,
+  event: RuntimeCommandEvent,
+  transport: RuntimeCommandTransport,
+  prefill: {
+    paperTitle: string;
+    paperUrl?: string;
+    sourceDiscordThreadId?: string;
+    sourceDiscordMessageId?: string;
+    paperCandidateNodeId?: number;
+  }
+): Promise<void> {
+  await startScheduleFlow(profile, event, transport, "paper-club", {
+    openThread: false,
+    prefill,
+  });
+}
+
+async function startScheduleFlow(
+  profile: BotProfile,
+  event: RuntimeCommandEvent,
+  transport: RuntimeCommandTransport,
+  command: "paper-club" | "builders-club",
+  options: {
+    openThread: boolean;
+    prefill?: {
+      paperTitle: string;
+      paperUrl?: string;
+      sourceDiscordThreadId?: string;
+      sourceDiscordMessageId?: string;
+      paperCandidateNodeId?: number;
+    };
+  }
+): Promise<void> {
   const inFlightKey = `${event.actor.id}:${command}`;
   if (schedulingInFlight.has(inFlightKey)) {
     await transport.editReply(`You already have a ${command} scheduling flow in progress.`);
@@ -67,6 +104,13 @@ export async function startScheduleCommandEvent(
       return;
     }
 
+    if (!options.openThread && schedulingSessionStore.has(event.conversation.id)) {
+      await transport.editReply(
+        "Another scheduling session is active in this thread. Try again in a few minutes."
+      );
+      return;
+    }
+
     const dayLabel = isPaperClub ? "Wed" : "Fri";
     const lines = available.map((d, i) => {
       const date = new Date(`${d}T12:00:00Z`);
@@ -74,20 +118,27 @@ export async function startScheduleCommandEvent(
       const day = date.getUTCDate();
       return `**${i + 1}.** ${dayLabel} ${month} ${day} (${d})`;
     });
-    const prompt = isPaperClub
+    const prefilledPaper = isPaperClub && options.prefill?.paperTitle
+      ? `\n\nPaper: **${options.prefill.paperTitle}**${options.prefill.paperUrl ? `\n${options.prefill.paperUrl}` : ""}`
+      : "";
+    const prompt = isPaperClub && options.prefill?.paperTitle
+      ? "Reply with the **number** of the date you want."
+      : isPaperClub
       ? "Reply with the **number** of the date you want, and the **paper title** (optionally with URL)."
       : "Reply with the **number** of the date you want, and your **topic**.";
 
     const message = await transport.editReply(
-      `**Schedule a ${label} session**\n\nAvailable dates:\n${lines.join("\n")}\n\n${prompt}`
+      `**Schedule a ${label} session**${prefilledPaper}\n\nAvailable dates:\n${lines.join("\n")}\n\n${prompt}`
     );
 
     let sessionConversation = event.conversation;
-    const thread = await transport.openThread({
-      name: `${label}: ${event.actor.username} scheduling`,
-      startMessageId: message.id,
-      reason: `${label} scheduling thread`,
-    });
+    const thread = options.openThread
+      ? await transport.openThread({
+          name: `${label}: ${event.actor.username} scheduling`,
+          startMessageId: message.id,
+          reason: `${label} scheduling thread`,
+        })
+      : null;
     if (thread) {
       sessionConversation = thread;
     } else if (schedulingSessionStore.has(sessionConversation.id)) {
@@ -106,6 +157,11 @@ export async function startScheduleCommandEvent(
         memberUsername: event.actor.username,
         availableDates: available,
         step: "pick_date",
+        prefilledPaperTitle: options.prefill?.paperTitle,
+        prefilledPaperUrl: options.prefill?.paperUrl,
+        sourceDiscordThreadId: options.prefill?.sourceDiscordThreadId,
+        sourceDiscordMessageId: options.prefill?.sourceDiscordMessageId,
+        paperCandidateNodeId: options.prefill?.paperCandidateNodeId,
       },
       thread && transport.sendWarning
         ? {
@@ -154,6 +210,11 @@ export async function handleSchedulingReplyEvent(
 
     const chosenDate = session.availableDates[pick - 1];
     const titleText = match[2]?.trim();
+
+    if (!titleText && isPaperClub && session.prefilledPaperTitle) {
+      await createScheduledEvent(profile, event, replyPort, session, chosenDate, "");
+      return;
+    }
 
     if (titleText) {
       await createScheduledEvent(profile, event, replyPort, session, chosenDate, titleText);
@@ -213,8 +274,8 @@ async function createScheduledEvent(
       return;
     }
 
-    let paperUrl: string | undefined;
-    let rawTitle = titleText;
+    let paperUrl: string | undefined = isPaperClub ? session.prefilledPaperUrl : undefined;
+    let rawTitle = titleText || (isPaperClub ? session.prefilledPaperTitle || "" : "");
     if (isPaperClub) {
       const urlMatch = titleText.match(/(https?:\/\/\S+)/);
       if (urlMatch) {
@@ -246,6 +307,9 @@ async function createScheduledEvent(
           presenter_node_id: session.memberId,
           paper_title: cleanTitle,
           paper_url: paperUrl,
+          paper_candidate_node_id: session.paperCandidateNodeId,
+          source_discord_thread_id: session.sourceDiscordThreadId,
+          source_discord_message_id: session.sourceDiscordMessageId,
         }
       : {
           title: `${label}: ${cleanTitle}`,
@@ -273,6 +337,14 @@ async function createScheduledEvent(
       created.nodeId,
       `hosting ${label} session`
     );
+    if (isPaperClub && session.paperCandidateNodeId) {
+      await dbOps.markPaperCandidateScheduled(db, {
+        candidateNodeId: session.paperCandidateNodeId,
+        scheduledEventNodeId: created.nodeId,
+        presenterDiscordId: session.memberDiscordId,
+        presenterName: session.memberUsername,
+      });
+    }
 
     const dateLabel = new Date(`${dateStr}T12:00:00Z`).toLocaleDateString("en-US", {
       weekday: "short",

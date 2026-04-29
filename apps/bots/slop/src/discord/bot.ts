@@ -26,6 +26,8 @@ import {
   createRuntimeMessageEvent,
   createRuntimeReplyPort,
 } from "../adapters/discord/runtime";
+import { handlePaperCandidateButton } from "../paper-candidates/buttons";
+import { handlePaperCandidateMessage } from "../paper-candidates/service";
 
 const processedMessageIds = new Set<string>();
 
@@ -35,6 +37,11 @@ export async function handleMessage(client: Client, profile: BotProfile, message
   const botUserId = client.user?.id;
   if (!botUserId) return;
   processedMessageIds.add(dedupeKey);
+  try {
+    await handlePaperCandidateMessage(message);
+  } catch (error) {
+    console.warn("Paper candidate handling failed:", error);
+  }
   const allowed = !ALLOWED_CHANNEL_IDS.size || ALLOWED_CHANNEL_IDS.has(message.channelId);
   await dispatchRuntimeMessageEvent(
     profile,
@@ -45,6 +52,10 @@ export async function handleMessage(client: Client, profile: BotProfile, message
 }
 
 export async function handleInteraction(client: Client, profile: BotProfile, interaction: Interaction): Promise<void> {
+  if (interaction.isButton()) {
+    const handled = await handlePaperCandidateButton(profile, interaction);
+    if (handled) return;
+  }
   if (!interaction.isChatInputCommand()) return;
   if (!interaction.inGuild()) return;
   if (interaction.user.bot) return;

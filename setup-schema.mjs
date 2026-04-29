@@ -121,6 +121,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_nodes_member_discord_id_unique
   WHERE node_type = 'member'
     AND json_extract(metadata, '$.discord_id') IS NOT NULL
     AND json_extract(metadata, '$.discord_id') != '';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_nodes_paper_candidate_discord_message_unique
+  ON nodes(json_extract(metadata, '$.discord_message_id'))
+  WHERE node_type = 'event'
+    AND json_extract(metadata, '$.event_type') = 'paper-club'
+    AND json_extract(metadata, '$.event_status') = 'candidate'
+    AND json_extract(metadata, '$.discord_message_id') IS NOT NULL;
 `;
 
 // ─── Migration Steps (idempotent — safe to re-run) ───────────────────────────

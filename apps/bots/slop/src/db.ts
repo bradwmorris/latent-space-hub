@@ -34,6 +34,13 @@ export type ScheduledEventRow = {
   metadata: unknown;
 };
 
+export type PaperCandidateRow = {
+  id: number;
+  title: string;
+  link: string | null;
+  metadata: Record<string, unknown>;
+};
+
 export type UpcomingEventRow = {
   id: number;
   title: string;
@@ -139,6 +146,9 @@ export async function createEventNode(
     paper_url?: string;
     paper_title?: string;
     topic?: string;
+    paper_candidate_node_id?: number;
+    source_discord_thread_id?: string;
+    source_discord_message_id?: string;
   }
 ): Promise<{ id: number }> {
   const now = new Date().toISOString();
@@ -151,6 +161,9 @@ export async function createEventNode(
     paper_url: payload.paper_url,
     paper_title: payload.paper_title,
     topic: payload.topic,
+    paper_candidate_node_id: payload.paper_candidate_node_id,
+    source_discord_thread_id: payload.source_discord_thread_id,
+    source_discord_message_id: payload.source_discord_message_id,
     scheduled_at: now,
   };
 
@@ -191,6 +204,9 @@ export async function createEventNodeAtomic(
     paper_url?: string;
     paper_title?: string;
     topic?: string;
+    paper_candidate_node_id?: number;
+    source_discord_thread_id?: string;
+    source_discord_message_id?: string;
   }
 ): Promise<{ nodeId: number; alreadyBooked: boolean }> {
   try {
@@ -202,6 +218,189 @@ export async function createEventNodeAtomic(
     }
     throw error;
   }
+}
+
+// ── Paper candidate operations ─────────────────────────────────
+
+export async function ensurePaperCandidateIndex(db: LibsqlClient): Promise<void> {
+  await db.execute({
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS idx_nodes_paper_candidate_discord_message_unique
+          ON nodes(json_extract(metadata, '$.discord_message_id'))
+          WHERE node_type = 'event'
+            AND json_extract(metadata, '$.event_type') = 'paper-club'
+            AND json_extract(metadata, '$.event_status') = 'candidate'
+            AND json_extract(metadata, '$.discord_message_id') IS NOT NULL`,
+    args: [],
+  });
+}
+
+export async function getPaperCandidateByDiscordMessageId(
+  db: LibsqlClient,
+  discordMessageId: string
+): Promise<PaperCandidateRow | null> {
+  const result = await db.execute({
+    sql: `SELECT id, title, link, metadata
+          FROM nodes
+          WHERE node_type = 'event'
+            AND json_extract(metadata, '$.event_type') = 'paper-club'
+            AND json_extract(metadata, '$.event_status') = 'candidate'
+            AND json_extract(metadata, '$.discord_message_id') = ?
+          LIMIT 1`,
+    args: [discordMessageId],
+  });
+  if (!result.rows.length) return null;
+  const row = result.rows[0];
+  return {
+    id: Number(row.id),
+    title: String(row.title || ""),
+    link: row.link == null ? null : String(row.link),
+    metadata: parseMetadata(row.metadata) as Record<string, unknown>,
+  };
+}
+
+export async function getPaperCandidateById(
+  db: LibsqlClient,
+  candidateNodeId: number
+): Promise<PaperCandidateRow | null> {
+  const result = await db.execute({
+    sql: `SELECT id, title, link, metadata
+          FROM nodes
+          WHERE id = ?
+            AND node_type = 'event'
+            AND json_extract(metadata, '$.event_type') = 'paper-club'
+            AND json_extract(metadata, '$.event_status') = 'candidate'
+          LIMIT 1`,
+    args: [candidateNodeId],
+  });
+  if (!result.rows.length) return null;
+  const row = result.rows[0];
+  return {
+    id: Number(row.id),
+    title: String(row.title || ""),
+    link: row.link == null ? null : String(row.link),
+    metadata: parseMetadata(row.metadata) as Record<string, unknown>,
+  };
+}
+
+export async function createPaperCandidateNode(
+  db: LibsqlClient,
+  payload: {
+    title: string;
+    paperUrl: string;
+    sourceUrl: string;
+    description?: string;
+    tldr: string[];
+    tldrSources: string[];
+    discordChannelId: string;
+    discordMessageId: string;
+    discordThreadId: string;
+    slopMessageId?: string;
+  }
+): Promise<{ id: number; alreadyExists: boolean }> {
+  const now = new Date().toISOString();
+  const metadata = {
+    event_status: "candidate",
+    event_type: "paper-club",
+    paper_url: payload.paperUrl,
+    paper_title: payload.title,
+    source_url: payload.sourceUrl,
+    tldr: payload.tldr,
+    tldr_sources: payload.tldrSources,
+    discord_channel_id: payload.discordChannelId,
+    discord_message_id: payload.discordMessageId,
+    discord_thread_id: payload.discordThreadId,
+    slop_message_id: payload.slopMessageId,
+    presenter_status: "none",
+    created_via: "slop-paper-candidate",
+  };
+
+  try {
+    const result = await db.execute({
+      sql: `INSERT INTO nodes (title, description, link, node_type, metadata, created_at, updated_at)
+            VALUES (?, ?, ?, 'event', ?, ?, ?)`,
+      args: [
+        payload.title,
+        payload.description ?? null,
+        payload.paperUrl,
+        JSON.stringify(metadata),
+        now,
+        now,
+      ],
+    });
+
+    const nodeId = Number(result.lastInsertRowid);
+    if (!Number.isFinite(nodeId) || nodeId <= 0) {
+      throw new Error("INSERT did not return a valid paper candidate node ID.");
+    }
+
+    await db.execute({
+      sql: `INSERT OR IGNORE INTO node_dimensions (node_id, dimension) VALUES (?, 'event')`,
+      args: [nodeId],
+    });
+    await db.execute({
+      sql: `INSERT OR IGNORE INTO node_dimensions (node_id, dimension) VALUES (?, 'paper-club')`,
+      args: [nodeId],
+    });
+
+    return { id: nodeId, alreadyExists: false };
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) throw error;
+    const existing = await getPaperCandidateByDiscordMessageId(db, payload.discordMessageId);
+    if (!existing) throw error;
+    return { id: existing.id, alreadyExists: true };
+  }
+}
+
+export async function updatePaperCandidateSlopMessage(
+  db: LibsqlClient,
+  candidateNodeId: number,
+  slopMessageId: string
+): Promise<void> {
+  const now = new Date().toISOString();
+  await db.execute({
+    sql: `UPDATE nodes
+          SET metadata = json_set(coalesce(metadata, '{}'), '$.slop_message_id', ?),
+              updated_at = ?
+          WHERE id = ?
+            AND node_type = 'event'
+            AND json_extract(metadata, '$.event_status') = 'candidate'`,
+    args: [slopMessageId, now, candidateNodeId],
+  });
+}
+
+export async function markPaperCandidateScheduled(
+  db: LibsqlClient,
+  params: {
+    candidateNodeId: number;
+    scheduledEventNodeId: number;
+    presenterDiscordId: string;
+    presenterName: string;
+  }
+): Promise<void> {
+  const now = new Date().toISOString();
+  await db.execute({
+    sql: `UPDATE nodes
+          SET metadata = json_set(
+                coalesce(metadata, '{}'),
+                '$.presenter_status', 'known',
+                '$.presenter_discord_id', ?,
+                '$.presenter_name', ?,
+                '$.scheduled_event_node_id', ?,
+                '$.event_status', 'scheduled'
+              ),
+              updated_at = ?
+          WHERE id = ?
+            AND node_type = 'event'
+            AND json_extract(metadata, '$.event_type') = 'paper-club'
+            AND json_extract(metadata, '$.event_status') = 'candidate'`,
+    args: [
+      params.presenterDiscordId,
+      params.presenterName,
+      params.scheduledEventNodeId,
+      now,
+      params.candidateNodeId,
+    ],
+  });
 }
 
 export async function ensureScheduledEventSlotIndex(db: LibsqlClient): Promise<void> {
