@@ -69,7 +69,6 @@ export const GITHUB_ISSUE_REPO_OWNER =
   process.env.GITHUB_ISSUE_REPO_OWNER || process.env.GITHUB_REPO_OWNER || "bradwmorris";
 export const GITHUB_ISSUE_REPO_NAME =
   process.env.GITHUB_ISSUE_REPO_NAME || process.env.GITHUB_REPO_NAME || "latent-space-hub";
-export const GITHUB_ISSUE_BRANCH = process.env.GITHUB_ISSUE_BRANCH || process.env.GITHUB_DEFAULT_BRANCH || "main";
 export const REMINDERS_ENABLED = boolFromEnv(process.env.REMINDERS_ENABLED, true);
 export const REMINDERS_ONE_HOUR_ENABLED = boolFromEnv(process.env.REMINDERS_ONE_HOUR_ENABLED, true);
 export const PAPER_CLUB_CHANNEL_ID = process.env.PAPER_CLUB_CHANNEL_ID || "";
