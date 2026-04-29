@@ -34,13 +34,13 @@ function isWhitelisted(pathname: string): boolean {
 
 function isAuthorizedBacklogMutation(request: NextRequest, pathname: string): boolean {
   if (!pathname.startsWith('/api/backlog/')) return false;
-  const secret = process.env.BACKLOG_ADMIN_SECRET;
+  const secret = (process.env.BACKLOG_ADMIN_SECRET || '').trim();
   if (!secret) return false;
 
   const headerSecret = request.headers.get('x-backlog-admin-secret')
     || request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
     || '';
-  return headerSecret === secret;
+  return headerSecret.trim() === secret;
 }
 
 export function middleware(request: NextRequest) {

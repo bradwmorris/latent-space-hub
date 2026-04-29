@@ -95,7 +95,7 @@ export async function handleIssueCommandEvent(
 ): Promise<void> {
   if (!canCreateIssue()) {
     await transport.editReply(
-      "Issue creation is not configured for this bot instance. Set `BACKLOG_ADMIN_SECRET` in Railway."
+      "Issue creation is not configured for this bot instance. Set `BACKLOG_ADMIN_SECRET` in Railway, without quotes."
     );
     return;
   }

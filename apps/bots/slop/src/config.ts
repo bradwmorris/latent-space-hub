@@ -30,6 +30,17 @@ function boolFromEnv(value: string | undefined, fallback: boolean): boolean {
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
+function secretFromEnv(value: string | undefined): string {
+  const trimmed = (value || "").trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
 const RAW_TURSO_DATABASE_URL = requiredEnv("TURSO_DATABASE_URL");
 export const TURSO_DATABASE_URL = normalizeLibsqlUrl(RAW_TURSO_DATABASE_URL);
 export const TURSO_AUTH_TOKEN = isLocalLibsqlUrl(RAW_TURSO_DATABASE_URL)
@@ -53,7 +64,7 @@ export const DEBATE_KICKOFF_HOST = process.env.DEBATE_KICKOFF_HOST || "0.0.0.0";
 export const BOT_TALK_CHANNEL_ID = process.env.BOT_TALK_CHANNEL_ID || "";
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 export const HUB_BASE_URL = process.env.HUB_BASE_URL || "https://latent-space-hub.vercel.app";
-export const BACKLOG_ADMIN_SECRET = process.env.BACKLOG_ADMIN_SECRET || "";
+export const BACKLOG_ADMIN_SECRET = secretFromEnv(process.env.BACKLOG_ADMIN_SECRET);
 export const REMINDERS_ENABLED = boolFromEnv(process.env.REMINDERS_ENABLED, true);
 export const REMINDERS_ONE_HOUR_ENABLED = boolFromEnv(process.env.REMINDERS_ONE_HOUR_ENABLED, true);
 export const PAPER_CLUB_CHANNEL_ID = process.env.PAPER_CLUB_CHANNEL_ID || "";
