@@ -25,7 +25,7 @@ Gateway runtime implemented for:
 | `/paper-club` | none | Schedule a Paper Club session — pick a date and paper |
 | `/builders-club` | none | Schedule a Builders Club session — pick a date and topic |
 | `/edit-event` | none | Edit title, paper URL, date, or cancel your scheduled event |
-| `/issue` | `title`, `body`, optional `labels` | Create a Hub backlog item, PRD, and linked GitHub issue |
+| `/issue` | `title`, `body`, optional `labels` | Create a Hub backlog item, PRD, and linked GitHub issue directly through GitHub |
 
 ## Member Memory
 

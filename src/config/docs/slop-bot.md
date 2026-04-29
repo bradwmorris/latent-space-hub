@@ -143,7 +143,7 @@ Edits one of your scheduled events. You can:
 
 **Usage:** `/issue title:"..." body:"..." [labels:"bug,discord"]`
 
-Creates a Hub backlog item, PRD, and linked GitHub issue through the `/api/backlog/projects` path.
+Creates a Hub backlog item, PRD, and linked GitHub issue directly through the GitHub API.
 
 ---
 

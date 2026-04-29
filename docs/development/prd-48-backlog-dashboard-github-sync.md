@@ -309,7 +309,7 @@ This does not auto-resolve every mismatch in v1, but it should make drift visibl
 
 ### Step 6: Slop Discord intake
 
-Original plan was `/backlog-create`, which created a backlog item, PRD, and GitHub issue through the Hub API. The command surface is now simplified to `/issue`, but the write path still goes through the Hub backlog API so Discord intake creates the backlog card, PRD, and linked GitHub issue together.
+Original plan was `/backlog-create`, which created a backlog item, PRD, and GitHub issue through the Hub API. The command surface is now simplified to `/issue`, and the write path now uses the GitHub API directly from Slop so Discord intake creates the backlog card, PRD, and linked GitHub issue without depending on a Hub admin secret.
 
 **Files to add / modify:**
 
@@ -337,8 +337,8 @@ Arguments:
 
 1. User invokes `/issue`
 2. Slop validates permission / role
-3. Slop posts to `POST /api/backlog/projects`
-4. Hub creates the backlog entry, PRD, and linked GitHub issue
+3. Slop reads `docs/development/backlog/backlog.json` from GitHub
+4. Slop creates the linked GitHub issue, PRD file, and updated backlog file
 5. Slop replies with the backlog link and issue link
 
 This command creates the backlog item and PRD immediately so the `/backlog` UI stays in sync with GitHub issues.

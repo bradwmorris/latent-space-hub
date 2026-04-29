@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../config", () => ({
-  BACKLOG_ADMIN_SECRET: "secret",
+  GITHUB_ISSUE_BRANCH: "main",
+  GITHUB_ISSUE_REPO_NAME: "latent-space-hub",
+  GITHUB_ISSUE_REPO_OWNER: "bradwmorris",
+  GITHUB_ISSUE_TOKEN: "github-token",
   HUB_BASE_URL: "https://hub.test",
 }));
 
@@ -50,44 +53,66 @@ describe("issue service", () => {
     vi.restoreAllMocks();
   });
 
-  it("creates issues through the Hub backlog API so the backlog UI stays in sync", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue({
-        success: true,
-        data: {
-          project: {
-            id: "fix-the-thing",
-            github: {
-              issue_number: 123,
-              issue_url: "https://github.test/issue/123",
-            },
-          },
-        },
-      }),
-    });
+  it("writes the backlog, PRD, and issue directly through GitHub", async () => {
+    const backlog = {
+      completed: [],
+      lastUpdated: "2026-04-29",
+      nextPrdNumber: 50,
+      projects: {},
+      queue: [],
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          sha: "backlog-sha",
+          content: Buffer.from(JSON.stringify(backlog), "utf-8").toString("base64"),
+          encoding: "base64",
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          number: 123,
+          html_url: "https://github.test/issue/123",
+          state: "open",
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({}),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({}),
+      });
     vi.stubGlobal("fetch", fetchMock);
     const transport = makeTransport();
 
     await handleIssueCommandEvent(makeEvent(), transport);
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://hub.test/api/backlog/projects",
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "https://api.github.com/repos/bradwmorris/latent-space-hub/contents/docs/development/backlog/backlog.json?ref=main",
+      expect.any(Object)
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://api.github.com/repos/bradwmorris/latent-space-hub/issues",
       expect.objectContaining({
         method: "POST",
-        headers: expect.objectContaining({
-          "x-backlog-admin-secret": "secret",
-        }),
       })
     );
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({
       title: "Fix the thing",
-      notes: expect.stringContaining("Detailed report"),
-      labels: ["bug", "discord"],
-      sourceSurface: "discord",
-      sourceActor: "alice",
-      sourceConversationId: "chan-1",
+      labels: ["backlog", "bug", "discord"],
     });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      4,
+      "https://api.github.com/repos/bradwmorris/latent-space-hub/contents/docs/development/backlog/backlog.json",
+      expect.objectContaining({ method: "PUT" })
+    );
     expect(transport.editReply).toHaveBeenCalledWith(
       expect.stringContaining("Backlog: https://hub.test/backlog?id=fix-the-thing")
     );
