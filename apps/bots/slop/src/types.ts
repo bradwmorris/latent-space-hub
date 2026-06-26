@@ -106,11 +106,16 @@ export type OpenRouterToolCall = {
   function: { name: string; arguments: string };
 };
 
+export type OpenRouterReasoningDetail = Record<string, unknown>;
+
 export type OpenRouterMessage = {
   role: "system" | "user" | "assistant" | "tool";
   content?: string | null;
   tool_calls?: OpenRouterToolCall[];
   tool_call_id?: string;
+  reasoning?: string | null;
+  reasoning_content?: string | null;
+  reasoning_details?: OpenRouterReasoningDetail[];
 };
 
 export type OpenRouterChatResponse = {
@@ -122,6 +127,9 @@ export type OpenRouterChatResponse = {
       content?: string | null;
       tool_calls?: OpenRouterToolCall[];
       role?: string;
+      reasoning?: string | null;
+      reasoning_content?: string | null;
+      reasoning_details?: OpenRouterReasoningDetail[];
     };
     finish_reason?: string;
   }>;

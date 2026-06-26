@@ -1,4 +1,6 @@
 import type { PaperCandidateDetection } from "./detect";
+import { OPENROUTER_API_KEY, SLOP_MODEL, TAVILY_API_KEY } from "../config";
+import type { OpenRouterChatResponse } from "../types";
 
 export type PaperCandidateSummary = {
   title: string;
@@ -8,6 +10,7 @@ export type PaperCandidateSummary = {
 };
 
 const FETCH_TIMEOUT_MS = 8000;
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 function decodeEntities(text: string): string {
   return text
@@ -158,21 +161,144 @@ async function summarizeHtml(candidate: PaperCandidateDetection): Promise<PaperC
   };
 }
 
+type TavilyResult = {
+  title: string;
+  snippet: string;
+  url: string;
+};
+
+async function tavilySearch(candidate: PaperCandidateDetection): Promise<TavilyResult[]> {
+  if (!TAVILY_API_KEY) return [];
+  const query = candidate.titleHint
+    ? `${candidate.titleHint} paper ${candidate.paperUrl}`
+    : `${candidate.paperUrl} paper summary authors abstract`;
+  try {
+    const response = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: TAVILY_API_KEY,
+        query,
+        search_depth: "basic",
+        include_answer: false,
+        include_images: false,
+        include_raw_content: false,
+        max_results: 5,
+      }),
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { results?: Array<Record<string, unknown>> };
+    return (data.results || [])
+      .map((result) => ({
+        title: String(result.title || "Untitled"),
+        snippet: String(result.content || ""),
+        url: String(result.url || ""),
+      }))
+      .filter((result) => result.url || result.snippet)
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+function parseSummaryLines(text: string): string[] {
+  return text
+    .split("\n")
+    .map((line) => line.replace(/^[-*\d.\s]+/, "").trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+async function summarizeWithLlm(
+  candidate: PaperCandidateDetection,
+  contextSummary: PaperCandidateSummary,
+  searchResults: TavilyResult[]
+): Promise<PaperCandidateSummary | null> {
+  if (!OPENROUTER_API_KEY) return null;
+  const searchContext = searchResults
+    .map((result, index) => `${index + 1}. ${result.title}\n${result.url}\n${result.snippet}`)
+    .join("\n\n");
+  const sourceContext = [
+    `Candidate URL: ${candidate.paperUrl}`,
+    candidate.titleHint ? `Title hint: ${candidate.titleHint}` : "",
+    `Extracted title: ${contextSummary.title}`,
+    contextSummary.description ? `Extracted description: ${contextSummary.description}` : "",
+    contextSummary.tldr.length ? `Extracted facts:\n${contextSummary.tldr.map((line) => `- ${line}`).join("\n")}` : "",
+    searchContext ? `Search results:\n${searchContext}` : "",
+  ].filter(Boolean).join("\n\n");
+
+  const response = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: SLOP_MODEL,
+      temperature: 0.2,
+      max_tokens: 450,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You summarize papers for a Discord Paper Club queue. Be concise, factual, and cautious. Use only the supplied context. Return JSON with keys title, summary, bullets. bullets must be 2-4 short strings.",
+        },
+        {
+          role: "user",
+          content: sourceContext,
+        },
+      ],
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!response.ok) return null;
+  const data = (await response.json()) as OpenRouterChatResponse;
+  const content = data.choices?.[0]?.message?.content || "";
+  try {
+    const parsed = JSON.parse(content) as { title?: unknown; summary?: unknown; bullets?: unknown };
+    const title = typeof parsed.title === "string" && parsed.title.trim()
+      ? truncate(parsed.title, 180)
+      : contextSummary.title;
+    const summary = typeof parsed.summary === "string" ? parsed.summary.trim() : "";
+    const bullets = Array.isArray(parsed.bullets)
+      ? parsed.bullets.map((line) => String(line).trim()).filter(Boolean)
+      : parseSummaryLines(summary);
+    const tldr = bullets.length ? bullets.slice(0, 4) : contextSummary.tldr;
+    return {
+      title,
+      tldr,
+      sources: [...new Set([candidate.paperUrl, ...contextSummary.sources, ...searchResults.map((r) => r.url).filter(Boolean)])].slice(0, 5),
+      description: summary ? truncate(summary, 600) : contextSummary.description,
+    };
+  } catch {
+    const lines = parseSummaryLines(content);
+    if (!lines.length) return null;
+    return {
+      title: contextSummary.title,
+      tldr: lines,
+      sources: [...new Set([candidate.paperUrl, ...contextSummary.sources, ...searchResults.map((r) => r.url).filter(Boolean)])].slice(0, 5),
+      description: truncate(content, 600),
+    };
+  }
+}
+
 export async function summarizePaperCandidate(
   candidate: PaperCandidateDetection
 ): Promise<PaperCandidateSummary> {
-  const arxiv = await summarizeArxiv(candidate);
-  if (arxiv) return arxiv;
+  const extracted =
+    (await summarizeArxiv(candidate)) ||
+    (await summarizeHtml(candidate)) ||
+    {
+      title: candidate.titleHint || candidate.paperUrl,
+      tldr: [
+        "Slop could not verify enough from the linked source to summarize safely.",
+      ],
+      sources: [candidate.sourceUrl],
+    };
 
-  const html = await summarizeHtml(candidate);
-  if (html) return html;
+  const searchResults = await tavilySearch(candidate);
+  const llm = await summarizeWithLlm(candidate, extracted, searchResults).catch(() => null);
+  if (llm) return llm;
 
-  return {
-    title: candidate.titleHint || candidate.paperUrl,
-    tldr: [
-      "Slop could not verify enough from the linked source to summarize safely.",
-      "Use the thread for notes or add the direct paper link if this came from a social post.",
-    ],
-    sources: [candidate.sourceUrl],
-  };
+  return extracted;
 }

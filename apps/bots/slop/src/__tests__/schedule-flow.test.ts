@@ -71,7 +71,7 @@ describe("schedule flow", () => {
       memberId: 1,
       memberDiscordId: "user-1",
       memberUsername: "alice",
-      availableDates: ["2026-05-06"],
+      availableDates: ["2026-07-01"],
       step: "pick_date",
       prefilledPaperTitle: "Learning Mechanics",
       prefilledPaperUrl: "https://arxiv.org/abs/2604.21691",

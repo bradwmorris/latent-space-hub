@@ -16,6 +16,29 @@ export const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 export const MAX_AGENTIC_ROUNDS = 5;
 export const MAX_TOOL_RESULT_CHARS = 4000;
 
+function preserveAssistantReasoningFields(
+  source: NonNullable<OpenRouterChatResponse["choices"]>[number]["message"],
+  target: OpenRouterMessage
+): void {
+  if (!source) return;
+  if (source.reasoning !== undefined) target.reasoning = source.reasoning;
+  if (source.reasoning_content !== undefined) target.reasoning_content = source.reasoning_content;
+  if (source.reasoning_details !== undefined) target.reasoning_details = source.reasoning_details;
+}
+
+function removeReasoningFromMessage(message: OpenRouterMessage): OpenRouterMessage {
+  const { reasoning: _reasoning, reasoning_content: _reasoningContent, reasoning_details: _reasoningDetails, ...rest } = message;
+  return rest;
+}
+
+function removeReasoningFromPayload<T extends { messages?: OpenRouterMessage[] }>(payload: T): T {
+  if (!payload.messages) return payload;
+  return {
+    ...payload,
+    messages: payload.messages.map(removeReasoningFromMessage)
+  };
+}
+
 export function extractEstimatedCostUsd(usage: Record<string, unknown> | undefined): number | null {
   if (!usage) return null;
   const candidates = [
@@ -93,8 +116,8 @@ export async function generateResponse(
     text,
     trace: {
       system_prompt: systemContent,
-      request_messages: payload.messages,
-      request_payload: payload,
+      request_messages: removeReasoningFromPayload(payload).messages,
+      request_payload: removeReasoningFromPayload(payload),
       response_id: data.id,
       provider: data.provider ?? null,
       usage: data.usage ?? null,
@@ -157,6 +180,7 @@ export async function generateAgenticResponse(
     const aMsg: OpenRouterMessage = { role: "assistant" };
     if (assistantMsg.content) aMsg.content = assistantMsg.content;
     if (assistantMsg.tool_calls?.length) aMsg.tool_calls = assistantMsg.tool_calls;
+    preserveAssistantReasoningFields(assistantMsg, aMsg);
     messages.push(aMsg);
 
     if (!assistantMsg.tool_calls?.length) {
@@ -168,9 +192,9 @@ export async function generateAgenticResponse(
         skillsRead: [...skillsRead],
         trace: {
           system_prompt: systemContent,
-          request_messages: payload.messages,
+          request_messages: removeReasoningFromPayload(payload).messages,
           request_payload: {
-            ...payload,
+            ...removeReasoningFromPayload(payload),
             tools: tools.map((t) => t.function.name)
           },
           response_id: data.id,
@@ -244,7 +268,7 @@ export async function generateAgenticResponse(
     id?: string;
     provider?: string;
     usage?: Record<string, unknown>;
-    choices?: Array<{ message?: { content?: string } }>;
+    choices?: Array<{ message?: { content?: string | null } }>;
   };
   const text = finalData.choices?.[0]?.message?.content?.trim();
   if (!text) throw new Error("OpenRouter returned empty response on final round.");
@@ -254,8 +278,8 @@ export async function generateAgenticResponse(
     skillsRead: [...skillsRead],
     trace: {
       system_prompt: systemContent,
-      request_messages: finalPayload.messages,
-      request_payload: finalPayload,
+      request_messages: removeReasoningFromPayload(finalPayload).messages,
+      request_payload: removeReasoningFromPayload(finalPayload),
       response_id: finalData.id,
       provider: finalData.provider ?? null,
       usage: finalData.usage ?? null,

@@ -48,7 +48,7 @@ export const TURSO_AUTH_TOKEN = isLocalLibsqlUrl(RAW_TURSO_DATABASE_URL)
   : requiredEnv("TURSO_AUTH_TOKEN");
 export const OPENROUTER_API_KEY = requiredEnv("OPENROUTER_API_KEY");
 
-export const SLOP_MODEL = process.env.SLOP_MODEL || "deepseek/deepseek-v4-pro";
+export const SLOP_MODEL = process.env.SLOP_MODEL || "z-ai/glm-5.2";
 export const DISCORD_TEST_GUILD_ID = process.env.DISCORD_TEST_GUILD_ID || "";
 export const ALLOWED_CHANNEL_IDS = new Set(
   (process.env.ALLOWED_CHANNEL_IDS || "")
@@ -63,7 +63,14 @@ export const DEBATE_KICKOFF_PORT = Number(process.env.DEBATE_KICKOFF_PORT || 878
 export const DEBATE_KICKOFF_HOST = process.env.DEBATE_KICKOFF_HOST || "0.0.0.0";
 export const BOT_TALK_CHANNEL_ID = process.env.BOT_TALK_CHANNEL_ID || "";
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+export const TAVILY_API_KEY = process.env.TAVILY_API_KEY || "";
 export const HUB_BASE_URL = process.env.HUB_BASE_URL || "https://latent-space-hub.vercel.app";
+export const PAPER_SCHEDULER_ADMIN_DISCORD_IDS = new Set(
+  (process.env.PAPER_SCHEDULER_ADMIN_DISCORD_IDS || "556359685306056721")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 export const GITHUB_ISSUE_TOKEN = secretFromEnv(process.env.GITHUB_ISSUE_TOKEN || process.env.GITHUB_BACKLOG_TOKEN);
 export const GITHUB_ISSUE_REPO_OWNER =
   process.env.GITHUB_ISSUE_REPO_OWNER || process.env.GITHUB_REPO_OWNER || "bradwmorris";

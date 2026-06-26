@@ -41,6 +41,40 @@ export type PaperCandidateRow = {
   metadata: Record<string, unknown>;
 };
 
+export type RecentPaperCandidateRow = {
+  id: number;
+  title: string;
+  link: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  event_status: string | null;
+  presenter_status: string | null;
+  source_url: string | null;
+  discord_channel_id: string | null;
+  discord_message_id: string | null;
+  discord_thread_id: string | null;
+  scheduled_event_node_id: number | null;
+};
+
+export type PaperMentionRow = {
+  id: number;
+  title: string;
+  paper_url: string;
+  summary: string;
+  source_url: string | null;
+  discord_channel_id: string | null;
+  discord_message_id: string | null;
+  discord_thread_id: string | null;
+  suggested_by_discord_id: string | null;
+  suggested_by_handle: string | null;
+  status: string;
+  scheduled_event_node_id: number | null;
+  confirmed_by_discord_id: string | null;
+  confirmed_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 export type UpcomingEventRow = {
   id: number;
   title: string;
@@ -144,6 +178,17 @@ export async function updateMemberNode(
   return Number(result.rowsAffected || 0);
 }
 
+export async function getNodeById(db: LibsqlClient, nodeId: number): Promise<NodeRow | null> {
+  const result = await db.execute({
+    sql: `SELECT id, title, notes, description, link, node_type, event_date, metadata
+          FROM nodes
+          WHERE id = ?
+          LIMIT 1`,
+    args: [nodeId],
+  });
+  return result.rows.length ? rowToNode(result.rows[0] as Record<string, unknown>) : null;
+}
+
 // ── Event operations ───────────────────────────────────────────
 
 export async function createEventNode(
@@ -231,6 +276,194 @@ export async function createEventNodeAtomic(
     }
     throw error;
   }
+}
+
+// ── Paper mention operations ───────────────────────────────────
+
+export async function ensurePaperMentionsTable(db: LibsqlClient): Promise<void> {
+  await db.batch([
+    {
+      sql: `CREATE TABLE IF NOT EXISTS paper_mentions (
+              id INTEGER PRIMARY KEY,
+              title TEXT NOT NULL,
+              paper_url TEXT NOT NULL,
+              summary TEXT NOT NULL,
+              source_url TEXT,
+              discord_channel_id TEXT,
+              discord_message_id TEXT UNIQUE,
+              discord_thread_id TEXT,
+              suggested_by_discord_id TEXT,
+              suggested_by_handle TEXT,
+              status TEXT NOT NULL DEFAULT 'mentioned',
+              scheduled_event_node_id INTEGER,
+              confirmed_by_discord_id TEXT,
+              confirmed_at TEXT,
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL
+            )`,
+      args: [],
+    },
+    { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_created_at ON paper_mentions(created_at)`, args: [] },
+    { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_paper_url ON paper_mentions(paper_url)`, args: [] },
+    { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_status ON paper_mentions(status)`, args: [] },
+    { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_suggested_by ON paper_mentions(suggested_by_discord_id)`, args: [] },
+    { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_thread ON paper_mentions(discord_thread_id)`, args: [] },
+  ]);
+}
+
+function rowToPaperMention(row: Record<string, unknown>): PaperMentionRow {
+  const scheduledEventNodeId =
+    row.scheduled_event_node_id == null ? null : Number(row.scheduled_event_node_id);
+  return {
+    id: Number(row.id),
+    title: String(row.title || ""),
+    paper_url: String(row.paper_url || ""),
+    summary: String(row.summary || ""),
+    source_url: row.source_url == null ? null : String(row.source_url),
+    discord_channel_id: row.discord_channel_id == null ? null : String(row.discord_channel_id),
+    discord_message_id: row.discord_message_id == null ? null : String(row.discord_message_id),
+    discord_thread_id: row.discord_thread_id == null ? null : String(row.discord_thread_id),
+    suggested_by_discord_id:
+      row.suggested_by_discord_id == null ? null : String(row.suggested_by_discord_id),
+    suggested_by_handle: row.suggested_by_handle == null ? null : String(row.suggested_by_handle),
+    status: String(row.status || "mentioned"),
+    scheduled_event_node_id:
+      scheduledEventNodeId != null && Number.isFinite(scheduledEventNodeId) && scheduledEventNodeId > 0
+        ? scheduledEventNodeId
+        : null,
+    confirmed_by_discord_id:
+      row.confirmed_by_discord_id == null ? null : String(row.confirmed_by_discord_id),
+    confirmed_at: row.confirmed_at == null ? null : String(row.confirmed_at),
+    created_at: row.created_at == null ? null : String(row.created_at),
+    updated_at: row.updated_at == null ? null : String(row.updated_at),
+  };
+}
+
+export async function getPaperMentionByDiscordMessageId(
+  db: LibsqlClient,
+  discordMessageId: string
+): Promise<PaperMentionRow | null> {
+  const result = await db.execute({
+    sql: `SELECT * FROM paper_mentions WHERE discord_message_id = ? LIMIT 1`,
+    args: [discordMessageId],
+  });
+  return result.rows.length ? rowToPaperMention(result.rows[0] as Record<string, unknown>) : null;
+}
+
+export async function getPaperMentionByDiscordThreadId(
+  db: LibsqlClient,
+  discordThreadId: string
+): Promise<PaperMentionRow | null> {
+  const result = await db.execute({
+    sql: `SELECT * FROM paper_mentions
+          WHERE discord_thread_id = ?
+          ORDER BY datetime(created_at) DESC, id DESC
+          LIMIT 1`,
+    args: [discordThreadId],
+  });
+  return result.rows.length ? rowToPaperMention(result.rows[0] as Record<string, unknown>) : null;
+}
+
+export async function getPaperMentionById(
+  db: LibsqlClient,
+  paperMentionId: number
+): Promise<PaperMentionRow | null> {
+  const result = await db.execute({
+    sql: `SELECT * FROM paper_mentions WHERE id = ? LIMIT 1`,
+    args: [paperMentionId],
+  });
+  return result.rows.length ? rowToPaperMention(result.rows[0] as Record<string, unknown>) : null;
+}
+
+export async function upsertPaperMention(
+  db: LibsqlClient,
+  payload: {
+    title: string;
+    paperUrl: string;
+    summary: string;
+    sourceUrl?: string;
+    discordChannelId: string;
+    discordMessageId: string;
+    discordThreadId: string;
+    suggestedByDiscordId: string;
+    suggestedByHandle: string;
+  }
+): Promise<{ id: number; alreadyExists: boolean }> {
+  const now = new Date().toISOString();
+  const existing = await getPaperMentionByDiscordMessageId(db, payload.discordMessageId);
+  if (existing) {
+    await db.execute({
+      sql: `UPDATE paper_mentions
+            SET title = ?, paper_url = ?, summary = ?, source_url = ?,
+                discord_channel_id = ?, discord_thread_id = ?,
+                suggested_by_discord_id = ?, suggested_by_handle = ?, updated_at = ?
+            WHERE id = ?`,
+      args: [
+        payload.title,
+        payload.paperUrl,
+        payload.summary,
+        payload.sourceUrl ?? null,
+        payload.discordChannelId,
+        payload.discordThreadId,
+        payload.suggestedByDiscordId,
+        payload.suggestedByHandle,
+        now,
+        existing.id,
+      ],
+    });
+    return { id: existing.id, alreadyExists: true };
+  }
+
+  const result = await db.execute({
+    sql: `INSERT INTO paper_mentions (
+            title, paper_url, summary, source_url,
+            discord_channel_id, discord_message_id, discord_thread_id,
+            suggested_by_discord_id, suggested_by_handle,
+            status, created_at, updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'mentioned', ?, ?)`,
+    args: [
+      payload.title,
+      payload.paperUrl,
+      payload.summary,
+      payload.sourceUrl ?? null,
+      payload.discordChannelId,
+      payload.discordMessageId,
+      payload.discordThreadId,
+      payload.suggestedByDiscordId,
+      payload.suggestedByHandle,
+      now,
+      now,
+    ],
+  });
+  return { id: Number(result.lastInsertRowid), alreadyExists: false };
+}
+
+export async function markPaperMentionScheduled(
+  db: LibsqlClient,
+  params: {
+    paperMentionId: number;
+    scheduledEventNodeId: number;
+    confirmedByDiscordId: string;
+  }
+): Promise<void> {
+  const now = new Date().toISOString();
+  await db.execute({
+    sql: `UPDATE paper_mentions
+          SET status = 'scheduled',
+              scheduled_event_node_id = ?,
+              confirmed_by_discord_id = ?,
+              confirmed_at = ?,
+              updated_at = ?
+          WHERE id = ?`,
+    args: [
+      params.scheduledEventNodeId,
+      params.confirmedByDiscordId,
+      now,
+      now,
+      params.paperMentionId,
+    ],
+  });
 }
 
 // ── Paper candidate operations ─────────────────────────────────
@@ -378,6 +611,67 @@ export async function updatePaperCandidateSlopMessage(
             AND node_type = 'event'
             AND json_extract(metadata, '$.event_status') = 'candidate'`,
     args: [slopMessageId, now, candidateNodeId],
+  });
+}
+
+export async function getRecentPaperCandidates(
+  db: LibsqlClient,
+  options: {
+    limit: number;
+    status?: "all" | "open" | "scheduled";
+  }
+): Promise<RecentPaperCandidateRow[]> {
+  const status = options.status || "all";
+  const conditions = [
+    "node_type = 'event'",
+    "json_extract(metadata, '$.event_type') = 'paper-club'",
+    "json_extract(metadata, '$.created_via') = 'slop-paper-candidate'",
+  ];
+  const args: (string | number)[] = [];
+
+  if (status === "open") {
+    conditions.push("json_extract(metadata, '$.event_status') = 'candidate'");
+  } else if (status === "scheduled") {
+    conditions.push("json_extract(metadata, '$.event_status') = 'scheduled'");
+  }
+
+  args.push(options.limit);
+  const result = await db.execute({
+    sql: `SELECT id, title, link, created_at, updated_at,
+                 json_extract(metadata, '$.event_status') AS event_status,
+                 json_extract(metadata, '$.presenter_status') AS presenter_status,
+                 json_extract(metadata, '$.source_url') AS source_url,
+                 json_extract(metadata, '$.discord_channel_id') AS discord_channel_id,
+                 json_extract(metadata, '$.discord_message_id') AS discord_message_id,
+                 json_extract(metadata, '$.discord_thread_id') AS discord_thread_id,
+                 json_extract(metadata, '$.scheduled_event_node_id') AS scheduled_event_node_id
+          FROM nodes
+          WHERE ${conditions.join("\n            AND ")}
+          ORDER BY datetime(created_at) DESC, id DESC
+          LIMIT ?`,
+    args,
+  });
+
+  return result.rows.map((row) => {
+    const scheduledEventNodeId =
+      row.scheduled_event_node_id == null ? null : Number(row.scheduled_event_node_id);
+    return {
+      id: Number(row.id),
+      title: String(row.title || ""),
+      link: row.link == null ? null : String(row.link),
+      created_at: row.created_at == null ? null : String(row.created_at),
+      updated_at: row.updated_at == null ? null : String(row.updated_at),
+      event_status: row.event_status == null ? null : String(row.event_status),
+      presenter_status: row.presenter_status == null ? null : String(row.presenter_status),
+      source_url: row.source_url == null ? null : String(row.source_url),
+      discord_channel_id: row.discord_channel_id == null ? null : String(row.discord_channel_id),
+      discord_message_id: row.discord_message_id == null ? null : String(row.discord_message_id),
+      discord_thread_id: row.discord_thread_id == null ? null : String(row.discord_thread_id),
+      scheduled_event_node_id:
+        scheduledEventNodeId != null && Number.isFinite(scheduledEventNodeId) && scheduledEventNodeId > 0
+          ? scheduledEventNodeId
+          : null,
+    };
   });
 }
 

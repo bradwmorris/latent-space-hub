@@ -27,6 +27,7 @@ import {
   createRuntimeReplyPort,
 } from "../adapters/discord/runtime";
 import { handlePaperCandidateButton } from "../paper-candidates/buttons";
+import { handlePaperMentionAdminMessage } from "../paper-candidates/admin";
 import { handlePaperCandidateMessage } from "../paper-candidates/service";
 
 const processedMessageIds = new Set<string>();
@@ -41,6 +42,12 @@ export async function handleMessage(client: Client, profile: BotProfile, message
     await handlePaperCandidateMessage(message);
   } catch (error) {
     console.warn("Paper candidate handling failed:", error);
+  }
+  try {
+    const handledPaperAdmin = await handlePaperMentionAdminMessage(message);
+    if (handledPaperAdmin) return;
+  } catch (error) {
+    console.warn("Paper mention admin handling failed:", error);
   }
   const allowed = !ALLOWED_CHANNEL_IDS.size || ALLOWED_CHANNEL_IDS.has(message.channelId);
   await dispatchRuntimeMessageEvent(

@@ -133,6 +133,26 @@ export const TOOL_DEFINITIONS: OpenAIToolDef[] = [
   {
     type: "function",
     function: {
+      name: "slop_get_recent_paper_candidates",
+      description:
+        "Get recent Paper Club candidate papers detected from Discord paper-ish shares. Use this for 'recent paper candidates', 'recently mentioned papers', 'papers people are talking about', or Paper Club candidate lists.",
+      parameters: {
+        type: "object",
+        properties: {
+          status: {
+            type: "string",
+            enum: ["all", "open", "scheduled"],
+            description:
+              "Filter candidates. 'all' includes candidates that later became scheduled; 'open' only includes unscheduled candidate papers.",
+          },
+          limit: { type: "number", description: "Max candidates (default 10, max 25)" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "slop_get_context",
       description: "Get wiki-base stats: total nodes, edges, and chunks.",
       parameters: { type: "object", properties: {} },
@@ -245,6 +265,17 @@ export const TOOL_HANDLERS: Record<string, ToolHandler> = {
       const limit = Math.min(Math.max(Number(args.limit) || 10, 1), 50);
       const events = await dbOps.getUpcomingScheduledEvents(db, { eventType, limit });
       return JSON.stringify({ events, count: events.length });
+    },
+  },
+
+  slop_get_recent_paper_candidates: {
+    execute: async (args, db) => {
+      const status = (args.status === "open" || args.status === "scheduled" || args.status === "all")
+        ? args.status
+        : "all";
+      const limit = Math.min(Math.max(Number(args.limit) || 10, 1), 25);
+      const candidates = await dbOps.getRecentPaperCandidates(db, { status, limit });
+      return JSON.stringify({ candidates, count: candidates.length });
     },
   },
 

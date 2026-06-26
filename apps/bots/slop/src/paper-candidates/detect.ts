@@ -113,5 +113,15 @@ export function detectPaperCandidate(input: {
     };
   }
 
+  const anyUrl = urls[0];
+  if (anyUrl) {
+    return {
+      paperUrl: anyUrl,
+      sourceUrl: anyUrl,
+      titleHint: (input.embeds || []).find((embed) => embed.url === anyUrl)?.title || undefined,
+      sourceKind: isSocialUrl(anyUrl) ? "social" : "web",
+    };
+  }
+
   return null;
 }

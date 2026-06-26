@@ -81,7 +81,7 @@ Use this to personalize your response. Update interaction_preference in <profile
 
 ## Tools
 
-9 read-only tools passed as OpenAI function definitions alongside messages. Tool descriptions come from the MCP server — no duplication in the system prompt.
+11 read-only tools passed as OpenAI function definitions alongside messages. Tool descriptions come from `apps/bots/slop/src/tools.ts` — no duplication in the system prompt.
 
 ## Per-member interaction preference
 

@@ -1,7 +1,4 @@
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   ChannelType,
   ThreadAutoArchiveDuration,
   type Message,
@@ -60,31 +57,23 @@ function formatCandidateMessage(params: {
   paperUrl: string;
   tldr: string[];
   sources: string[];
+  suggestedBy: string;
 }): string {
   const tldr = params.tldr.slice(0, 3).map((line) => `- ${line}`).join("\n");
   const sources = [...new Set(params.sources)].slice(0, 3).join("\n");
   return [
-    `**Paper Club candidate:** ${params.title}`,
+    `**Paper mentioned:** ${params.title}`,
     "",
     params.paperUrl,
     "",
-    "**TLDR**",
+    "**Summary**",
     tldr,
     "",
     "**Sources**",
     sources,
     "",
-    "Want to present this at Paper Club?",
+    `Suggested by ${params.suggestedBy}`,
   ].join("\n");
-}
-
-function candidateButton(candidateNodeId: number): ActionRowBuilder<ButtonBuilder> {
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`${PAPER_CANDIDATE_PRESENT_PREFIX}${candidateNodeId}`)
-      .setLabel("Present this at Paper Club")
-      .setStyle(ButtonStyle.Primary)
-  );
 }
 
 export async function handlePaperCandidateMessage(message: Message): Promise<boolean> {
@@ -103,38 +92,34 @@ export async function handlePaperCandidateMessage(message: Message): Promise<boo
   if (!detection) return false;
 
   await ensureIndexes();
-  const existing = await dbOps.getPaperCandidateByDiscordMessageId(db, message.id);
-  if (existing?.metadata?.slop_message_id) return true;
+  await dbOps.ensurePaperMentionsTable(db);
+  const existing = await dbOps.getPaperMentionByDiscordMessageId(db, message.id);
+  if (existing) return true;
 
   const summary = await summarizePaperCandidate(detection);
   const thread = await getOrCreatePaperThread(message, summary.title);
   if (!thread) return false;
 
-  const created = existing
-    ? { id: existing.id, alreadyExists: true }
-    : await dbOps.createPaperCandidateNode(db, {
-        title: summary.title,
-        paperUrl: detection.paperUrl,
-        sourceUrl: detection.sourceUrl,
-        description: summary.description,
-        tldr: summary.tldr,
-        tldrSources: summary.sources,
-        discordChannelId: message.channelId,
-        discordMessageId: message.id,
-        discordThreadId: thread.id,
-      });
+  await dbOps.upsertPaperMention(db, {
+    title: summary.title,
+    paperUrl: detection.paperUrl,
+    sourceUrl: detection.sourceUrl,
+    summary: summary.description || summary.tldr.join("\n"),
+    discordChannelId: message.channelId,
+    discordMessageId: message.id,
+    discordThreadId: thread.id,
+    suggestedByDiscordId: message.author.id,
+    suggestedByHandle: message.author.username,
+  });
 
-  if (created.alreadyExists && existing?.metadata?.slop_message_id) return true;
-
-  const sent = await thread.send({
+  await thread.send({
     content: formatCandidateMessage({
       title: summary.title,
       paperUrl: detection.paperUrl,
       tldr: summary.tldr,
       sources: summary.sources,
+      suggestedBy: `<@${message.author.id}>`,
     }),
-    components: [candidateButton(created.id)],
   });
-  await dbOps.updatePaperCandidateSlopMessage(db, created.id, sent.id);
   return true;
 }

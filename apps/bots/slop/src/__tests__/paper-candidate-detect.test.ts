@@ -21,11 +21,12 @@ describe("detectPaperCandidate", () => {
     expect(result?.sourceKind).toBe("social");
   });
 
-  it("ignores ordinary links without paper context", () => {
+  it("detects ordinary links in paper candidate channels", () => {
     const result = detectPaperCandidate({
       content: "Nice homepage https://example.com",
     });
 
-    expect(result).toBeNull();
+    expect(result?.paperUrl).toBe("https://example.com");
+    expect(result?.sourceKind).toBe("web");
   });
 });

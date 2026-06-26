@@ -18,6 +18,7 @@ import MainViewSwitcher, { MainView } from './MainViewSwitcher';
 
 // Content pane components
 import { NodePane, MapPane, ViewsPane } from '../panes';
+import PaperMentionsPane from '../panes/PaperMentionsPane';
 import Dashboard from '../dashboard/Dashboard';
 import QuickAddInput from '../agents/QuickAddInput';
 
@@ -169,7 +170,8 @@ function TypeNodeList({
         const meta = n.metadata as any;
         // Event nodes use event_status, content nodes use date comparison
         if (n.node_type === 'event') {
-          return meta?.event_status === 'scheduled';
+          const eventDate = n.event_date || '';
+          return meta?.event_status === 'scheduled' && eventDate !== '' && eventDate >= today;
         }
         return (n.event_date || '') >= today;
       }).sort((a, b) => {
@@ -182,7 +184,7 @@ function TypeNodeList({
     ? nodes.filter(n => {
         const meta = n.metadata as any;
         if (n.node_type === 'event') {
-          return meta?.event_status !== 'scheduled';
+          return meta?.event_status !== 'scheduled' || !n.event_date || n.event_date < today;
         }
         return (n.event_date || '') < today;
       })
@@ -577,7 +579,7 @@ function ThreePanelLayoutContent() {
     const type = searchParams.get('type') || searchParams.get('view');
     if (!type) return null;
     const normalized = type.trim().toLowerCase();
-    const allowed = new Set(['event', 'paper-club', 'builders-club', 'podcast', 'article', 'ainews', 'workshop', 'member', 'entity', 'guest']);
+    const allowed = new Set(['event', 'paper-mentions', 'paper-club', 'builders-club', 'podcast', 'article', 'ainews', 'workshop', 'member', 'entity', 'guest']);
     return allowed.has(normalized) ? normalized : null;
   }, [searchParams]);
 
@@ -814,6 +816,9 @@ function ThreePanelLayoutContent() {
         );
 
       case 'type':
+        if (selectedType === 'paper-mentions') {
+          return <PaperMentionsPane />;
+        }
         return (
           <TypeNodeList
             selectedType={selectedType}

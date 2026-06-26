@@ -38,7 +38,7 @@ Slop is Latent Space's Discord bot. It searches the wiki-base, answers questions
 
 1. You send a message mentioning @Slop (or use a slash command)
 2. Slop builds a system prompt with its personality, your member profile, and a list of skills
-3. The LLM gets 9 internal tools it can call to search the wiki-base
+3. The LLM gets 11 internal tools it can call to search the wiki-base
 4. The LLM decides what to search, calls tools, reads results, and may search again (up to 5 rounds)
 5. The LLM generates a response with source links
 6. Slop posts the response in a Discord thread
@@ -71,7 +71,7 @@ Bot builds system prompt:
 Bot sends to OpenRouter (Claude Sonnet 4.6) with:
   - System prompt
   - User message
-  - 9 internal tool definitions
+  - 11 internal tool definitions
     |
     v
 LLM decides what to do:
@@ -159,7 +159,7 @@ Mention @Slop in any allowed channel to start a conversation. Slop creates a thr
 
 # Tools
 
-Slop has 9 internal tools that query Turso directly. These are defined in `apps/bots/slop/src/tools.ts`, not via MCP.
+Slop has 11 internal tools that query Turso directly. These are defined in `apps/bots/slop/src/tools.ts`, not via MCP.
 
 **Search tools** (each uses a different index type):
 
@@ -176,11 +176,13 @@ Slop has 9 internal tools that query Turso directly. These are defined in `apps/
 | `slop_get_nodes` | Load full node records by ID |
 | `slop_query_edges` | Find connections from a node |
 | `slop_list_dimensions` | List all categories with counts |
+| `slop_get_upcoming_events` | Get upcoming scheduled Paper Club or Builders Club events |
+| `slop_get_recent_paper_candidates` | Get recent Paper Club candidate papers detected from Discord shares |
 | `slop_get_context` | Wiki-base stats (nodes, edges, chunks) |
 | `slop_sqlite_query` | Read-only SQL for date filters, aggregations, event queries |
 | `slop_read_skill` | Read full skill instructions (from local bot files) |
 
-The system prompt tells the LLM which search tool to use based on the query type. Temporal queries ("latest", "upcoming") route to `sqlite_query`. Event queries explicitly use `node_type='event'` with metadata filters to avoid confusing scheduled sessions with past recordings.
+The system prompt tells the LLM which search tool to use based on the query type. Upcoming event questions route to `slop_get_upcoming_events`; recent Paper Club candidate questions route to `slop_get_recent_paper_candidates`. Other temporal queries ("latest", "newest", "recent") route to `sqlite_query`. Event queries explicitly use `node_type='event'` with metadata filters to avoid confusing scheduled sessions with past recordings.
 
 The LLM can call multiple tools across up to 5 rounds before generating its response.
 

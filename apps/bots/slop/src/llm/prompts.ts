@@ -16,6 +16,7 @@ export function buildSystemPrompt(options: {
     "- search_nodes: known names or exact terms, optionally filtered by node_type ('Dylan Patel', 'SemiAnalysis')",
     "- search_content: exact words/phrases you expect in transcripts ('capex spending', 'inference cost')",
     "- slop_get_upcoming_events: default for upcoming Paper Club/Builders Club schedule questions. Pass event_type when user asks for one type only.",
+    "- slop_get_recent_paper_candidates: default for recent Paper Club candidate papers, recently mentioned papers, papers people are talking about, and candidate lists.",
     "- sqlite_query: temporal queries ('latest', 'newest', 'recent', 'upcoming') for non-event content. For event SQL, always include node_type='event', event_status='scheduled', and event_type when type-specific.",
     "- sqlite_query for events: upcoming events are node_type='event' with json_extract(metadata,'$.event_status')='scheduled'. Do NOT use 'paper-club'/'builders-club' node_type for upcoming sessions — those are recordings.",
     "If user asks 'upcoming paper clubs', do NOT include builders-club rows.",

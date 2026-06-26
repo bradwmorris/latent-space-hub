@@ -61,7 +61,11 @@ export default function LeftTypePanel({
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
-            setTypeCounts(data.data);
+            const paperMentions = await fetch('/api/paper-mentions?limit=250')
+              .then(res => res.json())
+              .then(papers => papers.success ? [{ type: 'paper-mentions', count: papers.count || papers.data?.length || 0 }] : [])
+              .catch(() => []);
+            setTypeCounts([...data.data, ...paperMentions]);
           }
         }
       } catch (error) {
@@ -101,6 +105,10 @@ export default function LeftTypePanel({
   }, [typeNodes]);
 
   const handleTypeClick = useCallback((type: string) => {
+    if (type === 'paper-mentions') {
+      onTypeSelect(type === selectedType ? null : type);
+      return;
+    }
     // Toggle expansion
     setExpandedTypes(prev => {
       const next = new Set(prev);

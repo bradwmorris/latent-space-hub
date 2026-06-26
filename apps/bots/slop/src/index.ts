@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { ALLOWED_CHANNEL_IDS, db, profiles } from "./config";
-import { ensureScheduledEventSlotIndex } from "./db";
+import { ensurePaperMentionsTable, ensureScheduledEventSlotIndex } from "./db";
 import { startBot } from "./discord/bot";
 import { startKickoffServer } from "./kickoff/server";
 import { ensureMemberDiscordIndex } from "./members";
@@ -26,6 +26,7 @@ async function main(): Promise<void> {
   }
 
   await ensureMemberDiscordIndex();
+  await ensurePaperMentionsTable(db);
   await ensureScheduledEventSlotIndex(db);
   console.log("Scheduled-event slot uniqueness index ready.");
   console.log(`Local tools loaded: ${TOOL_DEFINITIONS.length} read-only tools available for LLM`);

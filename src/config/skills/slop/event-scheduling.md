@@ -25,6 +25,7 @@ Paper Club and Builders Club sessions are scheduled via Discord slash commands. 
 - `/edit-event` — edit title, paper URL, date, or cancel your own scheduled event
 - `/join` — optional, enriches your member profile with interests, role, company, etc.
 - Recording intake — mention Slop with "add this recording" plus a YouTube URL. Slop creates or reuses the recording node, marks the matching event completed, and links recording → event. If the match is unclear, Slop asks which event to attach.
+- Paper candidate detection — when paper-ish links are shared in configured Paper Club channels, Slop creates/reuses a discussion thread, stores a candidate node, posts a short TLDR, and adds a `Present this at Paper Club` button.
 
 If someone schedules without having `/join`'d, a member node is auto-created from their Discord info. If someone asks you to schedule or edit an event, direct them to use the slash command.
 
@@ -43,3 +44,33 @@ ORDER BY event_date ASC
 **Important:** Do NOT query `paper-club` or `builders-club` node_types for upcoming sessions. Those are recording nodes. Upcoming sessions are `node_type = 'event'` with `event_status = 'scheduled'`.
 
 If no upcoming events, say so and mention they can schedule one with `/paper-club` or `/builders-club`.
+
+**Recent Paper Club candidate papers:**
+Use `slop_get_recent_paper_candidates` first.
+
+Examples:
+
+```json
+{ "status": "all", "limit": 10 }
+```
+
+```json
+{ "status": "open", "limit": 10 }
+```
+
+Use `status: "all"` for "recently mentioned papers" or "recent candidates" because candidates that become scheduled are still useful recent paper mentions. Use `status: "open"` only when the user asks for unscheduled papers or papers that still need a presenter.
+
+If you must use SQL:
+```sql
+SELECT id, title, link, created_at,
+       json_extract(metadata, '$.event_status') AS status,
+       json_extract(metadata, '$.presenter_status') AS presenter_status,
+       json_extract(metadata, '$.source_url') AS source_url,
+       json_extract(metadata, '$.discord_thread_id') AS discord_thread_id
+FROM nodes
+WHERE node_type = 'event'
+  AND json_extract(metadata, '$.event_type') = 'paper-club'
+  AND json_extract(metadata, '$.created_via') = 'slop-paper-candidate'
+ORDER BY datetime(created_at) DESC, id DESC
+LIMIT 10
+```
