@@ -37,6 +37,7 @@ export type RuntimeCommandName =
   | "paper-club"
   | "builders-club"
   | "edit-event"
+  | "papers"
   | "issue";
 
 export type RuntimeCommandOptionValue = string | boolean | null;

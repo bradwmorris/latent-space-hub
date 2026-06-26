@@ -15,12 +15,12 @@ export interface CategoryConfig {
 }
 
 export const CATEGORIES: CategoryConfig[] = [
-  { key: 'podcast',       label: 'Podcast',       icon: Mic,          sortMode: 'recent',    order: 0 },
-  { key: 'guest',         label: 'Guest',          icon: Users,        sortMode: 'connected', order: 1 },
-  { key: 'article',       label: 'Article',        icon: FileText,     sortMode: 'recent',    order: 2 },
-  { key: 'entity',        label: 'Entity',         icon: Building2,    sortMode: 'connected', order: 3 },
-  { key: 'event',          label: 'Events',         icon: CalendarDays, sortMode: 'recent',    order: 4 },
-  { key: 'paper-mentions', label: 'Mentioned Papers', icon: ScrollText, sortMode: 'recent',   order: 5 },
+  { key: 'paper-mentions', label: 'Papers',        icon: ScrollText,   sortMode: 'recent',    order: 0 },
+  { key: 'podcast',       label: 'Podcast',       icon: Mic,          sortMode: 'recent',    order: 1 },
+  { key: 'guest',         label: 'Guest',          icon: Users,        sortMode: 'connected', order: 2 },
+  { key: 'article',       label: 'Article',        icon: FileText,     sortMode: 'recent',    order: 3 },
+  { key: 'entity',        label: 'Entity',         icon: Building2,    sortMode: 'connected', order: 4 },
+  { key: 'event',          label: 'Events',         icon: CalendarDays, sortMode: 'recent',    order: 5 },
   { key: 'builders-club', label: 'Builders Club',  icon: Hammer,       sortMode: 'recent',    order: 6 },
   { key: 'paper-club',    label: 'Paper Club',     icon: BookOpen,     sortMode: 'recent',    order: 7 },
   { key: 'workshop',      label: 'Workshop',       icon: Presentation, sortMode: 'recent',    order: 8 },

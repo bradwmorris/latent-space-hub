@@ -12,6 +12,7 @@ import {
   startEditEventCommandEvent,
 } from "../commands/edit-event-service";
 import { handleIssueCommandEvent } from "../commands/issue-service";
+import { handlePapersCommandEvent } from "../commands/papers-service";
 import {
   handleRecordingIntakeReplyEvent,
 } from "../chat/recording-intake";
@@ -66,6 +67,9 @@ export async function dispatchRuntimeCommandEvent(
       return;
     case "edit-event":
       await startEditEventCommandEvent(event, transport);
+      return;
+    case "papers":
+      await handlePapersCommandEvent(event, transport);
       return;
     case "issue":
       await handleIssueCommandEvent(event, transport);

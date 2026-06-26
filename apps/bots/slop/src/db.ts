@@ -375,6 +375,21 @@ export async function getPaperMentionById(
   return result.rows.length ? rowToPaperMention(result.rows[0] as Record<string, unknown>) : null;
 }
 
+export async function getRecentPaperMentions(
+  db: LibsqlClient,
+  options: { limit: number } = { limit: 10 }
+): Promise<PaperMentionRow[]> {
+  await ensurePaperMentionsTable(db);
+  const limit = Math.min(Math.max(Number(options.limit) || 10, 1), 50);
+  const result = await db.execute({
+    sql: `SELECT * FROM paper_mentions
+          ORDER BY datetime(created_at) DESC, id DESC
+          LIMIT ?`,
+    args: [limit],
+  });
+  return result.rows.map((row) => rowToPaperMention(row as Record<string, unknown>));
+}
+
 export async function upsertPaperMention(
   db: LibsqlClient,
   payload: {

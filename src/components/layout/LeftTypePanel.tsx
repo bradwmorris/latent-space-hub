@@ -405,6 +405,7 @@ export default function LeftTypePanel({
           const isLoading = loadingTypes.has(key);
           const nodes = typeNodes[key] || [];
           const isDimmed = count === 0;
+          const isPrimaryPapers = key === 'paper-mentions';
 
           return (
             <div key={key}>
@@ -419,20 +420,27 @@ export default function LeftTypePanel({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: isSelected ? 'var(--bg-hover)' : (isHovered ? 'var(--bg-surface)' : 'transparent'),
+                  background: isSelected
+                    ? 'var(--bg-hover)'
+                    : isPrimaryPapers
+                      ? 'rgba(139, 92, 246, 0.08)'
+                      : (isHovered ? 'var(--bg-surface)' : 'transparent'),
                   border: 'none',
-                  borderLeft: isSelected ? '2px solid var(--accent-brand)' : '2px solid transparent',
-                  color: isDimmed ? 'var(--text-muted)' : (isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'),
+                  borderLeft: isSelected || isPrimaryPapers ? '2px solid var(--accent-brand)' : '2px solid transparent',
+                  color: isDimmed && !isPrimaryPapers ? 'var(--text-muted)' : (isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'),
                   cursor: 'pointer',
                   fontSize: '13px',
+                  fontWeight: isPrimaryPapers ? 600 : 400,
                   textAlign: 'left',
                   transition: 'background 0.1s, color 0.1s',
-                  opacity: isDimmed ? 0.5 : 1,
+                  opacity: isDimmed && !isPrimaryPapers ? 0.5 : 1,
                 }}
                 aria-expanded={isExpanded}
                 aria-label={`${label}, ${count} nodes`}
               >
-                {isExpanded ? (
+                {isPrimaryPapers ? (
+                  <span style={{ width: '14px', flexShrink: 0 }} />
+                ) : isExpanded ? (
                   <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--accent-dark)' }} />
                 ) : (
                   <ChevronRight size={14} style={{ flexShrink: 0, color: 'var(--accent-dark)' }} />

@@ -133,6 +133,20 @@ export const TOOL_DEFINITIONS: OpenAIToolDef[] = [
   {
     type: "function",
     function: {
+      name: "slop_get_recent_papers",
+      description:
+        "Get recent papers and technical reports shared in Discord and stored in the Papers table. Use this for recent papers, papers people mentioned, and the Paper Club paper queue.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: { type: "number", description: "Max papers (default 10, max 50)" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "slop_get_recent_paper_candidates",
       description:
         "Get recent Paper Club candidate papers detected from Discord paper-ish shares. Use this for 'recent paper candidates', 'recently mentioned papers', 'papers people are talking about', or Paper Club candidate lists.",
@@ -265,6 +279,14 @@ export const TOOL_HANDLERS: Record<string, ToolHandler> = {
       const limit = Math.min(Math.max(Number(args.limit) || 10, 1), 50);
       const events = await dbOps.getUpcomingScheduledEvents(db, { eventType, limit });
       return JSON.stringify({ events, count: events.length });
+    },
+  },
+
+  slop_get_recent_papers: {
+    execute: async (args, db) => {
+      const limit = Math.min(Math.max(Number(args.limit) || 10, 1), 50);
+      const papers = await dbOps.getRecentPaperMentions(db, { limit });
+      return JSON.stringify({ papers, count: papers.length });
     },
   },
 

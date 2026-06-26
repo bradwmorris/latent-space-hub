@@ -22,6 +22,9 @@ export async function registerSlashCommands(profile: BotProfile): Promise<void> 
       .setName("edit-event")
       .setDescription("Edit or cancel one of your scheduled events"),
     new SlashCommandBuilder()
+      .setName("papers")
+      .setDescription("Show the 10 most recently shared papers"),
+    new SlashCommandBuilder()
       .setName("issue")
       .setDescription("Create a GitHub issue in the Latent Space Hub repo")
       .addStringOption((option) =>
