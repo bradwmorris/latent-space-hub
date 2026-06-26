@@ -43,6 +43,35 @@ export async function GET() {
     // Category data — one query per category for count + preview
     const categories: CategoryData[] = await Promise.all(
       CATEGORIES.map(async (cat) => {
+        if (cat.key === 'paper-mentions') {
+          const [countResult, previewResult] = await Promise.all([
+            sqlite.query<{ cnt: number }>("SELECT COUNT(*) as cnt FROM paper_mentions"),
+            sqlite.query<{
+              id: number;
+              title: string;
+              paper_url: string;
+              created_at: string;
+            }>(
+              `SELECT id, title, paper_url, created_at
+               FROM paper_mentions
+               ORDER BY datetime(created_at) DESC, id DESC
+               LIMIT 3`
+            ),
+          ]);
+
+          return {
+            key: cat.key,
+            label: cat.label,
+            count: Number(countResult.rows[0]?.cnt ?? 0),
+            preview: previewResult.rows.map(r => ({
+              id: Number(r.id),
+              title: r.title,
+              link: r.paper_url || undefined,
+              date: r.created_at?.split('T')[0],
+            })),
+          };
+        }
+
         // Count
         const countResult = await sqlite.query<{ cnt: number }>(
           "SELECT COUNT(*) as cnt FROM nodes WHERE node_type = ?",

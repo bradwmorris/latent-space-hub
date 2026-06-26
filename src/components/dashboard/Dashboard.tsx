@@ -391,7 +391,7 @@ export default function Dashboard({ onCategoryClick, onNodeClick }: DashboardPro
                     return (
                       <button
                         key={item.id}
-                        onClick={() => onNodeClick(item.id)}
+                        onClick={() => cat.key === 'paper-mentions' ? onCategoryClick(cat.key) : onNodeClick(item.id)}
                         onMouseEnter={() => setHoveredNode(item.id)}
                         onMouseLeave={() => setHoveredNode(null)}
                         tabIndex={0}
