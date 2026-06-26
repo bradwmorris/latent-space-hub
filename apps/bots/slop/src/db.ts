@@ -61,6 +61,7 @@ export type PaperMentionRow = {
   title: string;
   paper_url: string;
   summary: string;
+  thumbnail_url: string | null;
   source_url: string | null;
   discord_channel_id: string | null;
   discord_message_id: string | null;
@@ -288,6 +289,7 @@ export async function ensurePaperMentionsTable(db: LibsqlClient): Promise<void> 
               title TEXT NOT NULL,
               paper_url TEXT NOT NULL,
               summary TEXT NOT NULL,
+              thumbnail_url TEXT,
               source_url TEXT,
               discord_channel_id TEXT,
               discord_message_id TEXT UNIQUE,
@@ -309,6 +311,7 @@ export async function ensurePaperMentionsTable(db: LibsqlClient): Promise<void> 
     { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_suggested_by ON paper_mentions(suggested_by_discord_id)`, args: [] },
     { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_thread ON paper_mentions(discord_thread_id)`, args: [] },
   ]);
+  await db.execute({ sql: `ALTER TABLE paper_mentions ADD COLUMN thumbnail_url TEXT`, args: [] }).catch(() => undefined);
 }
 
 function rowToPaperMention(row: Record<string, unknown>): PaperMentionRow {
@@ -319,6 +322,7 @@ function rowToPaperMention(row: Record<string, unknown>): PaperMentionRow {
     title: String(row.title || ""),
     paper_url: String(row.paper_url || ""),
     summary: String(row.summary || ""),
+    thumbnail_url: row.thumbnail_url == null ? null : String(row.thumbnail_url),
     source_url: row.source_url == null ? null : String(row.source_url),
     discord_channel_id: row.discord_channel_id == null ? null : String(row.discord_channel_id),
     discord_message_id: row.discord_message_id == null ? null : String(row.discord_message_id),
@@ -397,6 +401,7 @@ export async function upsertPaperMention(
     paperUrl: string;
     summary: string;
     sourceUrl?: string;
+    thumbnailUrl?: string;
     discordChannelId: string;
     discordMessageId: string;
     discordThreadId: string;
@@ -409,7 +414,7 @@ export async function upsertPaperMention(
   if (existing) {
     await db.execute({
       sql: `UPDATE paper_mentions
-            SET title = ?, paper_url = ?, summary = ?, source_url = ?,
+            SET title = ?, paper_url = ?, summary = ?, thumbnail_url = ?, source_url = ?,
                 discord_channel_id = ?, discord_thread_id = ?,
                 suggested_by_discord_id = ?, suggested_by_handle = ?, updated_at = ?
             WHERE id = ?`,
@@ -417,6 +422,7 @@ export async function upsertPaperMention(
         payload.title,
         payload.paperUrl,
         payload.summary,
+        payload.thumbnailUrl ?? null,
         payload.sourceUrl ?? null,
         payload.discordChannelId,
         payload.discordThreadId,
@@ -431,16 +437,17 @@ export async function upsertPaperMention(
 
   const result = await db.execute({
     sql: `INSERT INTO paper_mentions (
-            title, paper_url, summary, source_url,
+            title, paper_url, summary, thumbnail_url, source_url,
             discord_channel_id, discord_message_id, discord_thread_id,
             suggested_by_discord_id, suggested_by_handle,
             status, created_at, updated_at
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'mentioned', ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'mentioned', ?, ?)`,
     args: [
       payload.title,
       payload.paperUrl,
       payload.summary,
+      payload.thumbnailUrl ?? null,
       payload.sourceUrl ?? null,
       payload.discordChannelId,
       payload.discordMessageId,

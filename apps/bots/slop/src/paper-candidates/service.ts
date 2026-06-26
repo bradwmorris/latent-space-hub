@@ -4,7 +4,7 @@ import {
   type Message,
   type PublicThreadChannel,
 } from "discord.js";
-import { PAPER_CANDIDATE_CHANNEL_IDS, db } from "../config";
+import { HUB_BASE_URL, PAPER_CANDIDATE_CHANNEL_IDS, db } from "../config";
 import * as dbOps from "../db";
 import { detectPaperCandidate } from "./detect";
 import { summarizePaperCandidate } from "./source";
@@ -73,6 +73,8 @@ function formatCandidateMessage(params: {
     sources,
     "",
     `Suggested by ${params.suggestedBy}`,
+    "",
+    `Added to the [Papers backlog](${HUB_BASE_URL}/?type=paper-mentions).`,
   ].join("\n");
 }
 
@@ -104,6 +106,7 @@ export async function handlePaperCandidateMessage(message: Message): Promise<boo
     title: summary.title,
     paperUrl: detection.paperUrl,
     sourceUrl: detection.sourceUrl,
+    thumbnailUrl: summary.imageUrl,
     summary: summary.description || summary.tldr.join("\n"),
     discordChannelId: message.channelId,
     discordMessageId: message.id,

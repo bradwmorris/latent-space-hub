@@ -7,6 +7,7 @@ export type PaperCandidateSummary = {
   tldr: string[];
   sources: string[];
   description?: string;
+  imageUrl?: string;
 };
 
 const FETCH_TIMEOUT_MS = 8000;
@@ -133,6 +134,27 @@ function htmlTitle(html: string): string | null {
   return match ? stripTags(match[1]) : null;
 }
 
+function absoluteUrl(rawUrl: string | null, baseUrl: string): string | undefined {
+  if (!rawUrl) return undefined;
+  try {
+    return new URL(rawUrl, baseUrl).toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function firstImageUrl(html: string, baseUrl: string): string | undefined {
+  const matches = html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi);
+  for (const match of matches) {
+    const src = decodeEntities(match[1] || "");
+    if (!src || src.startsWith("data:")) continue;
+    if (/logo|avatar|icon|profile/i.test(src)) continue;
+    const resolved = absoluteUrl(src, baseUrl);
+    if (resolved) return resolved;
+  }
+  return undefined;
+}
+
 async function summarizeHtml(candidate: PaperCandidateDetection): Promise<PaperCandidateSummary | null> {
   const html = await fetchText(candidate.paperUrl);
   if (!html) return null;
@@ -148,6 +170,10 @@ async function summarizeHtml(candidate: PaperCandidateDetection): Promise<PaperC
       "og:description",
       "twitter:description",
     ]) || "";
+  const imageUrl = absoluteUrl(
+    metaContent(html, ["og:image", "twitter:image", "twitter:image:src"]),
+    candidate.paperUrl
+  ) || firstImageUrl(html, candidate.paperUrl);
 
   const bullets = description
     ? [`Source description: ${firstSentence(description)}`]
@@ -158,6 +184,7 @@ async function summarizeHtml(candidate: PaperCandidateDetection): Promise<PaperC
     tldr: bullets,
     sources: [candidate.paperUrl],
     description: description ? truncate(description, 500) : undefined,
+    imageUrl,
   };
 }
 
@@ -269,6 +296,7 @@ async function summarizeWithLlm(
       tldr,
       sources: [...new Set([candidate.paperUrl, ...contextSummary.sources, ...searchResults.map((r) => r.url).filter(Boolean)])].slice(0, 5),
       description: summary ? truncate(summary, 600) : contextSummary.description,
+      imageUrl: contextSummary.imageUrl,
     };
   } catch {
     const lines = parseSummaryLines(content);
@@ -278,6 +306,7 @@ async function summarizeWithLlm(
       tldr: lines,
       sources: [...new Set([candidate.paperUrl, ...contextSummary.sources, ...searchResults.map((r) => r.url).filter(Boolean)])].slice(0, 5),
       description: truncate(content, 600),
+      imageUrl: contextSummary.imageUrl,
     };
   }
 }

@@ -5,6 +5,7 @@ export type PaperMention = {
   title: string;
   paper_url: string;
   summary: string;
+  thumbnail_url: string | null;
   source_url: string | null;
   discord_channel_id: string | null;
   discord_message_id: string | null;
@@ -17,6 +18,11 @@ export type PaperMention = {
   confirmed_at: string | null;
   created_at: string;
   updated_at: string;
+  suggested_by_avatar_url: string | null;
+  scheduled_presenter_name: string | null;
+  scheduled_presenter_discord_id: string | null;
+  scheduled_presenter_avatar_url: string | null;
+  scheduled_event_date: string | null;
 };
 
 export class PaperMentionService {
@@ -29,6 +35,7 @@ export class PaperMentionService {
                 title TEXT NOT NULL,
                 paper_url TEXT NOT NULL,
                 summary TEXT NOT NULL,
+                thumbnail_url TEXT,
                 source_url TEXT,
                 discord_channel_id TEXT,
                 discord_message_id TEXT UNIQUE,
@@ -49,19 +56,38 @@ export class PaperMentionService {
       { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_suggested_by ON paper_mentions(suggested_by_discord_id)` },
       { sql: `CREATE INDEX IF NOT EXISTS idx_paper_mentions_thread ON paper_mentions(discord_thread_id)` },
     ]);
+    await sqlite.query(`ALTER TABLE paper_mentions ADD COLUMN thumbnail_url TEXT`).catch(() => undefined);
   }
 
   async list(limit = 100): Promise<PaperMention[]> {
     await this.ensureTable();
     const sqlite = getSQLiteClient();
     const result = await sqlite.query<PaperMention>(
-      `SELECT id, title, paper_url, summary, source_url,
-              discord_channel_id, discord_message_id, discord_thread_id,
-              suggested_by_discord_id, suggested_by_handle,
-              status, scheduled_event_node_id, confirmed_by_discord_id,
-              confirmed_at, created_at, updated_at
-       FROM paper_mentions
-       ORDER BY datetime(created_at) DESC, id DESC
+      `SELECT pm.id, pm.title, pm.paper_url, pm.summary, pm.source_url,
+              pm.thumbnail_url,
+              pm.discord_channel_id, pm.discord_message_id, pm.discord_thread_id,
+              pm.suggested_by_discord_id, pm.suggested_by_handle,
+              pm.status, pm.scheduled_event_node_id, pm.confirmed_by_discord_id,
+              pm.confirmed_at, pm.created_at, pm.updated_at,
+              json_extract(suggester.metadata, '$.avatar_url') AS suggested_by_avatar_url,
+              json_extract(event.metadata, '$.presenter_name') AS scheduled_presenter_name,
+              json_extract(event.metadata, '$.presenter_discord_id') AS scheduled_presenter_discord_id,
+              json_extract(presenter.metadata, '$.avatar_url') AS scheduled_presenter_avatar_url,
+              event.event_date AS scheduled_event_date
+       FROM paper_mentions pm
+       LEFT JOIN nodes suggester
+         ON suggester.node_type = 'member'
+        AND (
+          json_extract(suggester.metadata, '$.discord_id') = pm.suggested_by_discord_id
+          OR lower(json_extract(suggester.metadata, '$.discord_handle')) = lower(pm.suggested_by_handle)
+        )
+       LEFT JOIN nodes event
+         ON event.id = pm.scheduled_event_node_id
+        AND event.node_type = 'event'
+       LEFT JOIN nodes presenter
+         ON presenter.node_type = 'member'
+        AND json_extract(presenter.metadata, '$.discord_id') = json_extract(event.metadata, '$.presenter_discord_id')
+       ORDER BY datetime(pm.created_at) DESC, pm.id DESC
        LIMIT ?`,
       [Math.min(Math.max(limit, 1), 250)]
     );
