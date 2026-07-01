@@ -1,5 +1,6 @@
 import { db } from "../../config";
 import * as dbOps from "../../db";
+import { splitForDiscord } from "../../discord/format";
 import type {
   RuntimeCommandEvent,
   RuntimeCommandTransport,
@@ -27,5 +28,11 @@ export async function handlePapersCommandEvent(
     return `**${index + 1}. [${paper.title}](${paper.paper_url})**${suggestedBy}\n${summary}`;
   });
 
-  await transport.editReply(`**Recent papers**\n\n${lines.join("\n\n")}`);
+  const chunks = splitForDiscord(`**Recent papers**\n\n${lines.join("\n\n")}`);
+  const [firstChunk, ...remainingChunks] = chunks;
+
+  await transport.editReply(firstChunk);
+  for (const chunk of remainingChunks) {
+    await transport.followUp(chunk);
+  }
 }
