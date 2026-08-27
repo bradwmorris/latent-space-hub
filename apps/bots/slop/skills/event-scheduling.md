@@ -23,11 +23,12 @@ Paper Club and Builders Club sessions are scheduled via Discord slash commands. 
 - `/paper-club` — schedule a Paper Club session
 - `/builders-club` — schedule a Builders Club session
 - `/edit-event` — edit title, paper URL, date, or cancel your own scheduled event
+- Organizer channel scheduling — Vibhu or a configured Paper Club organizer can say `@Slop can you add @speaker to speak next week on "Paper title"` in the Paper Club channel (or use an explicit `YYYY-MM-DD`). Slop creates a confirmation thread, resolves the Wednesday, collects a missing paper link there, and asks for confirmation before scheduling.
 - `/join` — optional; if missing, a profile is auto-created on first scheduling
 - Recording intake — mention Slop with "add this recording" plus a YouTube URL. Slop creates or reuses the recording node, marks the matching event completed, and links recording → event. If the match is unclear, Slop asks which event to attach.
 - Paper candidate detection — when paper-ish links are shared in configured Paper Club channels, Slop creates/reuses a discussion thread, stores a candidate node, posts a short TLDR, and adds a `Present this at Paper Club` button.
 
-If someone asks you to schedule or edit an event, direct them to the slash command.
+For normal scheduling or editing, direct them to the slash command; configured Paper Club organizers may also use the channel command above.
 
 ## Querying Events
 

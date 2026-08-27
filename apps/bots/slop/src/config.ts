@@ -71,6 +71,12 @@ export const PAPER_SCHEDULER_ADMIN_DISCORD_IDS = new Set(
     .map((value) => value.trim())
     .filter(Boolean)
 );
+export const PAPER_SCHEDULER_ADMIN_USERNAMES = new Set(
+  (process.env.PAPER_SCHEDULER_ADMIN_USERNAMES || "swyxio,bradwmorris,beeradley")
+    .split(",")
+    .map((value) => value.trim().replace(/^@/, "").toLowerCase())
+    .filter(Boolean)
+);
 export const GITHUB_ISSUE_TOKEN = secretFromEnv(process.env.GITHUB_ISSUE_TOKEN || process.env.GITHUB_BACKLOG_TOKEN);
 export const GITHUB_ISSUE_REPO_OWNER =
   process.env.GITHUB_ISSUE_REPO_OWNER || process.env.GITHUB_REPO_OWNER || "bradwmorris";

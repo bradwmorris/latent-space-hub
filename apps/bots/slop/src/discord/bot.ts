@@ -39,15 +39,15 @@ export async function handleMessage(client: Client, profile: BotProfile, message
   if (!botUserId) return;
   processedMessageIds.add(dedupeKey);
   try {
-    await handlePaperCandidateMessage(message);
-  } catch (error) {
-    console.warn("Paper candidate handling failed:", error);
-  }
-  try {
     const handledPaperAdmin = await handlePaperMentionAdminMessage(message);
     if (handledPaperAdmin) return;
   } catch (error) {
     console.warn("Paper mention admin handling failed:", error);
+  }
+  try {
+    await handlePaperCandidateMessage(message);
+  } catch (error) {
+    console.warn("Paper candidate handling failed:", error);
   }
   const allowed = !ALLOWED_CHANNEL_IDS.size || ALLOWED_CHANNEL_IDS.has(message.channelId);
   await dispatchRuntimeMessageEvent(

@@ -488,6 +488,20 @@ export async function markPaperMentionScheduled(
   });
 }
 
+export async function updatePaperMentionPaperUrl(
+  db: LibsqlClient,
+  paperMentionId: number,
+  paperUrl: string
+): Promise<void> {
+  const now = new Date().toISOString();
+  await db.execute({
+    sql: `UPDATE paper_mentions
+          SET paper_url = ?, updated_at = ?
+          WHERE id = ?`,
+    args: [paperUrl, now, paperMentionId],
+  });
+}
+
 // ── Paper candidate operations ─────────────────────────────────
 
 export async function ensurePaperCandidateIndex(db: LibsqlClient): Promise<void> {

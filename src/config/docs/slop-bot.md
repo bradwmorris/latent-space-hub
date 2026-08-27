@@ -123,6 +123,14 @@ Schedule a Paper Club session (every Wednesday, 12-1pm PT).
 2. You reply with a number and your paper title (optionally with a URL)
 3. Slop creates an event node in the wiki-base and confirms
 
+Paper Club organizers can start scheduling directly in the Paper Club channel:
+
+`@Slop can you add @speaker to speak next week on "Paper title"`
+
+Slop creates a confirmation thread from that message, resolves `next week` to the following Wednesday in the Paper Club timezone, and asks for confirmation before creating anything. An explicit `YYYY-MM-DD` also works. If the channel message has no paper URL, Slop asks for it in the new thread, saves it to the paper backlog, and includes it on the scheduled event.
+
+The configured organizers are Vibhu plus the `swyxio`, `bradwmorris`, and `beeradley` Discord accounts. The resolved date must be an available Wednesday.
+
 ## /builders-club
 
 **Usage:** `/builders-club`
