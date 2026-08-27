@@ -379,6 +379,21 @@ export async function getPaperMentionById(
   return result.rows.length ? rowToPaperMention(result.rows[0] as Record<string, unknown>) : null;
 }
 
+export async function getOpenPaperMentionByPaperUrl(
+  db: LibsqlClient,
+  paperUrl: string
+): Promise<PaperMentionRow | null> {
+  const result = await db.execute({
+    sql: `SELECT * FROM paper_mentions
+          WHERE paper_url = ?
+            AND status != 'scheduled'
+          ORDER BY datetime(created_at) DESC, id DESC
+          LIMIT 1`,
+    args: [paperUrl],
+  });
+  return result.rows.length ? rowToPaperMention(result.rows[0] as Record<string, unknown>) : null;
+}
+
 export async function getRecentPaperMentions(
   db: LibsqlClient,
   options: { limit: number } = { limit: 10 }
@@ -410,12 +425,16 @@ export async function upsertPaperMention(
   }
 ): Promise<{ id: number; alreadyExists: boolean }> {
   const now = new Date().toISOString();
-  const existing = await getPaperMentionByDiscordMessageId(db, payload.discordMessageId);
+  const existingByMessage = await getPaperMentionByDiscordMessageId(db, payload.discordMessageId);
+  const existingByUrl = payload.paperUrl
+    ? await getOpenPaperMentionByPaperUrl(db, payload.paperUrl)
+    : null;
+  const existing = existingByMessage || existingByUrl;
   if (existing) {
     await db.execute({
       sql: `UPDATE paper_mentions
             SET title = ?, paper_url = ?, summary = ?, thumbnail_url = ?, source_url = ?,
-                discord_channel_id = ?, discord_thread_id = ?,
+                discord_channel_id = ?, discord_message_id = ?, discord_thread_id = ?,
                 suggested_by_discord_id = ?, suggested_by_handle = ?, updated_at = ?
             WHERE id = ?`,
       args: [
@@ -425,6 +444,7 @@ export async function upsertPaperMention(
         payload.thumbnailUrl ?? null,
         payload.sourceUrl ?? null,
         payload.discordChannelId,
+        payload.discordMessageId,
         payload.discordThreadId,
         payload.suggestedByDiscordId,
         payload.suggestedByHandle,
