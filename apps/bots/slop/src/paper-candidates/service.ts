@@ -52,14 +52,41 @@ async function getOrCreatePaperThread(
   }
 }
 
-function formatCandidateMessage(params: {
+function truncate(text: string, max: number): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, max - 3).trim()}...`;
+}
+
+function safeSummary(text: string | undefined): string {
+  const fallback = "Slop could not verify enough detail to summarize this paper safely yet.";
+  if (!text?.trim()) return fallback;
+  const clean = text.trim();
+  if (!clean.startsWith("{")) return truncate(clean, 420);
+  try {
+    const parsed = JSON.parse(clean) as { summary?: unknown };
+    return typeof parsed.summary === "string" && parsed.summary.trim()
+      ? truncate(parsed.summary, 420)
+      : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function formatCandidateMessage(params: {
   title: string;
   paperUrl: string;
-  tldr: string[];
+  summary?: string;
+  takeaways: string[];
   sources: string[];
   suggestedBy: string;
 }): string {
-  const tldr = params.tldr.slice(0, 3).map((line) => `- ${line}`).join("\n");
+  const summary = safeSummary(params.summary);
+  const takeaways = params.takeaways
+    .filter((line) => !line.trim().startsWith("{"))
+    .slice(0, 5)
+    .map((line) => `- ${truncate(line, 170)}`)
+    .join("\n");
   const sources = [...new Set(params.sources)].slice(0, 3).join("\n");
   return [
     `**Paper mentioned:** ${params.title}`,
@@ -67,7 +94,10 @@ function formatCandidateMessage(params: {
     params.paperUrl,
     "",
     "**Summary**",
-    tldr,
+    summary,
+    "",
+    "**Main takeaways**",
+    takeaways,
     "",
     "**Sources**",
     sources,
@@ -119,7 +149,8 @@ export async function handlePaperCandidateMessage(message: Message): Promise<boo
     content: formatCandidateMessage({
       title: summary.title,
       paperUrl: detection.paperUrl,
-      tldr: summary.tldr,
+      summary: summary.description,
+      takeaways: summary.tldr,
       sources: summary.sources,
       suggestedBy: `<@${message.author.id}>`,
     }),

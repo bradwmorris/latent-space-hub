@@ -233,7 +233,7 @@ function parseSummaryLines(text: string): string[] {
     .split("\n")
     .map((line) => line.replace(/^[-*\d.\s]+/, "").trim())
     .filter(Boolean)
-    .slice(0, 4);
+    .slice(0, 5);
 }
 
 async function summarizeWithLlm(
@@ -263,12 +263,12 @@ async function summarizeWithLlm(
     body: JSON.stringify({
       model: SLOP_MODEL,
       temperature: 0.2,
-      max_tokens: 450,
+      max_tokens: 650,
       messages: [
         {
           role: "system",
           content:
-            "You summarize papers for a Discord Paper Club queue. Be concise, factual, and cautious. Use only the supplied context. Return JSON with keys title, summary, bullets. bullets must be 2-4 short strings.",
+            "You summarize papers for a Discord Paper Club queue. Be concise, factual, and cautious. Use only the supplied context. Return JSON with keys title, summary, bullets. summary must be one concise paragraph, ideally 2-4 sentences. bullets must be 3-5 short strings covering the main takeaways.",
         },
         {
           role: "user",
@@ -290,7 +290,7 @@ async function summarizeWithLlm(
     const bullets = Array.isArray(parsed.bullets)
       ? parsed.bullets.map((line) => String(line).trim()).filter(Boolean)
       : parseSummaryLines(summary);
-    const tldr = bullets.length ? bullets.slice(0, 4) : contextSummary.tldr;
+    const tldr = bullets.length ? bullets.slice(0, 5) : contextSummary.tldr;
     return {
       title,
       tldr,
@@ -299,15 +299,8 @@ async function summarizeWithLlm(
       imageUrl: contextSummary.imageUrl,
     };
   } catch {
-    const lines = parseSummaryLines(content);
-    if (!lines.length) return null;
-    return {
-      title: contextSummary.title,
-      tldr: lines,
-      sources: [...new Set([candidate.paperUrl, ...contextSummary.sources, ...searchResults.map((r) => r.url).filter(Boolean)])].slice(0, 5),
-      description: truncate(content, 600),
-      imageUrl: contextSummary.imageUrl,
-    };
+    console.warn("[paper-candidates] Structured summary was invalid; using source extraction.");
+    return null;
   }
 }
 

@@ -40,12 +40,27 @@ export async function handleMessage(client: Client, profile: BotProfile, message
   processedMessageIds.add(dedupeKey);
   try {
     const handledPaperAdmin = await handlePaperMentionAdminMessage(message);
-    if (handledPaperAdmin) return;
+    if (handledPaperAdmin) {
+      console.log("[paper-routing] organizer scheduling handled", {
+        messageId: message.id,
+        channelId: message.channelId,
+        authorId: message.author.id,
+      });
+      return;
+    }
   } catch (error) {
     console.warn("Paper mention admin handling failed:", error);
   }
   try {
-    await handlePaperCandidateMessage(message);
+    const handledPaperCandidate = await handlePaperCandidateMessage(message);
+    if (handledPaperCandidate) {
+      console.log("[paper-routing] paper candidate handled", {
+        messageId: message.id,
+        channelId: message.channelId,
+        authorId: message.author.id,
+      });
+      return;
+    }
   } catch (error) {
     console.warn("Paper candidate handling failed:", error);
   }

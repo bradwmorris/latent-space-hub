@@ -112,6 +112,10 @@ describe("paper mention organizer scheduling", () => {
     expect(isPaperAdminAction("@Slop create a Paper Club for @alice next week")).toBe(true);
     expect(parseProposedPaperTitle("@Slop add @alice to speak next week on 'Mechanics of Learning'"))
       .toBe("Mechanics of Learning");
+    const actualMessage =
+      '@LS_Slop - @sinan.io is doing paper club next week - the microsoft "reason wide, not deep" paper https://x.com/dair_ai/status/2087264294782279808?s=20';
+    expect(isPaperAdminAction(actualMessage)).toBe(true);
+    expect(parseProposedPaperTitle(actualMessage)).toBe("reason wide, not deep");
   });
 
   it("resolves next week to Wednesday in the Paper Club timezone", () => {
@@ -229,5 +233,31 @@ describe("paper mention organizer scheduling", () => {
         presenter_discord_id: "speaker-id",
       })
     );
+  });
+
+  it("routes the exact organizer assignment phrasing into confirmation", async () => {
+    mocks.getPaperMentionByDiscordThreadId.mockResolvedValue(null);
+    const createdThread = { id: "sinan-paper-thread", send: vi.fn().mockResolvedValue(undefined) };
+    const channelMessage = makeMessage({
+      threadId: "paper-channel",
+      content:
+        '<@slop-id> - <@speaker-id> is doing paper club next week - the microsoft "reason wide, not deep" paper https://x.com/dair_ai/status/2087264294782279808?s=20',
+      mentionedUsers: [bot, speaker],
+      createdThread,
+    });
+
+    await handlePaperMentionAdminMessage(channelMessage);
+
+    expect(mocks.upsertPaperMention).toHaveBeenCalledWith(
+      mocks.db,
+      expect.objectContaining({
+        title: "reason wide, not deep",
+        paperUrl: "https://x.com/dair_ai/status/2087264294782279808?s=20",
+        suggestedByDiscordId: "speaker-id",
+        suggestedByHandle: "alice",
+      })
+    );
+    expect(createdThread.send).toHaveBeenCalledWith(expect.stringContaining("Please confirm"));
+    expect(mocks.createEventNodeAtomic).not.toHaveBeenCalled();
   });
 });

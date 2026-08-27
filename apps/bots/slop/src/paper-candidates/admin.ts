@@ -10,6 +10,8 @@ import { createMemberNodeFromUser } from "../members";
 import { validateEventDate, validatePaperUrl } from "../commands/validation";
 
 const ADMIN_ACTION_RE = /\b(confirm|schedule|create|add|change|update)\b/i;
+const PAPER_CLUB_ASSIGNMENT_RE =
+  /\b(?:is|will be|will)\s+(?:doing|presenting|speaking(?:\s+at)?|hosting)\s+(?:the\s+)?paper\s+club\b/i;
 const CONFIRM_RE = /^(yes|y|confirm|confirmed|do it|schedule it|create it)[.!]?$/i;
 const CANCEL_RE = /^(no|n|cancel|stop|never mind|nevermind)[.!]?$/i;
 const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
@@ -27,7 +29,7 @@ type PendingPaperSchedule = {
 const pendingSchedules = new Map<string, PendingPaperSchedule>();
 
 export function isPaperAdminAction(text: string): boolean {
-  return ADMIN_ACTION_RE.test(text);
+  return ADMIN_ACTION_RE.test(text) || PAPER_CLUB_ASSIGNMENT_RE.test(text);
 }
 
 export function isPaperSchedulerAdmin(user: Pick<User, "id" | "username">): boolean {
@@ -74,6 +76,9 @@ function extractPaperUrl(text: string): string | null {
 export function parseProposedPaperTitle(text: string): string | null {
   const quoted = text.match(/\b(?:on|about)\s+["'“‘]([^"'”’]+)["'”’]/i);
   if (quoted?.[1]?.trim()) return quoted[1].replace(/\s+/g, " ").trim();
+  const anyQuoted = [...text.matchAll(/["“]([^"”]+)["”]|['‘]([^'’]+)['’]/g)];
+  const fallback = anyQuoted.at(-1)?.slice(1).find((value) => value?.trim());
+  if (fallback) return fallback.replace(/\s+/g, " ").trim();
   return null;
 }
 
@@ -251,8 +256,8 @@ export async function handlePaperMentionAdminMessage(message: Message): Promise<
       discordChannelId: message.channelId,
       discordMessageId: message.id,
       discordThreadId: thread.id,
-      suggestedByDiscordId: message.author.id,
-      suggestedByHandle: message.author.username,
+      suggestedByDiscordId: speaker.id,
+      suggestedByHandle: speaker.username,
     });
     mention = {
       id: created.id,
@@ -264,8 +269,8 @@ export async function handlePaperMentionAdminMessage(message: Message): Promise<
       discord_channel_id: message.channelId,
       discord_message_id: message.id,
       discord_thread_id: thread.id,
-      suggested_by_discord_id: message.author.id,
-      suggested_by_handle: message.author.username,
+      suggested_by_discord_id: speaker.id,
+      suggested_by_handle: speaker.username,
       status: "mentioned",
       scheduled_event_node_id: null,
       confirmed_by_discord_id: null,
